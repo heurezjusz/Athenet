@@ -1,2 +1,2 @@
 # Athena
-Make the network faster
+- mAke THE Network fAster
