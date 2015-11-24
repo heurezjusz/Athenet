@@ -201,8 +201,6 @@ def load_data(dataset):
         print 'Downloading data from %s' % origin
         urllib.urlretrieve(origin, dataset)
 
-    print '... loading data'
-
     # Load the dataset
     f = gzip.open(dataset, 'rb')
     train_set, valid_set, test_set = cPickle.load(f)

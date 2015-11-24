@@ -366,7 +366,6 @@ def test_lenet5(weights, biases, dataset='mnist.pkl.gz', batch_size=500, nkerns=
     layer0.W.set_value(weights[0])
     layer0.b.set_value(biases[0])
 
-
     layer1 = LeNetConvPoolLayer(
         rng,
         input=layer0.output,
