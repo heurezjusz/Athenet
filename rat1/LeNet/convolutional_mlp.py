@@ -364,7 +364,7 @@ def test_lenet5(weights, biases, dataset='mnist.pkl.gz', batch_size=500, nkerns=
         poolsize=(2, 2)
     )
     layer0.W.set_value(weights[0])
-    layer0.b = theano.shared(biases[0])
+    layer0.b.set_value(biases[0])
 
 
     layer1 = LeNetConvPoolLayer(
@@ -375,7 +375,7 @@ def test_lenet5(weights, biases, dataset='mnist.pkl.gz', batch_size=500, nkerns=
         poolsize=(2, 2)
     )
     layer1.W.set_value(weights[1])
-    layer1.b = theano.shared(biases[1])
+    layer1.b.set_value(biases[1])
 
     layer2_input = layer1.output.flatten(2)
 
@@ -388,12 +388,12 @@ def test_lenet5(weights, biases, dataset='mnist.pkl.gz', batch_size=500, nkerns=
         activation=T.tanh
     )
     layer2.W.set_value(weights[2])
-    layer2.b = theano.shared(biases[2])
+    layer2.b.set_value(biases[2])
 
     # classify the values of the fully-connected sigmoidal layer
     layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
     layer3.W.set_value(weights[3])
-    layer3.b = theano.shared(biases[3])
+    layer3.b.set_value(biases[3])
 
     test_model = theano.function(
         [index],
