@@ -320,10 +320,11 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                         for i in xrange(n_test_batches)
                     ]
                     test_score = numpy.mean(test_losses)
-                    print(('     epoch %i, minibatch %i/%i, test error of '
-                           'best model %f %%') %
-                          (epoch, minibatch_index + 1, n_train_batches,
-                           test_score * 100.))
+                    print "Accuracy on test data: %.2f%%" % round((1 - test_score) * 100, 2)
+                    #print(('     epoch %i, minibatch %i/%i, test error of '
+                    #       'best model %f %%') %
+                    #      (epoch, minibatch_index + 1, n_train_batches,
+                    #       test_score * 100.))
 
             if patience <= iter:
                 done_looping = True
@@ -337,6 +338,75 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
+
+    return [layer0, layer1, layer2, layer3]
+
+def test_lenet5(weights, biases, dataset='mnist.pkl.gz', batch_size=500, nkerns=[20, 50]):
+    datasets = load_data(dataset)
+    rng = numpy.random.RandomState(23455)
+
+    test_set_x, test_set_y = datasets[2]
+
+    n_test_batches = test_set_x.get_value(borrow=True).shape[0] / batch_size
+
+    index = T.lscalar()  # index to a [mini]batch
+
+    x = T.matrix('x')   # the data is presented as rasterized images
+    y = T.ivector('y')  # the labels are presented as 1D vector of
+                        # [int] labels
+    layer0_input = x.reshape((batch_size, 1, 28, 28))
+
+    layer0 = LeNetConvPoolLayer(
+        rng,
+        input=layer0_input,
+        image_shape=(batch_size, 1, 28, 28),
+        filter_shape=(nkerns[0], 1, 5, 5),
+        poolsize=(2, 2)
+    )
+    layer0.W.set_value(weights[0])
+    layer0.b = theano.shared(biases[0])
+
+
+    layer1 = LeNetConvPoolLayer(
+        rng,
+        input=layer0.output,
+        image_shape=(batch_size, nkerns[0], 12, 12),
+        filter_shape=(nkerns[1], nkerns[0], 5, 5),
+        poolsize=(2, 2)
+    )
+    layer1.W.set_value(weights[1])
+    layer1.b = theano.shared(biases[1])
+
+    layer2_input = layer1.output.flatten(2)
+
+    # construct a fully-connected sigmoidal layer
+    layer2 = HiddenLayer(
+        rng,
+        input=layer2_input,
+        n_in=nkerns[1] * 4 * 4,
+        n_out=500,
+        activation=T.tanh
+    )
+    layer2.W.set_value(weights[2])
+    layer2.b = theano.shared(biases[2])
+
+    # classify the values of the fully-connected sigmoidal layer
+    layer3 = LogisticRegression(input=layer2.output, n_in=500, n_out=10)
+    layer3.W.set_value(weights[3])
+    layer3.b = theano.shared(biases[3])
+
+    test_model = theano.function(
+        [index],
+        layer3.errors(y),
+        givens={
+            x: test_set_x[index * batch_size: (index + 1) * batch_size],
+            y: test_set_y[index * batch_size: (index + 1) * batch_size]
+        }
+    )
+    test_losses = [
+        test_model(i) for i in xrange(n_test_batches)]
+    test_score = numpy.mean(test_losses)
+    print "Accuracy on test data: %.2f%%" % round((1 - test_score) * 100, 2)
 
 if __name__ == '__main__':
     evaluate_lenet5()
