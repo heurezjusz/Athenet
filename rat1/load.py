@@ -1,5 +1,5 @@
 """
-Program for training and saving net to a file.
+Program for loading net from a file.
 """
 
 import cPickle
