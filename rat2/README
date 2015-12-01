@@ -5,5 +5,5 @@ written in Theano. The purpose of this experiment is to compare both libaries.
 
 Simple code for reseting part of weights in graph. Zero fills reseted fields.
 For any variable in graph, resets part of variable's elements that are closest
-to average of the variable. In sparsify_avg_evample.py, there are 2 "*.example"
+to average of the variable. In sparsify_avg_evample.py, there are 2 "*example"
 functions that are executable.
