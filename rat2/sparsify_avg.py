@@ -3,7 +3,10 @@ import numpy as np
 
 def sparsify_pred(m, pred):
     """
-    Resets elements of 'm' for which predicate 'pred' is true.
+    Resets elements of ndarray 'm' for which predicate 'pred' is true.
+    args:
+        m - numpy.ndarray to be modified
+        pred - predicate for modifying 'm'
     """
     for x in np.nditer(m, op_flags=['readwrite']):
         if pred(x):
@@ -86,16 +89,27 @@ def simple_var_pred():
     pred = lambda x: ("Variable" in x.name and "gradient" not in x.name)
     return pred
 
-def sparsify_graph_threshold(g, t):
+def sparsify_graph_threshold(sess, g, t):
+    """
+    Sparisfies fields in variables from 'g', in session 'sess' that are lower
+    than 't'.
+    args:
+        s - session in which we change values
+        g - graph in which variables are modified
+        t - threshold
+    """
     with g.as_default():
         pred = simple_var_pred()
         right_vars = filter(pred, tf.all_variables())
-        sess = tf.Session()
         for i in right_vars:
+            print i.name
             sess.run(i.initializer)
-            # set the new value
             new_value = i.eval(sess)
-            # TODO: there is a problem with UPDATEIFCOPY flag, need a
-            # workaround
-            # sparsify_threshold(new_value, t)
+            print "new_value:"
+            print new_value
+            sparsify_threshold(new_value, t)
+            print new_value
+            # update 'i' variable
             sess.run(i.assign(new_value))
+            print i
+            print i.eval(sess)

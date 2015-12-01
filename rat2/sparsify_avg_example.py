@@ -1,10 +1,9 @@
-import sparsify_avg
-from sparsify_avg import sparsify_p
+import tensorflow as tf
 import numpy as np
+import sparsify_avg as savg
 import time
 import os
 from sys import platform as _platform
-import tensorflow as tf
 
 m = np.random.rand(5, 4)
 
@@ -16,7 +15,7 @@ def is_linux():
 
 def f(x):
     c = m.copy()
-    sparsify_p(c, x)
+    savg.sparsify_p(c, x)
     print c
 
 def sparsify_p_example():
@@ -28,13 +27,29 @@ def sparsify_p_example():
 
 def make_simple_graph():
     """
-    Returns simple graph.
+    Returns simple graph with multiplication.
     """
     g = tf.Graph()
     with g.as_default():
-        a = tf.constant(4)
-        b = tf.constant(5)
-        v = tf.Variable(6)
-        o1 = a + v
-        o2 = b + v
+        a = tf.constant(np.random.rand(2, 4))
+        v = tf.Variable(np.random.rand(4, 5))
+        b = tf.constant(np.random.rand(5, 3))
+        o1 = tf.matmul(a, v)
+        o2 = tf.matmul(o1, b)
     return g
+
+def simple_sparsify_avg_test():
+    g = make_simple_graph()
+    with g.as_default():
+        sess = tf.Session()
+        init = tf.initialize_all_variables()
+        g_vars = tf.all_variables()
+    sess.run(init)
+    print "---g_vars before sparsifying---"
+    for i in g_vars:
+        print i.eval(sess)
+    savg.sparsify_graph_threshold(sess, g, 0.3)
+    print "---g_vars after sparsifying---"
+    for i in g_vars:
+        print i
+        print i.eval(sess)
