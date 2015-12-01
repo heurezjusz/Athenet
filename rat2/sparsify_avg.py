@@ -102,14 +102,8 @@ def sparsify_graph_threshold(sess, g, t):
         pred = simple_var_pred()
         right_vars = filter(pred, tf.all_variables())
         for i in right_vars:
-            print i.name
             sess.run(i.initializer)
             new_value = i.eval(sess)
-            print "new_value:"
-            print new_value
             sparsify_threshold(new_value, t)
-            print new_value
             # update 'i' variable
             sess.run(i.assign(new_value))
-            print i
-            print i.eval(sess)

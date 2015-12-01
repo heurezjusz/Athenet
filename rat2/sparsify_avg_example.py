@@ -47,6 +47,7 @@ def simple_sparsify_avg_test():
     sess.run(init)
     print "---g_vars before sparsifying---"
     for i in g_vars:
+        print i
         print i.eval(sess)
     savg.sparsify_graph_threshold(sess, g, 0.3)
     print "---g_vars after sparsifying---"
