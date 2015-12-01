@@ -53,9 +53,49 @@ def sparsify_p(m, p):
     threshold = diffs[k - 1]
     sparsify_threshold(m, threshold)
 
-#def sparsify_graph_threshold(g, t):
-#    with g.as_default():
-#        # trainable variables in g
-#        t_vars = tf.trainable_variables()
-#        for i in t_vars:
+def mul_var_pred():
+    """
+    Returns predicate that takes variables that are part of some
+    multiplication but are not auxiliary gradient descent variables.
+    No args.
+    """
+    g = tf.get_default_graph()
+    ops = g.get_operations()
+    # operations of multiplications
+    op_pred = lambda x: (("MatMul" in x.type or "mul" in x.type)
+            and "gradient" not in x.name)
+    right_ops = filter(op_pred, ops)
+    # any inputs of any multiplication (a * b => a, b are inputs of
+    # multiplication operation)
+    inputs = [op.inputs for op in right_ops]
+    # names of tensors that take part in multiplication and are not just
+    # auxiliary for gradient descent
+    names = [i.name for a_list in inputs for i in a_list]
+    name_pred = lambda x: ("Variable" in x and "gradient" not in x)
+    right_names = filter(name_pred, names)
+    # checks whether variable has name that is being used as input of a
+    # multiplication
+    pred = lambda x: x.name in right_names
+    return pred
 
+def simple_var_pred():
+    """
+    Returns predicate that takes variables that are not just auxiliary for
+    gradient descent. No args.
+    """
+    pred = lambda x: ("Variable" in x.name and "gradient" not in x.name)
+    return pred
+
+def sparsify_graph_threshold(g, t):
+    with g.as_default():
+        pred = simple_var_pred()
+        right_vars = filter(pred, tf.all_variables())
+        sess = tf.Session()
+        for i in right_vars:
+            sess.run(i.initializer)
+            # set the new value
+            new_value = i.eval(sess)
+            # TODO: there is a problem with UPDATEIFCOPY flag, need a
+            # workaround
+            # sparsify_threshold(new_value, t)
+            sess.run(i.assign(new_value))
