@@ -1,3 +1,8 @@
+"""
+Functions for removing weights from graph that are closest to average value
+of weights.
+"""
+
 import tensorflow as tf
 import numpy as np
 
@@ -89,17 +94,19 @@ def simple_var_pred():
     pred = lambda x: ("Variable" in x.name and "gradient" not in x.name)
     return pred
 
-def sparsify_graph_threshold(sess, g, t):
+def sparsify_graph_threshold(sess, g, t, pred_factory):
     """
-    Sparisfies fields in variables from 'g', in session 'sess' that are lower
-    than 't'.
+    For any variable in 'g', for session 'sess', resets elements of variable
+    that are not more distant from average of this variable than 't'. For
+    reseted field f form a variable 'v', (abs(avg(v) - f)) < t.
     args:
         s - session in which we change values
         g - graph in which variables are modified
         t - threshold
+        pred_factory - function that returns predicate for variables to reset.
     """
     with g.as_default():
-        pred = simple_var_pred()
+        pred = pred_factory()
         right_vars = filter(pred, tf.all_variables())
         for i in right_vars:
             sess.run(i.initializer)
@@ -107,3 +114,26 @@ def sparsify_graph_threshold(sess, g, t):
             sparsify_threshold(new_value, t)
             # update 'i' variable
             sess.run(i.assign(new_value))
+
+def sparsify_graph_p(sess, g, p, pred_factory):
+    """
+    For any variable 'v' in 'g', for session 'sess', resets about (p * size(v))
+    fields that are most close to avg(v). Precisely, for
+    k = floor(p * size(v)), number of reseted elements is number of elements not
+    more distant from average than k'th less distant element.
+    args:
+        s - session in which we change values
+        g - graph in which variables are modified
+        p - float, part of matrix to be reseted, must be in range [0, 1]
+        pred_factory - function that returns predicate for variables to reset.
+    """
+    with g.as_default():
+        #pred = simple_var_pred()
+        pred = pred_factory()
+        right_vars = filter(pred, tf.all_variables())
+        for i in right_vars:
+            sess.run(i.initializer)
+            new_value = i.eval(sess)
+            sparsify_p(new_value, p)
+            sess.run(i.assign(new_value))
+

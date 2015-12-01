@@ -1,29 +1,12 @@
+"""
+Functions simple_sparsify_avg_t_example() and simple_sparsify_avg_p_example()
+are simple examples for removing weights from graph that are closest to
+average value of weights. Are executable.
+"""
+
 import tensorflow as tf
 import numpy as np
 import sparsify_avg as savg
-import time
-import os
-from sys import platform as _platform
-
-m = np.random.rand(5, 4)
-
-def is_linux():
-    if _platform == "linux" or _platform == "linux2":
-        return True
-    else:
-        return False
-
-def f(x):
-    c = m.copy()
-    savg.sparsify_p(c, x)
-    print c
-
-def sparsify_p_example():
-    for i in range(31):
-    #   if is_linux():
-        os.system("clear")
-        f(0.0333333 *  i)
-        time.sleep(0.1)
 
 def make_simple_graph():
     """
@@ -38,7 +21,10 @@ def make_simple_graph():
         o2 = tf.matmul(o1, b)
     return g
 
-def simple_sparsify_avg_test():
+def simple_sparsify_avg_t_example():
+    """
+    Example for removing average weights by threshold.
+    """
     g = make_simple_graph()
     with g.as_default():
         sess = tf.Session()
@@ -49,8 +35,29 @@ def simple_sparsify_avg_test():
     for i in g_vars:
         print i
         print i.eval(sess)
-    savg.sparsify_graph_threshold(sess, g, 0.3)
+    savg.sparsify_graph_threshold(sess, g, 0.3, savg.mul_var_pred)
     print "---g_vars after sparsifying---"
     for i in g_vars:
         print i
         print i.eval(sess)
+
+def simple_sparsify_avg_p_example():
+    """
+    Example for removing average weights by percentage.
+    """
+    g = make_simple_graph()
+    with g.as_default():
+        sess = tf.Session()
+        init = tf.initialize_all_variables()
+        g_vars = tf.all_variables()
+    sess.run(init)
+    print "---g_vars before sparsifying---"
+    for i in g_vars:
+        print i
+        print i.eval(sess)
+    savg.sparsify_graph_p(sess, g, 0.3, savg.simple_var_pred)
+    print "---g_vars after sparsifying---"
+    for i in g_vars:
+        print i
+        print i.eval(sess)
+
