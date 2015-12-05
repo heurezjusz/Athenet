@@ -6,8 +6,6 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from data_loader import load_mnist_data
-
 
 class Network(object):
     """Neural network."""
@@ -238,21 +236,3 @@ def relu(x):
     x: Neuron input
     """
     return T.maximum(0.0, x)
-
-
-if __name__ == '__main__':
-    layers = [
-        FullyConnectedLayer(n_in=28*28, n_out=500),
-        ReLU(),
-        FullyConnectedLayer(n_in=500, n_out=10),
-        Softmax(),
-    ]
-    x = T.matrix('x')
-    y = T.ivector('y')
-
-    def output_function(y):
-        return T.argmax(y, axis=1)
-    network = Network(layers, x, y, output_function)
-
-    datasets = load_mnist_data('../data/mnist.pkl.gz')
-    network.train(datasets)
