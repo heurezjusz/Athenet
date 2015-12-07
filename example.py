@@ -22,4 +22,6 @@ network = Network([
 ])
 
 datasets = load_mnist_data('data/mnist.pkl.gz')
-network.train(datasets=datasets)
+network.set_training_data(datasets)
+
+network.train(learning_rate=0.1, n_epochs=10, batch_size=300)

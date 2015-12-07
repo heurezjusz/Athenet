@@ -14,10 +14,7 @@ class Network(object):
     def __init__(self, layers, batch_size=1):
         """Create neural network.
 
-        layers: List of layer from which the network is to be created
-        x: Input format
-        y: Output format
-        output_function: Function mapping network output to desired output
+        layers: List of network's layers
         batch_size: Minibatch size
         """
         self.layers = layers
@@ -26,6 +23,7 @@ class Network(object):
         self.output_function = lambda y: T.argmax(y, axis=1)
         self.batch_index = T.lscalar()
 
+        self.datasets = None
         self.n_train_batches = None
         self.n_valid_batches = None
         self.n_test_batches = None
@@ -52,7 +50,7 @@ class Network(object):
     def set_batch_size(self, batch_size):
         """Set batch size.
 
-        batch_size: Miniatch size to be set
+        batch_size: Minibatch size
         """
         self.batch_size = batch_size
         for layer in self.convolutional_layers:
@@ -65,6 +63,9 @@ class Network(object):
         self.output = self.layers[-1].output
         self.y_out = self.output_function(self.output)
 
+        if self.datasets:
+            self.update()
+
     def accuracy(self, y):
         """Return average network accuracy
 
@@ -73,15 +74,8 @@ class Network(object):
         """
         return T.mean(T.eq(y, self.y_out))
 
-    def set_training_data(self, datasets):
-        """Load given training data into network.
-
-        datasets: Train, validation and test sets
-        """
-        self.train_set_x, self.train_set_y = datasets[0]
-        self.valid_set_x, self.valid_set_y = datasets[1]
-        self.test_set_x, self.test_set_y = datasets[2]
-
+    def update(self):
+        """Update fields that depend on both batch size and datasets"""
         self.n_train_batches = (self.train_set_x.get_value(borrow=True).
                                 shape[0] / self.batch_size)
         self.n_valid_batches = (self.valid_set_x.get_value(borrow=True).
@@ -118,7 +112,20 @@ class Network(object):
             }
         )
 
-    def train(self, learning_rate=0.1, n_epochs=200, batch_size=500,
+    def set_training_data(self, datasets):
+        """Load given training data into network.
+
+        datasets: Train, validation and test sets
+        """
+        self.datasets = datasets
+        self.train_set_x, self.train_set_y = datasets[0]
+        self.valid_set_x, self.valid_set_y = datasets[1]
+        self.test_set_x, self.test_set_y = datasets[2]
+
+        if (self.batch_size):
+            self.update()
+
+    def train(self, learning_rate=0.1, n_epochs=100, batch_size=500,
               datasets=None):
         """Train and test the network
 
