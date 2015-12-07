@@ -1,7 +1,5 @@
 """Example usage of Athena network library."""
 
-import theano.tensor as T
-
 from athena_theano.network import (Network, ReLU, Softmax, Activation,
                                    MaxPool, FullyConnectedLayer,
                                    ConvolutionalLayer)

@@ -135,7 +135,6 @@ class Network(object):
         datasets: Train, validation and test sets
         """
         self.set_batch_size(batch_size)
-
         if datasets:
             self.set_training_data(datasets)
 
