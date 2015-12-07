@@ -11,8 +11,7 @@ from theano.tensor.signal import downsample
 
 class Network(object):
     """Neural network."""
-    def __init__(self, layers, x, y, output_function=lambda y: y,
-                 batch_size=1):
+    def __init__(self, layers, batch_size=1):
         """Create neural network.
 
         layers: List of layer from which the network is to be created
@@ -22,9 +21,9 @@ class Network(object):
         batch_size: Minibatch size
         """
         self.layers = layers
-        self.x = x
-        self.y = y
-        self.output_function = output_function
+        self.x = T.matrix('x')
+        self.y = T.ivector('y')
+        self.output_function = lambda y: T.argmax(y, axis=1)
         self.batch_index = T.lscalar()
 
         self.n_train_batches = None

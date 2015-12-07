@@ -8,12 +8,6 @@ from athena_theano.network import (Network, ReLU, Softmax, Activation,
 from athena_theano.data_loader import load_mnist_data
 
 
-def output_function(y):
-    return T.argmax(y, axis=1)
-
-x = T.matrix('x')  # input
-y = T.ivector('y')  # desired output
-
 network = Network([
     ConvolutionalLayer(image_size=(28, 28), filter_shape=(20, 1, 5, 5)),
     MaxPool(poolsize=(2, 2)),
@@ -25,8 +19,7 @@ network = Network([
     ReLU(),
     FullyConnectedLayer(n_in=500, n_out=10),
     Softmax(),
-], x, y, output_function)
+])
 
 datasets = load_mnist_data('data/mnist.pkl.gz')
-
 network.train(datasets=datasets)
