@@ -122,7 +122,7 @@ class Network(object):
         self.valid_set_x, self.valid_set_y = datasets[1]
         self.test_set_x, self.test_set_y = datasets[2]
 
-        if (self.batch_size):
+        if self.batch_size:
             self.update()
 
     def train(self, learning_rate=0.1, n_epochs=100, batch_size=500,
