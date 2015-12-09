@@ -1,5 +1,6 @@
 """API for Athena, implemented in Theano."""
 
+from __future__ import print_function
 import timeit
 
 import numpy as np
@@ -23,7 +24,8 @@ class Network(object):
         self.output_function = lambda y: T.argmax(y, axis=1)
         self.batch_index = T.lscalar()
 
-        self.datasets = None
+        self._batch_size = None
+        self._datasets = None
         self.n_train_batches = None
         self.n_valid_batches = None
         self.n_test_batches = None
@@ -33,8 +35,10 @@ class Network(object):
         self.valid_set_y = None
         self.test_set_x = None
         self.test_set_y = None
-        self.validation_accuracy = None
-        self.test_accuracy = None
+        self.data_accuracy = None
+        self.test_data_accuracy = None
+        self.validation_data_accuracy = None
+        self.data_acuracy = None
 
         self.weighted_layers = [layer for layer in self.layers
                                 if isinstance(layer, WeightedLayer)]
@@ -45,33 +49,38 @@ class Network(object):
         for layer in self.weighted_layers:
             self.params += layer.params
 
-        self.set_batch_size(batch_size)
-
-    def set_batch_size(self, batch_size):
-        """Set batch size.
-
-        batch_size: Minibatch size
-        """
         self.batch_size = batch_size
+
+    @property
+    def batch_size(self):
+        """Return batch size."""
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        """Set batch size."""
+        self._batch_size = value
         for layer in self.convolutional_layers:
             layer.set_batch_size(self.batch_size)
 
-        self.layers[0].set_input(self.x)
+        self.layers[0].input = self.x
         for i in xrange(1, len(self.layers)):
             layer, prev_layer = self.layers[i], self.layers[i-1]
-            layer.set_input(prev_layer.output)
+            layer.input = prev_layer.output
         self.output = self.layers[-1].output
         self.y_out = self.output_function(self.output)
 
         if self.datasets:
             self.update()
 
-    def get_accuracy(self):
+    def test_accuracy(self):
         """Return average network accuracy on the test data.
+
+        Datasets must be set before using this method.
 
         return: A number between 0 and 1 representing average accuracy
         """
-        test_accuracies = [self.test_accuracy(i) for i in
+        test_accuracies = [self.test_data_accuracy(i) for i in
                            xrange(self.n_test_batches)]
         return np.mean(test_accuracies)
 
@@ -84,11 +93,11 @@ class Network(object):
         self.n_test_batches = (self.test_set_x.get_value(borrow=True).
                                shape[0] / self.batch_size)
 
-        self.accuracy = T.mean(T.eq(self.y, self.y_out))
+        self.data_accuracy = T.mean(T.eq(self.y, self.y_out))
 
-        self.validate_accuracy = theano.function(
+        self.validation_data_accuracy = theano.function(
             inputs=[self.batch_index],
-            outputs=self.accuracy,
+            outputs=self.data_accuracy,
             givens={
                 self.x: self.valid_set_x[
                     self.batch_index * self.batch_size:
@@ -100,9 +109,9 @@ class Network(object):
                 ]
             }
         )
-        self.test_accuracy = theano.function(
+        self.test_data_accuracy = theano.function(
             inputs=[self.batch_index],
-            outputs=self.accuracy,
+            outputs=self.data_accuracy,
             givens={
                 self.x: self.test_set_x[
                     self.batch_index * self.batch_size:
@@ -115,15 +124,24 @@ class Network(object):
             }
         )
 
-    def set_training_data(self, datasets):
-        """Load given training data into network.
+    @property
+    def datasets(self):
+        """Return datasets.
 
-        datasets: Train, validation and test sets
+        return: Tuple containing training, validation and test data
         """
-        self.datasets = datasets
-        self.train_set_x, self.train_set_y = datasets[0]
-        self.valid_set_x, self.valid_set_y = datasets[1]
-        self.test_set_x, self.test_set_y = datasets[2]
+        return self._datasets
+
+    @datasets.setter
+    def datasets(self, value):
+        """Load training data into network.
+
+        datasets: Tuple containing training, validation and test data
+        """
+        self._datasets = value
+        self.train_set_x, self.train_set_y = self.datasets[0]
+        self.valid_set_x, self.valid_set_y = self.datasets[1]
+        self.test_set_x, self.test_set_y = self.datasets[2]
 
         if self.batch_size:
             self.update()
@@ -137,9 +155,9 @@ class Network(object):
         batch_size: Size of minibatch
         datasets: Train, validation and test sets
         """
-        self.set_batch_size(batch_size)
+        self.batch_size = batch_size
         if datasets:
-            self.set_training_data(datasets)
+            self.datasets = datasets
 
         # set cost function for the last layer
         self.layers[-1].set_cost(self.y)
@@ -172,16 +190,17 @@ class Network(object):
         start_time = timeit.default_timer()
         while (epoch < n_epochs) and (not done_looping):
             epoch += 1
-            print 'Epoch {}'.format(epoch)
+            print('Epoch {}'.format(epoch))
             for minibatch_index in xrange(self.n_train_batches):
                 train_model(minibatch_index)
                 iteration += 1
                 if iteration % validation_interval == 0:
-                    validation_accuracies = [self.validate_accuracy(i) for i
-                                             in xrange(self.n_valid_batches)]
+                    validation_accuracies = [
+                        self.validation_data_accuracy(i)
+                        for i in xrange(self.n_valid_batches)]
                     validation_accuracy = np.mean(validation_accuracies)
-                    print '\tAccuracy on validation data: {:.2f}%'.format(
-                        100 * validation_accuracy)
+                    print('\tAccuracy on validation data: {:.2f}%'.format(
+                        100 * validation_accuracy))
                     if validation_accuracy > best_validation_accuracy:
                         patience = max(patience, iteration * patience_increase)
                         best_validation_accuracy = validation_accuracy
@@ -191,27 +210,32 @@ class Network(object):
                     break
         end_time = timeit.default_timer()
 
-        print 'Accuracy on test data: {:.2f}%'.format(100 * self.get_accuracy())
-        print 'Training time: {:.1f}s'.format(end_time - start_time)
+        print('Accuracy on test data: {:.2f}%'.format(
+            100 * self.test_accuracy()))
+        print('Training time: {:.1f}s'.format(end_time - start_time))
 
 
 class Layer(object):
     """Base class for network layer."""
     def __init__(self):
-        self.input = None
+        self._input = None
         self.output = None
         self.cost = None
 
 
 class Softmax(Layer):
     """Softmax layer."""
-    def set_input(self, input):
-        """Set layer's input and output variables.
 
-        input: Variable to be set as layer's input
-        """
-        self.input = input
-        self.output = softmax(input)
+    @property
+    def input(self):
+        """Return layer input."""
+        return self._input
+
+    @input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value
+        self.output = softmax(self.input)
 
     def set_cost(self, y):
         """
@@ -232,13 +256,16 @@ class Activation(Layer):
         super(Activation, self).__init__()
         self.activation_function = activation_function
 
-    def set_input(self, input):
-        """Set layer's input and output variables.
+    @property
+    def input(self):
+        """Return layer input."""
+        return self._input
 
-        input: Variable to be set as layer's input
-        """
-        self.input = input
-        self.output = self.activation_function(input)
+    @input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value
+        self.output = self.activation_function(self.input)
 
 
 def relu(x):
@@ -257,19 +284,52 @@ class ReLU(Activation):
 
 class WeightedLayer(Layer):
     """Layer with weights and biases."""
-    def __init__(self):
-        super(WeightedLayer, self).__init__()
-        self.W = None
-        self.b = None
+    def __init__(self, weights=None, biases=None):
+        """Create weighted layer.
 
-    def get_weights(self):
-        return self.W.get_value()
-    def set_weights(self, W):
-        self.W.set_value(W)
-    def get_biases(self):
-        return self.b.get_value()
-    def set_biases(self, b):
-        self.b.set_value(b)
+        weights: Array of weights's values
+        biases: Array of biases' values
+        """
+        super(WeightedLayer, self).__init__()
+        self.W_shared = None
+        self.b_shared = None
+
+        if weights:
+            self.W_shared = theano.shared(weights)
+        if biases:
+            self.b_shared = theano.shared(biases)
+
+    @property
+    def W(self):
+        """Return copy of the layer's weights.
+
+        return: Array of weights' values
+        """
+        return self.W_shared.get_value()
+
+    @W.setter
+    def W(self, value):
+        """Set the layer's weights.
+
+        W: Array of weights' alues
+        """
+        self.W_shared.set_value(value)
+
+    @property
+    def b(self):
+        """Return copy of the layer's biases.
+
+        return: Array of biases' values
+        """
+        return self.b_shared.get_value()
+
+    @b.setter
+    def b(self, value):
+        """Set the layer's biases.
+
+        b: Array of biases' values
+        """
+        self.b_shared.set_value(value)
 
 
 class FullyConnectedLayer(WeightedLayer):
@@ -281,28 +341,33 @@ class FullyConnectedLayer(WeightedLayer):
         n_out: Number of output neurons
         """
         super(FullyConnectedLayer, self).__init__()
-        W_value = np.asarray(
-            np.random.normal(
-                loc=0.0,
-                scale=np.sqrt(1.0 / n_out),
-                size=(n_in, n_out)
-            ),
-            dtype=theano.config.floatX
-        )
-        self.W = theano.shared(W_value, borrow=True)
+        if not self.W_shared:
+            W_value = np.asarray(
+                np.random.normal(
+                    loc=0.0,
+                    scale=np.sqrt(1.0 / n_out),
+                    size=(n_in, n_out)
+                ),
+                dtype=theano.config.floatX
+            )
+            self.W_shared = theano.shared(W_value, borrow=True)
 
-        b_value = np.zeros((n_out,), dtype=theano.config.floatX)
-        self.b = theano.shared(b_value, borrow=True)
+        if not self.b_shared:
+            b_value = np.zeros((n_out,), dtype=theano.config.floatX)
+            self.b_shared = theano.shared(b_value, borrow=True)
 
-        self.params = [self.W, self.b]
+        self.params = [self.W_shared, self.b_shared]
 
-    def set_input(self, input):
-        """Set layer's input and output variables.
+    @property
+    def input(self):
+        """Return layer input."""
+        return self._input
 
-        input: Variable to be set as layer's input
-        """
-        self.input = input.flatten(2)
-        self.output = T.dot(self.input, self.W) + self.b
+    @input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value.flatten(2)
+        self.output = T.dot(self.input, self.W_shared) + self.b_shared
 
 
 class ConvolutionalLayer(WeightedLayer):
@@ -321,34 +386,39 @@ class ConvolutionalLayer(WeightedLayer):
         self.filter_shape = filter_shape
         self.set_batch_size(batch_size)
 
-        n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
-        W_value = np.asarray(
-            np.random.normal(
-                loc=0.0,
-                scale=np.sqrt(1.0 / n_out),
-                size=self.filter_shape
-            ),
-            dtype=theano.config.floatX
-        )
-        self.W = theano.shared(W_value, borrow=True)
+        if not self.W_shared:
+            n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
+            W_value = np.asarray(
+                np.random.normal(
+                    loc=0.0,
+                    scale=np.sqrt(1.0 / n_out),
+                    size=self.filter_shape
+                ),
+                dtype=theano.config.floatX
+            )
+            self.W_shared = theano.shared(W_value, borrow=True)
 
-        b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
-        self.b = theano.shared(b_values, borrow=True)
+        if not self.b_shared:
+            b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
+            self.b_shared = theano.shared(b_values, borrow=True)
 
-        self.params = [self.W, self.b]
+        self.params = [self.W_shared, self.b_shared]
 
-    def set_input(self, input):
-        """Set layer's input and output variables.
+    @property
+    def input(self):
+        """Return layer input."""
+        return self._input
 
-        input: Variable to be set as layer's input
-        """
-        self.input = input.reshape(self.image_shape)
+    @input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value.reshape(self.image_shape)
         self.output = conv.conv2d(
             input=self.input,
-            filters=self.W,
+            filters=self.W_shared,
             filter_shape=self.filter_shape,
             image_shape=self.image_shape
-        ) + self.b.dimshuffle('x', 0, 'x', 'x')
+        ) + self.b_shared.dimshuffle('x', 0, 'x', 'x')
 
     def set_batch_size(self, batch_size):
         """Set convolutional layer's minibatch size.
@@ -370,12 +440,15 @@ class MaxPool(Layer):
         super(MaxPool, self).__init__()
         self.poolsize = poolsize
 
-    def set_input(self, input):
-        """Set layer's input and output variables.
+    @property
+    def input(self):
+        """Return layer input."""
+        return self._input
 
-        input: Variable to be set as layer's input
-        """
-        self.input = input
+    @input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value
         self.output = downsample.max_pool_2d(
             input=self.input,
             ds=self.poolsize,
