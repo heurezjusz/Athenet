@@ -4,9 +4,9 @@ from __future__ import print_function
 import os
 import urllib
 
-from athena_theano.network import (Network, ReLU, Softmax, MaxPool,
+from src.network import (Network, ReLU, Softmax, MaxPool,
                                    FullyConnectedLayer, ConvolutionalLayer)
-from athena_theano.data_loader import load_mnist_data
+from src.utils.data_loader import load_mnist_data
 
 
 def download_mnist_data(filename):
@@ -21,13 +21,13 @@ def download_mnist_data(filename):
     print('Done.')
 
 network = Network([
-    ConvolutionalLayer(image_size=(28, 28), filter_shape=(20, 1, 5, 5)),
-    MaxPool(poolsize=(2, 2)),
-    ReLU(),
-    ConvolutionalLayer(image_size=(12, 12), filter_shape=(50, 20, 5, 5)),
-    MaxPool(poolsize=(2, 2)),
-    ReLU(),
-    FullyConnectedLayer(n_in=50*4*4, n_out=500),
+    #ConvolutionalLayer(image_size=(28, 28), filter_shape=(20, 1, 5, 5)),
+    #MaxPool(poolsize=(2, 2)),
+    #ReLU(),
+    #ConvolutionalLayer(image_size=(12, 12), filter_shape=(50, 20, 5, 5)),
+    #MaxPool(poolsize=(2, 2)),
+    #ReLU(),
+    FullyConnectedLayer(n_in=28*28, n_out=500),
     ReLU(),
     FullyConnectedLayer(n_in=500, n_out=10),
     Softmax(),
