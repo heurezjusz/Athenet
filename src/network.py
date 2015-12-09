@@ -66,13 +66,14 @@ class Network(object):
         if self.datasets:
             self.update()
 
-    def accuracy(self, y):
-        """Return average network accuracy
+    def get_accuracy(self):
+        """Return average network accuracy on the test data.
 
-        y: List of desired outputs
         return: A number between 0 and 1 representing average accuracy
         """
-        return T.mean(T.eq(y, self.y_out))
+        test_accuracies = [self.test_accuracy(i) for i in
+                           xrange(self.n_test_batches)]
+        return np.mean(test_accuracies)
 
     def update(self):
         """Update fields that depend on both batch size and datasets"""
@@ -83,9 +84,11 @@ class Network(object):
         self.n_test_batches = (self.test_set_x.get_value(borrow=True).
                                shape[0] / self.batch_size)
 
+        self.accuracy = T.mean(T.eq(self.y, self.y_out))
+
         self.validate_accuracy = theano.function(
             inputs=[self.batch_index],
-            outputs=self.accuracy(self.y),
+            outputs=self.accuracy,
             givens={
                 self.x: self.valid_set_x[
                     self.batch_index * self.batch_size:
@@ -99,7 +102,7 @@ class Network(object):
         )
         self.test_accuracy = theano.function(
             inputs=[self.batch_index],
-            outputs=self.accuracy(self.y),
+            outputs=self.accuracy,
             givens={
                 self.x: self.test_set_x[
                     self.batch_index * self.batch_size:
@@ -188,10 +191,7 @@ class Network(object):
                     break
         end_time = timeit.default_timer()
 
-        test_accuracies = [self.test_accuracy(i) for i in
-                           xrange(self.n_test_batches)]
-        test_accuracy = np.mean(test_accuracies)
-        print 'Accuracy on test data: {:.2f}%'.format(100 * test_accuracy)
+        print 'Accuracy on test data: {:.2f}%'.format(100 * self.get_accuracy())
         print 'Training time: {:.1f}s'.format(end_time - start_time)
 
 
@@ -261,6 +261,15 @@ class WeightedLayer(Layer):
         super(WeightedLayer, self).__init__()
         self.W = None
         self.b = None
+
+    def get_weights(self):
+        return self.W.get_value()
+    def set_weights(self, W):
+        self.W.set_value(W)
+    def get_biases(self):
+        return self.b.get_value()
+    def set_biases(self, b):
+        self.b.set_value(b)
 
 
 class FullyConnectedLayer(WeightedLayer):
