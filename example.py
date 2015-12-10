@@ -1,6 +1,5 @@
 """Example usage of Athena network library."""
 
-from __future__ import print_function
 import os
 import urllib
 import numpy as np
@@ -15,11 +14,11 @@ def download_mnist_data(filename):
 
     filename: Name of the MNIST data file to be created
     """
-    print('Downloading MNIST data...', end=' ')
+    print 'Downloading MNIST data... ',
     mnist_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
                     'mnist.pkl.gz')
     urllib.urlretrieve(mnist_origin, filename)
-    print('Done.')
+    print 'Done.'
 
 network = Network([
     ConvolutionalLayer(image_size=(28, 28), filter_shape=(20, 1, 5, 5)),
@@ -46,5 +45,5 @@ network.train(learning_rate=0.1, n_epochs=2, batch_size=300)
 W = network.weighted_layers[0].W  # get copy of the weights' values
 W += np.random.uniform(low=0.0, high=0.1, size=W.shape)  # random disturbance
 network.weighted_layers[0].W = W  # set the new weights
-print('Accuracy on the test data after disturbance: {:.2f}%'.format(
-    100 * network.test_accuracy()))
+print 'Accuracy on the test data after disturbance: {:.2f}%'.format(
+    100 * network.test_accuracy())

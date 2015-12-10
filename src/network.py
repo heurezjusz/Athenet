@@ -1,6 +1,5 @@
 """API for Athena, implemented in Theano."""
 
-from __future__ import print_function
 import timeit
 
 import numpy as np
@@ -85,7 +84,7 @@ class Network(object):
         return np.mean(test_accuracies)
 
     def update(self):
-        """Update fields that depend on both batch size and datasets"""
+        """Update fields that depend on both batch size and datasets."""
         self.n_train_batches = (self.train_set_x.get_value(borrow=True).
                                 shape[0] / self.batch_size)
         self.n_valid_batches = (self.valid_set_x.get_value(borrow=True).
@@ -148,7 +147,7 @@ class Network(object):
 
     def train(self, learning_rate=0.1, n_epochs=100, batch_size=500,
               datasets=None):
-        """Train and test the network
+        """Train and test the network.
 
         learning_rate: Learning rate
         n_epochs: Number of epochs
@@ -190,7 +189,7 @@ class Network(object):
         start_time = timeit.default_timer()
         while (epoch < n_epochs) and (not done_looping):
             epoch += 1
-            print('Epoch {}'.format(epoch))
+            print 'Epoch {}'.format(epoch)
             for minibatch_index in xrange(self.n_train_batches):
                 train_model(minibatch_index)
                 iteration += 1
@@ -199,8 +198,8 @@ class Network(object):
                         self.validation_data_accuracy(i)
                         for i in xrange(self.n_valid_batches)]
                     validation_accuracy = np.mean(validation_accuracies)
-                    print('\tAccuracy on validation data: {:.2f}%'.format(
-                        100 * validation_accuracy))
+                    print '\tAccuracy on validation data: {:.2f}%'.format(
+                        100 * validation_accuracy)
                     if validation_accuracy > best_validation_accuracy:
                         patience = max(patience, iteration * patience_increase)
                         best_validation_accuracy = validation_accuracy
@@ -210,9 +209,9 @@ class Network(object):
                     break
         end_time = timeit.default_timer()
 
-        print('Accuracy on test data: {:.2f}%'.format(
-            100 * self.test_accuracy()))
-        print('Training time: {:.1f}s'.format(end_time - start_time))
+        print 'Accuracy on test data: {:.2f}%'.format(
+            100 * self.test_accuracy())
+        print 'Training time: {:.1f}s'.format(end_time - start_time)
 
 
 class Layer(object):
@@ -269,7 +268,7 @@ class Activation(Layer):
 
 
 def relu(x):
-    """Rectified linear activation function
+    """Rectified linear activation function.
 
     x: Neuron input
     """
