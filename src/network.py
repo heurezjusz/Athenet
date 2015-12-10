@@ -1,8 +1,8 @@
 """API for Athena, implemented in Theano."""
 
 import timeit
-
 import numpy as np
+
 import theano
 import theano.tensor as T
 from theano.tensor.nnet import conv, softmax
@@ -11,6 +11,10 @@ from theano.tensor.signal import downsample
 
 class Network(object):
     """Neural network."""
+
+    patience = 10000
+    patience_increase = 2
+
     def __init__(self, layers, batch_size=1):
         """Create neural network.
 
@@ -21,23 +25,8 @@ class Network(object):
         self.x = T.matrix('x')
         self.y = T.ivector('y')
         self.output_function = lambda y: T.argmax(y, axis=1)
-        self.batch_index = T.lscalar()
-
-        self._batch_size = None
+        self._batch_index = T.lscalar()
         self._datasets = None
-        self.n_train_batches = None
-        self.n_valid_batches = None
-        self.n_test_batches = None
-        self.train_set_x = None
-        self.train_set_y = None
-        self.valid_set_x = None
-        self.valid_set_y = None
-        self.test_set_x = None
-        self.test_set_y = None
-        self.data_accuracy = None
-        self.test_data_accuracy = None
-        self.validation_data_accuracy = None
-        self.data_acuracy = None
 
         self.weighted_layers = [layer for layer in self.layers
                                 if isinstance(layer, WeightedLayer)]
@@ -49,6 +38,20 @@ class Network(object):
             self.params += layer.params
 
         self.batch_size = batch_size
+
+        # fields used for training and testing
+        self.n_train_batches = None
+        self.n_valid_batches = None
+        self.n_test_batches = None
+        self.train_set_x = None
+        self.train_set_y = None
+        self.valid_set_x = None
+        self.valid_set_y = None
+        self.test_set_x = None
+        self.test_set_y = None
+        self._data_accuracy = None
+        self._test_data_accuracy = None
+        self._validation_data_accuracy = None
 
     @property
     def batch_size(self):
@@ -70,7 +73,7 @@ class Network(object):
         self.y_out = self.output_function(self.output)
 
         if self.datasets:
-            self.update()
+            self._update()
 
     def test_accuracy(self):
         """Return average network accuracy on the test data.
@@ -79,49 +82,9 @@ class Network(object):
 
         return: A number between 0 and 1 representing average accuracy
         """
-        test_accuracies = [self.test_data_accuracy(i) for i in
+        test_accuracies = [self._test_data_accuracy(i) for i in
                            xrange(self.n_test_batches)]
         return np.mean(test_accuracies)
-
-    def update(self):
-        """Update fields that depend on both batch size and datasets."""
-        self.n_train_batches = (self.train_set_x.get_value(borrow=True).
-                                shape[0] / self.batch_size)
-        self.n_valid_batches = (self.valid_set_x.get_value(borrow=True).
-                                shape[0] / self.batch_size)
-        self.n_test_batches = (self.test_set_x.get_value(borrow=True).
-                               shape[0] / self.batch_size)
-
-        self.data_accuracy = T.mean(T.eq(self.y, self.y_out))
-
-        self.validation_data_accuracy = theano.function(
-            inputs=[self.batch_index],
-            outputs=self.data_accuracy,
-            givens={
-                self.x: self.valid_set_x[
-                    self.batch_index * self.batch_size:
-                    (self.batch_index+1) * self.batch_size
-                ],
-                self.y: self.valid_set_y[
-                    self.batch_index * self.batch_size:
-                    (self.batch_index+1) * self.batch_size
-                ]
-            }
-        )
-        self.test_data_accuracy = theano.function(
-            inputs=[self.batch_index],
-            outputs=self.data_accuracy,
-            givens={
-                self.x: self.test_set_x[
-                    self.batch_index * self.batch_size:
-                    (self.batch_index+1) * self.batch_size
-                ],
-                self.y: self.test_set_y[
-                    self.batch_index * self.batch_size:
-                    (self.batch_index+1) * self.batch_size
-                ]
-            }
-        )
 
     @property
     def datasets(self):
@@ -143,7 +106,7 @@ class Network(object):
         self.test_set_x, self.test_set_y = self.datasets[2]
 
         if self.batch_size:
-            self.update()
+            self._update()
 
     def train(self, learning_rate=0.1, n_epochs=100, batch_size=500,
               datasets=None):
@@ -167,20 +130,18 @@ class Network(object):
                    for param, derivative in zip(self.params, grad)]
 
         train_model = theano.function(
-            inputs=[self.batch_index],
+            inputs=[self._batch_index],
             outputs=cost,
             updates=updates,
             givens={
-                self.x: self.train_set_x[self.batch_index * batch_size:
-                                         (self.batch_index+1) * batch_size],
-                self.y: self.train_set_y[self.batch_index * batch_size:
-                                         (self.batch_index+1) * batch_size]
+                self.x: self.train_set_x[self._batch_index * batch_size:
+                                         (self._batch_index+1) * batch_size],
+                self.y: self.train_set_y[self._batch_index * batch_size:
+                                         (self._batch_index+1) * batch_size]
             }
         )
 
-        patience = 10000
-        patience_increase = 2
-        validation_interval = min(self.n_train_batches, patience / 2)
+        validation_interval = min(self.n_train_batches, self.patience / 2)
         best_validation_accuracy = 0.0
         epoch = 0
         iteration = 0
@@ -195,16 +156,17 @@ class Network(object):
                 iteration += 1
                 if iteration % validation_interval == 0:
                     validation_accuracies = [
-                        self.validation_data_accuracy(i)
+                        self._validation_data_accuracy(i)
                         for i in xrange(self.n_valid_batches)]
                     validation_accuracy = np.mean(validation_accuracies)
                     print '\tAccuracy on validation data: {:.2f}%'.format(
                         100 * validation_accuracy)
                     if validation_accuracy > best_validation_accuracy:
-                        patience = max(patience, iteration * patience_increase)
+                        self.patience = max(self.patience, iteration *
+                                            self.patience_increase)
                         best_validation_accuracy = validation_accuracy
 
-                if patience <= iteration:
+                if self.patience <= iteration:
                     done_looping = True
                     break
         end_time = timeit.default_timer()
@@ -212,6 +174,46 @@ class Network(object):
         print 'Accuracy on test data: {:.2f}%'.format(
             100 * self.test_accuracy())
         print 'Training time: {:.1f}s'.format(end_time - start_time)
+
+    def _update(self):
+        """Update fields that depend on both batch size and datasets."""
+        self.n_train_batches = (self.train_set_x.get_value(borrow=True).
+                                shape[0] / self.batch_size)
+        self.n_valid_batches = (self.valid_set_x.get_value(borrow=True).
+                                shape[0] / self.batch_size)
+        self.n_test_batches = (self.test_set_x.get_value(borrow=True).
+                               shape[0] / self.batch_size)
+
+        self._data_accuracy = T.mean(T.eq(self.y, self.y_out))
+
+        self._validation_data_accuracy = theano.function(
+            inputs=[self._batch_index],
+            outputs=self._data_accuracy,
+            givens={
+                self.x: self.valid_set_x[
+                    self._batch_index * self.batch_size:
+                    (self._batch_index+1) * self.batch_size
+                ],
+                self.y: self.valid_set_y[
+                    self._batch_index * self.batch_size:
+                    (self._batch_index+1) * self.batch_size
+                ]
+            }
+        )
+        self._test_data_accuracy = theano.function(
+            inputs=[self._batch_index],
+            outputs=self._data_accuracy,
+            givens={
+                self.x: self.test_set_x[
+                    self._batch_index * self.batch_size:
+                    (self._batch_index+1) * self.batch_size
+                ],
+                self.y: self.test_set_y[
+                    self._batch_index * self.batch_size:
+                    (self._batch_index+1) * self.batch_size
+                ]
+            }
+        )
 
 
 class Layer(object):
@@ -292,6 +294,7 @@ class WeightedLayer(Layer):
         super(WeightedLayer, self).__init__()
         self.W_shared = None
         self.b_shared = None
+        self.params = None
 
         if weights:
             self.W_shared = theano.shared(weights)
