@@ -346,8 +346,8 @@ class FullyConnectedLayer(WeightedLayer):
         if not self.W_shared:
             W_value = np.asarray(
                 np.random.normal(
-                    loc=0.0,
-                    scale=np.sqrt(1.0 / n_out),
+                    loc=0.,
+                    scale=np.sqrt(1. / n_out),
                     size=(n_in, n_out)
                 ),
                 dtype=theano.config.floatX
@@ -395,8 +395,8 @@ class ConvolutionalLayer(WeightedLayer):
             n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
             W_value = np.asarray(
                 np.random.normal(
-                    loc=0.0,
-                    scale=np.sqrt(1.0 / n_out),
+                    loc=0.,
+                    scale=np.sqrt(1. / n_out),
                     size=self.filter_shape
                 ),
                 dtype=theano.config.floatX
@@ -443,13 +443,14 @@ class ConvolutionalLayer(WeightedLayer):
 
 class MaxPool(Layer):
     """Max-pooling layer."""
-    def __init__(self, poolsize):
+    def __init__(self, poolsize, stride=None):
         """Create max-pooling layer.
 
         poolsize: Pooling factor in the format (height, width)
         """
         super(MaxPool, self).__init__()
         self.poolsize = poolsize
+        self.stride = stride
 
     @property
     def input(self):
@@ -467,13 +468,14 @@ class MaxPool(Layer):
         self.output = downsample.max_pool_2d(
             input=self.input,
             ds=self.poolsize,
-            ignore_border=True
+            ignore_border=True,
+            st=self.stride
         )
 
 
 class LRN(Layer):
     """Local Response Normalization layer."""
-    def __init__(self, local_range=5, k=2, alpha=0.0005, beta=0.75):
+    def __init__(self, local_range=5, k=1, alpha=0.0005, beta=0.75):
         """Create Local Response Normalization layer.
 
         local_range: Local channel range. Should be odd,
@@ -507,7 +509,7 @@ class LRN(Layer):
         half = self.local_range // 2
         sq = T.sqr(self.input)
         bs, n_channels, h, w = self.input.shape
-        extra_channels = T.alloc(0.0, bs, n_channels + 2*half, h, w)
+        extra_channels = T.alloc(0., bs, n_channels + 2*half, h, w)
         sq = T.set_subtensor(extra_channels[:, half:half+n_channels, :, :], sq)
 
         local_sums = 0
