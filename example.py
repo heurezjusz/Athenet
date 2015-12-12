@@ -6,19 +6,8 @@ import numpy as np
 
 from src.network import (Network, ReLU, Softmax, MaxPool,
                          FullyConnectedLayer, ConvolutionalLayer)
-from src.utils.data_loader import load_mnist_data
+from src.utils.data_loader import load_mnist_data, download_mnist_data
 
-
-def download_mnist_data(filename):
-    """Download MNIST data.
-
-    filename: Name of the MNIST data file to be created
-    """
-    print 'Downloading MNIST data... ',
-    mnist_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
-                    'mnist.pkl.gz')
-    urllib.urlretrieve(mnist_origin, filename)
-    print 'Done.'
 
 network = Network([
     ConvolutionalLayer(image_size=(28, 28), filter_shape=(20, 1, 5, 5)),
