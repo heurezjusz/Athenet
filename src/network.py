@@ -63,7 +63,7 @@ class Network(object):
         """Set batch size."""
         self._batch_size = value
         for layer in self.convolutional_layers:
-            layer.set_batch_size(self.batch_size)
+            layer.batch_size = self.batch_size
 
         self.layers[0].input = self.x
         for i in xrange(1, len(self.layers)):
@@ -98,7 +98,7 @@ class Network(object):
     def datasets(self, value):
         """Load training data into network.
 
-        datasets: Tuple containing training, validation and test data
+        value: Tuple containing training, validation and test data
         """
         self._datasets = value
         self.train_set_x, self.train_set_y = self.datasets[0]
@@ -313,7 +313,7 @@ class WeightedLayer(Layer):
     def W(self, value):
         """Set the layer's weights.
 
-        W: Array of weights' alues
+        value: Array of weights' alues
         """
         self.W_shared.set_value(value)
 
@@ -329,7 +329,7 @@ class WeightedLayer(Layer):
     def b(self, value):
         """Set the layer's biases.
 
-        b: Array of biases' values
+       value: Array of biases' values
         """
         self.b_shared.set_value(value)
 
@@ -367,7 +367,10 @@ class FullyConnectedLayer(WeightedLayer):
 
     @input.setter
     def input(self, value):
-        """Set layer's input and output variables."""
+        """Set layer's input and output variables.
+
+        value: Input in the format (n_in, n_out) or compatible
+        """
         self._input = value.flatten(2)
         self.output = T.dot(self.input, self.W_shared) + self.b_shared
 
@@ -379,14 +382,14 @@ class ConvolutionalLayer(WeightedLayer):
 
         image_size: Image size in the format (image height, image width)
         filter_shape: Shape of the filter in the format
-                      (number of filters, number of input feature maps,
-                       filter height, filter width)
+                      (number of output channels, number of input channels,
+                       image height, image width)
         batch_size: Minibatch size
         """
         super(ConvolutionalLayer, self).__init__()
         self.image_size = image_size
         self.filter_shape = filter_shape
-        self.set_batch_size(batch_size)
+        self.batch_size = batch_size
 
         if not self.W_shared:
             n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
@@ -413,7 +416,11 @@ class ConvolutionalLayer(WeightedLayer):
 
     @input.setter
     def input(self, value):
-        """Set layer's input and output variables."""
+        """Set layer's input and output variables.
+
+        value: Input in the format (batch size, number of channels,
+                                    image height, image width) or compatible
+        """
         self._input = value.reshape(self.image_shape)
         self.output = conv.conv2d(
             input=self.input,
@@ -422,12 +429,14 @@ class ConvolutionalLayer(WeightedLayer):
             image_shape=self.image_shape
         ) + self.b_shared.dimshuffle('x', 0, 'x', 'x')
 
-    def set_batch_size(self, batch_size):
-        """Set convolutional layer's minibatch size.
+    @property
+    def batch_size(self):
+        return self._batch_size
 
-        batch_size: Batch size
-        """
-        self.batch_size = batch_size
+    @batch_size.setter
+    def batch_size(self, value):
+        """Set convolutional layer's minibatch size."""
+        self._batch_size = value
         self.image_shape = (self.batch_size, self.filter_shape[1],
                             self.image_size[0], self.image_size[1])
 
@@ -437,7 +446,7 @@ class MaxPool(Layer):
     def __init__(self, poolsize):
         """Create max-pooling layer.
 
-        poolsize: the pooling factor in the format (height, width)
+        poolsize: Pooling factor in the format (height, width)
         """
         super(MaxPool, self).__init__()
         self.poolsize = poolsize
@@ -449,10 +458,61 @@ class MaxPool(Layer):
 
     @input.setter
     def input(self, value):
-        """Set layer's input and output variables."""
+        """Set layer's input and output variables.
+
+        value: Input in the format (batch size, number of channels,
+                                    image height, image width)
+        """
         self._input = value
         self.output = downsample.max_pool_2d(
             input=self.input,
             ds=self.poolsize,
             ignore_border=True
         )
+
+
+class LRN(Layer):
+    """Local Response Normalization layer."""
+    def __init__(self, local_range=5, k=2, alpha=0.0005, beta=0.75):
+        """Create Local Response Normalization layer.
+
+        local_range: Local channel range. Should be odd,
+                     otherwise it will be incremented.
+        k: Additive constant
+        alpha: The scaling parameter
+        beta: The exponent
+        """
+        super(LRN, self).__init__()
+        if local_range % 2 == 0:
+            local_range += 1
+        self.local_range = local_range
+        self.k = k
+        self.alpha = alpha
+        self.beta = beta
+
+    @property
+    def input(self):
+        """Return layer input."""
+        return self._input
+
+    @input.setter
+    def input(self, value):
+        """Set layer's input and output variables.
+
+        value: Input in the format (batch size, number of channels,
+                                    image height, image width)
+        """
+        self._input = value
+
+        half = self.local_range // 2
+        sq = T.sqr(self.input)
+        bs, n_channels, h, w = self.input.shape
+        extra_channels = T.alloc(0.0, bs, n_channels + 2*half, h, w)
+        sq = T.set_subtensor(extra_channels[:, half:half+n_channels, :, :], sq)
+
+        local_sums = 0
+        for i in xrange(self.local_range):
+            local_sums += sq[:, i:i+n_channels, :, :]
+
+        self.output = self.input / (
+            self.k + self.alpha/self.local_range*local_sums)**self.beta
