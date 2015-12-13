@@ -36,3 +36,15 @@ def load_mnist_data(filename):
 
     return [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
             (test_set_x, test_set_y)]
+
+
+def download_mnist_data(filename):
+    """Download MNIST data.
+
+    filename: Name of the MNIST data file to be created
+    """
+    print 'Downloading MNIST data... ',
+    mnist_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
+                    'mnist.pkl.gz')
+    urllib.urlretrieve(mnist_origin, filename)
+    print 'Done.'
