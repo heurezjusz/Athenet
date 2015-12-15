@@ -3,6 +3,7 @@
 import gzip
 import cPickle
 import numpy as np
+
 import theano
 import theano.tensor as T
 
@@ -22,6 +23,7 @@ def load_mnist_data(filename):
         data_xy: data consisting of pairs (x, y)
         """
         data_x, data_y = data_xy
+        data_x = np.resize(data_x, (data_x.shape[0], 28, 28, 1))
         shared_x = theano.shared(np.asarray(data_x,
                                             dtype=theano.config.floatX),
                                  borrow=borrow)
