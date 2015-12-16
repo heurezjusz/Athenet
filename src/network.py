@@ -95,6 +95,25 @@ class Network(object):
                            xrange(self.n_test_batches)]
         return np.mean(test_accuracies)
 
+    def get_params(self):
+        """Return network's weights and biases.
+
+        return: List of tuples (W, b)
+        """
+        params = []
+        for layer in self.weighted_layers:
+            params += [(layer.W, layer.b)]
+        return params
+
+    def set_params(self, params):
+        """Set network's weights and biases.
+
+        params: List of tuples (W, b)
+        """
+        for p, layer in zip(params, self.weighted_layers):
+            layer.W = p[0]
+            layer.b = p[1]
+
     def evaluate(self, x_in):
         """Return network output for a given input.
 
