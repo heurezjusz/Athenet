@@ -1,13 +1,12 @@
 """Example usage of Athena network library."""
 
 import os
-import urllib
 import numpy as np
 
-from src.network import Network
-from src.layers import (ReLU, Softmax, MaxPool, FullyConnectedLayer,
-                        ConvolutionalLayer)
-from src.utils.data_loader import load_mnist_data, download_mnist_data
+from athena.network import Network
+from athena.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
+    ConvolutionalLayer
+from athena.utils.data_loader import load_mnist_data, download_mnist_data
 
 
 network = Network([

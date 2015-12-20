@@ -2,6 +2,7 @@
 
 import gzip
 import cPickle
+import urllib
 import numpy as np
 
 import theano
