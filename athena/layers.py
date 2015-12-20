@@ -174,7 +174,7 @@ class ConvolutionalLayer(WeightedLayer):
         image_size: Image size in the format (image height, image width)
         filter_shape: Shape of the filter in the format
                       (number of output channels, number of input channels,
-                       image height, image width)
+                       filter height, filter width)
         batch_size: Minibatch size
         """
         super(ConvolutionalLayer, self).__init__()
