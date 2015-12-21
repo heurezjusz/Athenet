@@ -71,8 +71,7 @@ class Network(object):
 
         self.layers[0].input = self.x
         for i in xrange(1, len(self.layers)):
-            layer, prev_layer = self.layers[i], self.layers[i-1]
-            layer.input = prev_layer.output
+            self.layers[i].input = self.layers[i-1].output
         self.output = self.layers[-1].output
         self.y_out = T.argmax(self.output, axis=1)
         self._data_accuracy = T.mean(T.eq(self.y, self.y_out))

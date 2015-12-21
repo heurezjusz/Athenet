@@ -5,7 +5,7 @@ import numpy as np
 
 from athena.network import Network
 from athena.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
-    ConvolutionalLayer
+    ConvolutionalLayer, Dropout
 from athena.utils.data_loader import load_mnist_data, download_mnist_data
 
 
@@ -18,6 +18,7 @@ network = Network([
     MaxPool(poolsize=(2, 2)),
     FullyConnectedLayer(n_in=50*4*4, n_out=500),
     ReLU(),
+    Dropout(0.5),
     FullyConnectedLayer(n_in=500, n_out=10),
     Softmax(),
 ])
@@ -28,7 +29,7 @@ if not os.path.isfile(mnist_filename):
 
 # learning example
 network.datasets = load_mnist_data(mnist_filename)
-network.train(learning_rate=0.1, n_epochs=2, batch_size=300)
+network.train(learning_rate=0.1, n_epochs=1, batch_size=300)
 
 # weights modifying example
 W = network.weighted_layers[0].W  # get copy of the weights' values

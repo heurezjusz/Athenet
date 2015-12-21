@@ -14,16 +14,21 @@ class Layer(object):
         self.output = None
         self.cost = None
 
-
-class Softmax(Layer):
-    """Softmax layer."""
-
     @property
     def input(self):
         """Return layer input."""
         return self._input
 
     @input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value
+        self.output = self._input
+
+class Softmax(Layer):
+    """Softmax layer."""
+
+    @Layer.input.setter
     def input(self, value):
         """Set layer's input and output variables."""
         self._input = value
@@ -48,12 +53,7 @@ class Activation(Layer):
         super(Activation, self).__init__()
         self.activation_function = activation_function
 
-    @property
-    def input(self):
-        """Return layer input."""
-        return self._input
-
-    @input.setter
+    @Layer.input.setter
     def input(self, value):
         """Set layer's input and output variables."""
         self._input = value
@@ -65,13 +65,99 @@ def relu(x):
 
     x: Neuron input
     """
-    return T.maximum(0.0, x)
+    return T.maximum(0., x)
 
 
 class ReLU(Activation):
     """Layer applying rectified linear activation function."""
     def __init__(self):
         super(ReLU, self).__init__(relu)
+
+
+class MaxPool(Layer):
+    """Max-pooling layer."""
+    def __init__(self, poolsize, stride=None):
+        """Create max-pooling layer.
+
+        poolsize: Pooling factor in the format (height, width)
+        """
+        super(MaxPool, self).__init__()
+        self.poolsize = poolsize
+        self.stride = stride
+
+    @Layer.input.setter
+    def input(self, value):
+        """Set layer's input and output variables.
+
+        value: Input in the format (batch size, number of channels,
+                                    image height, image width)
+        """
+        self._input = value
+        self.output = downsample.max_pool_2d(
+            input=self.input,
+            ds=self.poolsize,
+            ignore_border=True,
+            st=self.stride
+        )
+
+
+class LRN(Layer):
+    """Local Response Normalization layer."""
+    def __init__(self, local_range=5, k=1, alpha=0.0005, beta=0.75):
+        """Create Local Response Normalization layer.
+
+        local_range: Local channel range. Should be odd,
+                     otherwise it will be incremented.
+        k: Additive constant
+        alpha: The scaling parameter
+        beta: The exponent
+        """
+        super(LRN, self).__init__()
+        if local_range % 2 == 0:
+            local_range += 1
+        self.local_range = local_range
+        self.k = k
+        self.alpha = alpha
+        self.beta = beta
+
+    @Layer.input.setter
+    def input(self, value):
+        """Set layer's input and output variables.
+
+        value: Input in the format (batch size, number of channels,
+                                    image height, image width)
+        """
+        self._input = value
+
+        half = self.local_range // 2
+        sq = T.sqr(self.input)
+        bs, n_channels, h, w = self.input.shape
+        extra_channels = T.alloc(0., bs, n_channels + 2*half, h, w)
+        sq = T.set_subtensor(extra_channels[:, half:half+n_channels, :, :], sq)
+
+        local_sums = 0
+        for i in xrange(self.local_range):
+            local_sums += sq[:, i:i+n_channels, :, :]
+
+        self.output = self.input / (
+            self.k + self.alpha/self.local_range * local_sums)**self.beta
+
+
+class Dropout(Layer):
+    """Dropout layer."""
+    def __init__(self, p_dropout):
+        """Create dropout layer.
+
+        p_dropout: Weight dropout probability
+        """
+        super(Dropout, self).__init__()
+        self.p_dropout = p_dropout
+
+    @Layer.input.setter
+    def input(self, value):
+        """Set layer's input and output variables."""
+        self._input = value
+        self.output = (1. - self.p_dropout) * self.input
 
 
 class WeightedLayer(Layer):
@@ -151,12 +237,7 @@ class FullyConnectedLayer(WeightedLayer):
 
         self.params = [self.W_shared, self.b_shared]
 
-    @property
-    def input(self):
-        """Return layer input."""
-        return self._input
-
-    @input.setter
+    @Layer.input.setter
     def input(self, value):
         """Set layer's input and output variables.
 
@@ -202,12 +283,7 @@ class ConvolutionalLayer(WeightedLayer):
 
         self.params = [self.W_shared, self.b_shared]
 
-    @property
-    def input(self):
-        """Return layer input."""
-        return self._input
-
-    @input.setter
+    @Layer.input.setter
     def input(self, value):
         """Set layer's input and output variables.
 
@@ -233,82 +309,3 @@ class ConvolutionalLayer(WeightedLayer):
         self._batch_size = value
         self.image_shape = (self.batch_size, self.filter_shape[1],
                             self.image_size[0], self.image_size[1])
-
-
-class MaxPool(Layer):
-    """Max-pooling layer."""
-    def __init__(self, poolsize, stride=None):
-        """Create max-pooling layer.
-
-        poolsize: Pooling factor in the format (height, width)
-        """
-        super(MaxPool, self).__init__()
-        self.poolsize = poolsize
-        self.stride = stride
-
-    @property
-    def input(self):
-        """Return layer input."""
-        return self._input
-
-    @input.setter
-    def input(self, value):
-        """Set layer's input and output variables.
-
-        value: Input in the format (batch size, number of channels,
-                                    image height, image width)
-        """
-        self._input = value
-        self.output = downsample.max_pool_2d(
-            input=self.input,
-            ds=self.poolsize,
-            ignore_border=True,
-            st=self.stride
-        )
-
-
-class LRN(Layer):
-    """Local Response Normalization layer."""
-    def __init__(self, local_range=5, k=1, alpha=0.0005, beta=0.75):
-        """Create Local Response Normalization layer.
-
-        local_range: Local channel range. Should be odd,
-                     otherwise it will be incremented.
-        k: Additive constant
-        alpha: The scaling parameter
-        beta: The exponent
-        """
-        super(LRN, self).__init__()
-        if local_range % 2 == 0:
-            local_range += 1
-        self.local_range = local_range
-        self.k = k
-        self.alpha = alpha
-        self.beta = beta
-
-    @property
-    def input(self):
-        """Return layer input."""
-        return self._input
-
-    @input.setter
-    def input(self, value):
-        """Set layer's input and output variables.
-
-        value: Input in the format (batch size, number of channels,
-                                    image height, image width)
-        """
-        self._input = value
-
-        half = self.local_range // 2
-        sq = T.sqr(self.input)
-        bs, n_channels, h, w = self.input.shape
-        extra_channels = T.alloc(0., bs, n_channels + 2*half, h, w)
-        sq = T.set_subtensor(extra_channels[:, half:half+n_channels, :, :], sq)
-
-        local_sums = 0
-        for i in xrange(self.local_range):
-            local_sums += sq[:, i:i+n_channels, :, :]
-
-        self.output = self.input / (
-            self.k + self.alpha/self.local_range*local_sums)**self.beta
