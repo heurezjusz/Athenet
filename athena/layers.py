@@ -7,12 +7,38 @@ import theano.tensor as T
 from theano.tensor.nnet import conv, softmax
 from theano.tensor.signal import downsample
 
+
 class Layer(object):
     """Base class for network layer."""
     def __init__(self):
-        self._input = None
         self.output = None
+        self.train_output = None
         self.cost = None
+
+        self._input = None
+        self._train_input = None
+        self._input_layer = None
+
+    def _reshape_input(self, raw_layer_input):
+        """Return input in the format that is suitable for this layer.
+
+        raw_layer_input: Layer input.
+        """
+        return raw_layer_input
+
+    def _get_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        return layer_input
+
+    def _get_train_output(self, layer_input):
+        """Return layer's output used for training.
+
+        layer_input: Layer input.
+        """
+        return self._get_output(layer_input)
 
     @property
     def input(self):
@@ -21,18 +47,45 @@ class Layer(object):
 
     @input.setter
     def input(self, value):
-        """Set layer's input and output variables."""
-        self._input = value
-        self.output = self._input
+        """Set layer input."""
+        self._input = self._reshape_input(value)
+        self.output = self._get_output(self.input)
+
+    @property
+    def train_input(self):
+        """Return layer input used for training."""
+        if self._train_input:
+            return self._train_input
+        return self._input
+
+    @train_input.setter
+    def train_input(self, value):
+        """Set layer input used for training."""
+        self._train_input = self._reshape_input(value)
+        self.train_output = self._get_train_output(self.train_input)
+
+    @property
+    def input_layer(self):
+        """Return input layer."""
+        return self._input_layer
+
+    @input_layer.setter
+    def input_layer(self, input_layer):
+        """Set input layer."""
+        self._input_layer = input_layer
+        self.input = input_layer.output
+        self.train_input = input_layer.train_output
+
 
 class Softmax(Layer):
     """Softmax layer."""
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables."""
-        self._input = value
-        self.output = softmax(self.input)
+    def _get_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        return softmax(layer_input)
 
     def set_cost(self, y):
         """
@@ -40,7 +93,7 @@ class Softmax(Layer):
 
         y: Desired output
         """
-        self.cost = T.mean(-T.log(self.output)[T.arange(y.shape[0]), y])
+        self.cost = T.mean(-T.log(self.train_output)[T.arange(y.shape[0]), y])
 
 
 class Activation(Layer):
@@ -53,11 +106,12 @@ class Activation(Layer):
         super(Activation, self).__init__()
         self.activation_function = activation_function
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables."""
-        self._input = value
-        self.output = self.activation_function(self.input)
+    def _get_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        return self.activation_function(layer_input)
 
 
 def relu(x):
@@ -85,16 +139,14 @@ class MaxPool(Layer):
         self.poolsize = poolsize
         self.stride = stride
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables.
+    def _get_output(self, layer_input):
+        """Return layer's output.
 
-        value: Input in the format (batch size, number of channels,
-                                    image height, image width)
+        layer_input: Input in the format (batch size, number of channels,
+                                          image height, image width).
         """
-        self._input = value
-        self.output = downsample.max_pool_2d(
-            input=self.input,
+        return downsample.max_pool_2d(
+            input=layer_input,
             ds=self.poolsize,
             ignore_border=True,
             st=self.stride
@@ -120,18 +172,15 @@ class LRN(Layer):
         self.alpha = alpha
         self.beta = beta
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables.
+    def _get_output(self, layer_input):
+        """Return layer's output.
 
-        value: Input in the format (batch size, number of channels,
-                                    image height, image width)
+        layer_input: Input in the format (batch size, number of channels,
+                                          image height, image width).
         """
-        self._input = value
-
         half = self.local_range // 2
-        sq = T.sqr(self.input)
-        bs, n_channels, h, w = self.input.shape
+        sq = T.sqr(layer_input)
+        bs, n_channels, h, w = layer_input.shape
         extra_channels = T.alloc(0., bs, n_channels + 2*half, h, w)
         sq = T.set_subtensor(extra_channels[:, half:half+n_channels, :, :], sq)
 
@@ -139,7 +188,7 @@ class LRN(Layer):
         for i in xrange(self.local_range):
             local_sums += sq[:, i:i+n_channels, :, :]
 
-        self.output = self.input / (
+        return layer_input / (
             self.k + self.alpha/self.local_range * local_sums)**self.beta
 
 
@@ -153,11 +202,19 @@ class Dropout(Layer):
         super(Dropout, self).__init__()
         self.p_dropout = p_dropout
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables."""
-        self._input = value
-        self.output = (1. - self.p_dropout) * self.input
+    def _get_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        return (1. - self.p_dropout) * layer_input
+
+    def _get_train_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        pass  # TODO
 
 
 class WeightedLayer(Layer):
@@ -237,14 +294,19 @@ class FullyConnectedLayer(WeightedLayer):
 
         self.params = [self.W_shared, self.b_shared]
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables.
+    def _reshape_input(self, raw_layer_input):
+        """Return input in the format that is suitable for this layer.
 
-        value: Input in the format (n_in, n_out) or compatible
+        raw_layer_input: Input in the format (n_in, n_out) or compatible.
         """
-        self._input = value.flatten(2)
-        self.output = T.dot(self.input, self.W_shared) + self.b_shared
+        return raw_layer_input.flatten(2)
+
+    def _get_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        return T.dot(self.input, self.W_shared) + self.b_shared
 
 
 class ConvolutionalLayer(WeightedLayer):
@@ -283,15 +345,21 @@ class ConvolutionalLayer(WeightedLayer):
 
         self.params = [self.W_shared, self.b_shared]
 
-    @Layer.input.setter
-    def input(self, value):
-        """Set layer's input and output variables.
+    def _reshape_input(self, raw_layer_input):
+        """Return input in the format that is suitable for this layer.
 
-        value: Input in the format (batch size, number of channels,
-                                    image height, image width) or compatible
+        raw_layer_input: Input in the format (batch size, number of channels,
+                                              image height, image width)
+                         or compatible.
         """
-        self._input = value.reshape(self.image_shape)
-        self.output = conv.conv2d(
+        return raw_layer_input.reshape(self.image_shape)
+
+    def _get_output(self, layer_input):
+        """Return layer's output.
+
+        layer_input: Layer input.
+        """
+        return conv.conv2d(
             input=self.input,
             filters=self.W_shared,
             filter_shape=self.filter_shape,

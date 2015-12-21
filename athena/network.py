@@ -8,6 +8,7 @@ import theano.tensor as T
 
 from layers import WeightedLayer, ConvolutionalLayer
 
+
 class Network(object):
     """Neural network."""
 
@@ -21,6 +22,7 @@ class Network(object):
         batch_size: Minibatch size
         """
         self.output = None
+        self.train_output = None
         self.y_out = None
         self.n_train_batches = None
         self.n_valid_batches = None
@@ -71,9 +73,11 @@ class Network(object):
 
         self.layers[0].input = self.x
         for i in xrange(1, len(self.layers)):
-            self.layers[i].input = self.layers[i-1].output
+            self.layers[i].input_layer = self.layers[i-1]
         self.output = self.layers[-1].output
+        self.train_output = self.layers[-1].train_output
         self.y_out = T.argmax(self.output, axis=1)
+
         self._data_accuracy = T.mean(T.eq(self.y, self.y_out))
         self.get_output = theano.function(
             inputs=[self.x],
