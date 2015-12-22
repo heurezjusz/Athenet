@@ -1,9 +1,8 @@
 """Dropout layer."""
 
-import numpy as np
-
 import theano
 import theano.tensor as T
+from theano.tensor import shared_randomstreams
 
 from athena.layers import Layer
 
@@ -26,8 +25,11 @@ class Dropout(Layer):
         return (1. - self.p_dropout) * layer_input
 
     def _get_train_output(self, layer_input):
-        """Return layer's output.
+        """Return layer's output used for training.
 
         layer_input: Layer input.
         """
-        pass  # TODO
+        random = shared_randomstreams.RandomStreams()
+        mask = random.binomial(n=1, p=1.-self.p_dropout,
+                               size=layer_input.shape)
+        return layer_input * T.cast(mask, theano.config.floatX)
