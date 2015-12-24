@@ -1,12 +1,9 @@
 """Training LeNet on MNIST data."""
 
-import os
-import numpy as np
-
 from athena import Network
 from athena.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
     ConvolutionalLayer
-from athena.utils.data_loader import load_mnist_data, download_mnist_data
+from athena.utils import load_mnist_data
 
 
 network = Network([
@@ -22,9 +19,5 @@ network = Network([
     Softmax(),
 ])
 
-mnist_filename = '../bin/mnist.pkl.gz'
-if not os.path.isfile(mnist_filename):
-    download_mnist_data(mnist_filename)
-
-network.datasets = load_mnist_data(mnist_filename)
-network.train(learning_rate=0.1, n_epochs=1, batch_size=300)
+network.datasets = load_mnist_data()
+network.train(learning_rate=0.1, n_epochs=10, batch_size=300)

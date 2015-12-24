@@ -3,6 +3,7 @@
 import gzip
 import cPickle
 import urllib
+import os
 import sys
 import numpy as np
 
@@ -10,16 +11,47 @@ import theano
 import theano.tensor as T
 
 
-def load_mnist_data(filename):
+_MNIST_FILENAME = os.path.join(os.path.dirname(__file__),
+                               '../../bin/mnist.pkl.gz')
+_MNIST_ORIGIN = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
+                 'mnist.pkl.gz')
+
+
+def load_mnist_data(filename=_MNIST_FILENAME):
     """Load MNIST data from file.
 
     filename: Name of the file with MNIST data
     """
+    if not os.path.isfile(filename):
+        download_mnist_data(filename)
+
     f = gzip.open(filename, 'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
 
-    def shared_dataset(data_xy, borrow=True):
+    test_set_x, test_set_y = _mnist_shared_dataset(test_set)
+    valid_set_x, valid_set_y = _mnist_shared_dataset(valid_set)
+    train_set_x, train_set_y = _mnist_shared_dataset(train_set)
+
+    return [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
+            (test_set_x, test_set_y)]
+
+
+def download_mnist_data(filename):
+    """Download MNIST data.
+
+    filename: Name of the MNIST data file to be created
+    """
+    directory = path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    print 'Downloading MNIST data... ',
+    sys.stdout.flush()
+    urllib.urlretrieve(_MNIST_ORIGIN, filename)
+    print 'Done.'
+
+
+def _mnist_shared_dataset(data_xy, borrow=True):
         """Create shared variables from given data.
 
         data_xy: data consisting of pairs (x, y)
@@ -33,23 +65,3 @@ def load_mnist_data(filename):
                                             dtype=theano.config.floatX),
                                  borrow=borrow)
         return shared_x, T.cast(shared_y, 'int32')
-
-    test_set_x, test_set_y = shared_dataset(test_set)
-    valid_set_x, valid_set_y = shared_dataset(valid_set)
-    train_set_x, train_set_y = shared_dataset(train_set)
-
-    return [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
-            (test_set_x, test_set_y)]
-
-
-def download_mnist_data(filename):
-    """Download MNIST data.
-
-    filename: Name of the MNIST data file to be created
-    """
-    print 'Downloading MNIST data... ',
-    sys.stdout.flush()
-    mnist_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
-                    'mnist.pkl.gz')
-    urllib.urlretrieve(mnist_origin, filename)
-    print 'Done.'
