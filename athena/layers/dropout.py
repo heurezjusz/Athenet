@@ -9,7 +9,7 @@ from athena.layers import Layer
 
 class Dropout(Layer):
     """Dropout layer."""
-    def __init__(self, p_dropout):
+    def __init__(self, p_dropout=0.5):
         """Create dropout layer.
 
         p_dropout: Weight dropout probability

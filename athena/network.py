@@ -12,6 +12,7 @@ from athena.layers import WeightedLayer, ConvolutionalLayer
 class Network(object):
     """Neural network."""
 
+    # Early stopping parameters
     patience = 10000
     patience_increase = 2
 

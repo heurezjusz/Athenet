@@ -3,6 +3,7 @@
 import gzip
 import cPickle
 import urllib
+import sys
 import numpy as np
 
 import theano
@@ -47,6 +48,7 @@ def download_mnist_data(filename):
     filename: Name of the MNIST data file to be created
     """
     print 'Downloading MNIST data... ',
+    sys.stdout.flush()
     mnist_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
                     'mnist.pkl.gz')
     urllib.urlretrieve(mnist_origin, filename)

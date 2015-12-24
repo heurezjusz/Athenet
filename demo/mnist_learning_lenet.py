@@ -1,11 +1,11 @@
-"""Example usage of Athena network library."""
+"""Training LeNet on MNIST data."""
 
 import os
 import numpy as np
 
-from athena.network import Network
+from athena import Network
 from athena.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
-    ConvolutionalLayer, Dropout
+    ConvolutionalLayer
 from athena.utils.data_loader import load_mnist_data, download_mnist_data
 
 
@@ -18,22 +18,13 @@ network = Network([
     MaxPool(poolsize=(2, 2)),
     FullyConnectedLayer(n_in=50*4*4, n_out=500),
     ReLU(),
-    Dropout(0.5),
     FullyConnectedLayer(n_in=500, n_out=10),
     Softmax(),
 ])
 
-mnist_filename = 'mnist.pkl.gz'
+mnist_filename = '../bin/mnist.pkl.gz'
 if not os.path.isfile(mnist_filename):
     download_mnist_data(mnist_filename)
 
-# learning example
 network.datasets = load_mnist_data(mnist_filename)
 network.train(learning_rate=0.1, n_epochs=1, batch_size=300)
-
-# weights modifying example
-W = network.weighted_layers[0].W  # get copy of the weights' values
-W += np.random.uniform(low=0.0, high=0.1, size=W.shape)  # random disturbance
-network.weighted_layers[0].W = W  # set the new weights
-print 'Accuracy on the test data after disturbance: {:.2f}%'.format(
-    100 * network.test_accuracy())
