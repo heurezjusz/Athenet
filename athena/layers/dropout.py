@@ -20,12 +20,16 @@ class Dropout(Layer):
     def _get_output(self, layer_input):
         """Return layer's output.
 
+        When evaluating, each weight is multiplied by (1 - p_dropout).
+
         layer_input: Layer input.
         """
         return (1. - self.p_dropout) * layer_input
 
     def _get_train_output(self, layer_input):
         """Return layer's output used for training.
+
+        When training, (1 - p_dropout) weights are dropped out.
 
         layer_input: Layer input.
         """

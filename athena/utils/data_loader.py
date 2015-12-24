@@ -42,7 +42,7 @@ def download_mnist_data(filename):
 
     filename: Name of the MNIST data file to be created
     """
-    directory = path.dirname(filename)
+    directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
     print 'Downloading MNIST data... ',

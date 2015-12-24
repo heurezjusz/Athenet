@@ -7,7 +7,7 @@ from athena.layers import Layer
 
 class LRN(Layer):
     """Local Response Normalization layer."""
-    def __init__(self, local_range=5, k=1, alpha=0.0005, beta=0.75):
+    def __init__(self, local_range=5, k=1, alpha=0.0002, beta=0.75):
         """Create Local Response Normalization layer.
 
         local_range: Local channel range. Should be odd,
