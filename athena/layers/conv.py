@@ -10,7 +10,7 @@ from athena.layers import WeightedLayer
 
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
-    def __init__(self, image_size, filter_shape, batch_size=1):
+    def __init__(self, image_size, filter_shape, stride=(1, 1), batch_size=1):
         """Create convolutional layer.
 
         image_size: Image size in the format (image height, image width)
@@ -22,6 +22,7 @@ class ConvolutionalLayer(WeightedLayer):
         super(ConvolutionalLayer, self).__init__()
         self.image_size = image_size
         self.filter_shape = filter_shape
+        self.stride = stride
         self.batch_size = batch_size
         self._batch_size = None
         self.image_shape = None
@@ -62,7 +63,8 @@ class ConvolutionalLayer(WeightedLayer):
             input=self.input,
             filters=self.W_shared,
             filter_shape=self.filter_shape,
-            image_shape=self.image_shape
+            image_shape=self.image_shape,
+            subsample=self.stride
         ) + self.b_shared.dimshuffle('x', 0, 'x', 'x')
 
     @property
