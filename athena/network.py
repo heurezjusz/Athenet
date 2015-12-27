@@ -13,7 +13,7 @@ class Network(object):
     """Neural network."""
 
     # Early stopping parameters
-    patience = 10000
+    initial_patience = 10000
     patience_increase = 2
 
     def __init__(self, layers, batch_size=1):
@@ -192,6 +192,7 @@ class Network(object):
             }
         )
 
+        self.patience = self.initial_patience
         validation_interval = min(self.n_train_batches, self.patience / 2)
         best_validation_accuracy = 0.0
         epoch = 0
