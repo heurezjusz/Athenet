@@ -3,6 +3,7 @@
 import numpy as np
 
 import theano
+import theano.tensor as T
 from theano.tensor.nnet import conv
 
 from athena.layers import WeightedLayer
@@ -10,22 +11,28 @@ from athena.layers import WeightedLayer
 
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
-    def __init__(self, image_size, filter_shape, stride=(1, 1), batch_size=1):
+    def __init__(self, image_size, filter_shape, stride=(1, 1),
+                 padding=(0, 0), batch_size=1):
         """Create convolutional layer.
 
         image_size: Image size in the format (image height, image width)
         filter_shape: Shape of the filter in the format
                       (number of output channels, number of input channels,
                        filter height, filter width)
+        stride: Interval at which to apply the filters.
+        padding: Number of zero-activated neurons to add on each side of the
+                 input.
         batch_size: Minibatch size
         """
         super(ConvolutionalLayer, self).__init__()
+        self._batch_size = None
+        self.image_shape = None
+
         self.image_size = image_size
         self.filter_shape = filter_shape
         self.stride = stride
+        self.padding = padding
         self.batch_size = batch_size
-        self._batch_size = None
-        self.image_shape = None
 
         if not self.W_shared:
             n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
@@ -59,8 +66,14 @@ class ConvolutionalLayer(WeightedLayer):
 
         layer_input: Layer input.
         """
+        bs, n_channels, h, w = self.image_shape
+        pad_h, pad_w = self.padding
+        extra_neurons = T.alloc(0., bs, n_channels, h + 2*pad_h, w + 2*pad_w)
+        extra_neurons = T.set_subtensor(
+            extra_neurons[:, :, pad_h:pad_h+h, pad_w:pad_w+w], self.input)
+
         return conv.conv2d(
-            input=self.input,
+            input=extra_neurons,
             filters=self.W_shared,
             filter_shape=self.filter_shape,
             image_shape=self.image_shape,
