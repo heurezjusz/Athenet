@@ -17,20 +17,19 @@ class FullyConnectedLayer(WeightedLayer):
         n_out: Number of output neurons
         """
         super(FullyConnectedLayer, self).__init__()
-        if not self.W_shared:
-            W_value = np.asarray(
-                np.random.normal(
-                    loc=0.,
-                    scale=np.sqrt(1. / n_out),
-                    size=(n_in, n_out)
-                ),
-                dtype=theano.config.floatX
-            )
-            self.W_shared = theano.shared(W_value, borrow=True)
 
-        if not self.b_shared:
-            b_value = np.zeros((n_out,), dtype=theano.config.floatX)
-            self.b_shared = theano.shared(b_value, borrow=True)
+        W_value = np.asarray(
+            np.random.normal(
+                loc=0.,
+                scale=np.sqrt(1. / n_out),
+                size=(n_in, n_out)
+            ),
+            dtype=theano.config.floatX
+        )
+        self.W_shared = theano.shared(W_value, borrow=True)
+
+        b_value = np.zeros((n_out,), dtype=theano.config.floatX)
+        self.b_shared = theano.shared(b_value, borrow=True)
 
         self.params = [self.W_shared, self.b_shared]
 

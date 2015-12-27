@@ -13,7 +13,7 @@ class Layer(object):
         self._input_layer = None
 
     def _reshape_input(self, raw_layer_input):
-        """Return input in the format that is suitable for this layer.
+        """Return input in the correct format for given layer.
 
         raw_layer_input: Layer input.
         """

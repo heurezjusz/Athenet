@@ -11,83 +11,99 @@ from athena.layers import WeightedLayer
 
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
-    def __init__(self, image_size, filter_shape, stride=(1, 1),
-                 padding=(0, 0), batch_size=1):
+    def __init__(self, image_shape, filter_shape, stride=(1, 1),
+                 padding=(0, 0), n_groups=1, batch_size=1):
         """Create convolutional layer.
 
-        image_size: Image size in the format (image height, image width)
-        filter_shape: Shape of the filter in the format
-                      (number of output channels, number of input channels,
-                       filter height, filter width)
-        stride: Interval at which to apply the filters.
-        padding: Number of zero-activated neurons to add on each side of the
-                 input.
-        batch_size: Minibatch size
+        image_shape: Image shape in the format
+                     (image height, image width, number of channels).
+        filter_shape: Filter shape in the format
+                      (filter height, filter width, number of filters).
+        stride: Tuple representing interval at which to apply the filters.
+        padding: Tuple representing number of zero-valued pixels to add on
+                 each side of the input.
+        n_groups: Number of groups which input and output channels will be
+                  split into. Two channels are connected only if they belong
+                  to the same group.
+        batch_size: Minibatch size.
         """
         super(ConvolutionalLayer, self).__init__()
-        self._batch_size = None
-        self.image_shape = None
 
-        self.image_size = image_size
+        self.image_shape = image_shape
         self.filter_shape = filter_shape
+        h, w, n_filters = filter_shape
+        self.n_filters = n_filters
+        self.conv_filter_shape = (n_filters, image_shape[2] / n_groups, h, w)
         self.stride = stride
         self.padding = padding
+        self.n_groups = n_groups
         self.batch_size = batch_size
 
-        if not self.W_shared:
-            n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
-            W_value = np.asarray(
-                np.random.normal(
-                    loc=0.,
-                    scale=np.sqrt(1. / n_out),
-                    size=self.filter_shape
-                ),
-                dtype=theano.config.floatX
-            )
-            self.W_shared = theano.shared(W_value, borrow=True)
+        n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
+        W_value = np.asarray(
+            np.random.normal(
+                loc=0.,
+                scale=np.sqrt(1. / n_out),
+                size=self.conv_filter_shape
+            ),
+            dtype=theano.config.floatX
+        )
+        self.W_shared = theano.shared(W_value, borrow=True)
 
-        if not self.b_shared:
-            b_values = np.zeros((filter_shape[0],), dtype=theano.config.floatX)
-            self.b_shared = theano.shared(b_values, borrow=True)
+        b_values = np.zeros((n_filters,), dtype=theano.config.floatX)
+        self.b_shared = theano.shared(b_values, borrow=True)
 
         self.params = [self.W_shared, self.b_shared]
 
     def _reshape_input(self, raw_layer_input):
-        """Return input in the format that is suitable for this layer.
+        """Return input in the correct format for convolutional layer.
 
         raw_layer_input: Input in the format (batch size, number of channels,
-                                              image height, image width)
-                         or compatible.
+                                              image height, image width) or
+                         compatible.
         """
-        return raw_layer_input.reshape(self.image_shape)
+        h, w, n_channels = self.image_shape
+        conv_image_shape = (self.batch_size, n_channels, h, w)
+        reshaped_input = raw_layer_input.reshape(conv_image_shape)
+
+        h, w, n_channels = self.image_shape
+        pad_h, pad_w = self.padding
+        h_in = h + 2*pad_h
+        w_in = w + 2*pad_w
+        extra_pixels = T.alloc(0., self.batch_size, n_channels, h_in, w_in)
+        extra_pixels = T.set_subtensor(
+            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
+        return extra_pixels
 
     def _get_output(self, layer_input):
         """Return layer's output.
 
         layer_input: Layer input.
         """
-        bs, n_channels, h, w = self.image_shape
-        pad_h, pad_w = self.padding
-        extra_neurons = T.alloc(0., bs, n_channels, h + 2*pad_h, w + 2*pad_w)
-        extra_neurons = T.set_subtensor(
-            extra_neurons[:, :, pad_h:pad_h+h, pad_w:pad_w+w], self.input)
+        n_group_channels = self.conv_filter_shape[1]
+        n_group_filters = self.n_filters / self.n_groups
 
-        return conv.conv2d(
-            input=extra_neurons,
-            filters=self.W_shared,
-            filter_shape=self.filter_shape,
-            image_shape=self.image_shape,
-            subsample=self.stride
-        ) + self.b_shared.dimshuffle('x', 0, 'x', 'x')
+        h, w, n_channels = self.image_shape
+        group_image_shape = (self.batch_size, n_group_channels, h, w)
 
-    @property
-    def batch_size(self):
-        "Return batch size."
-        return self._batch_size
+        h, w, n_filters = self.filter_shape
+        group_filter_shape = (n_group_filters, n_group_channels, h, w)
 
-    @batch_size.setter
-    def batch_size(self, value):
-        """Set convolutional layer's minibatch size."""
-        self._batch_size = value
-        self.image_shape = (self.batch_size, self.filter_shape[1],
-                            self.image_size[0], self.image_size[1])
+        conv_output = None
+        for i in xrange(self.n_groups):
+            group_output = conv.conv2d(
+                input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
+                                 :, :],
+                filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
+                                      :, :, :],
+                filter_shape=group_filter_shape,
+                image_shape=group_image_shape,
+                subsample=self.stride
+            )
+            if conv_output:
+                conv_output = T.concatenate([conv_output, group_output],
+                                            axis=1)
+            else:
+                conv_output = group_output
+
+        return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')

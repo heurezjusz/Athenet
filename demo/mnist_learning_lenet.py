@@ -7,10 +7,10 @@ from athena.utils import load_mnist_data
 
 
 network = Network([
-    ConvolutionalLayer(image_size=(28, 28), filter_shape=(20, 1, 5, 5)),
+    ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(5, 5, 20)),
     ReLU(),
     MaxPool(poolsize=(2, 2)),
-    ConvolutionalLayer(image_size=(12, 12), filter_shape=(50, 20, 5, 5)),
+    ConvolutionalLayer(image_shape=(12, 12, 20), filter_shape=(5, 5, 50)),
     ReLU(),
     MaxPool(poolsize=(2, 2)),
     FullyConnectedLayer(n_in=50*4*4, n_out=500),
