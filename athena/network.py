@@ -192,8 +192,8 @@ class Network(object):
             }
         )
 
-        self.patience = self.initial_patience
-        validation_interval = min(self.n_train_batches, self.patience / 2)
+        patience = self.initial_patience
+        validation_interval = min(self.n_train_batches, patience / 2)
         best_validation_accuracy = 0.0
         epoch = 0
         iteration = 0
@@ -214,11 +214,11 @@ class Network(object):
                     print '\tAccuracy on validation data: {:.2f}%'.format(
                         100 * validation_accuracy)
                     if validation_accuracy > best_validation_accuracy:
-                        self.patience = max(self.patience, iteration *
-                                            self.patience_increase)
+                        patience = max(patience, iteration *
+                                       self.patience_increase)
                         best_validation_accuracy = validation_accuracy
 
-                if self.patience <= iteration:
+                if patience <= iteration:
                     done_looping = True
                     break
         end_time = timeit.default_timer()

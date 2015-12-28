@@ -11,14 +11,14 @@ from athena.layers import WeightedLayer
 
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
-    def __init__(self, image_shape, filter_shape, stride=(1, 1),
+    def __init__(self, filter_shape, image_shape=None, stride=(1, 1),
                  padding=(0, 0), n_groups=1, batch_size=1):
         """Create convolutional layer.
 
-        image_shape: Image shape in the format
-                     (image height, image width, number of channels).
         filter_shape: Filter shape in the format
                       (filter height, filter width, number of filters).
+        image_shape: Image shape in the format
+                     (image height, image width, number of channels).
         stride: Tuple representing interval at which to apply the filters.
         padding: Tuple representing number of zero-valued pixels to add on
                  each side of the input.
@@ -28,23 +28,38 @@ class ConvolutionalLayer(WeightedLayer):
         batch_size: Minibatch size.
         """
         super(ConvolutionalLayer, self).__init__()
+        self._image_shape = None
 
-        self.image_shape = image_shape
         self.filter_shape = filter_shape
-        h, w, n_filters = filter_shape
-        self.n_filters = n_filters
-        self.conv_filter_shape = (n_filters, image_shape[2] / n_groups, h, w)
         self.stride = stride
         self.padding = padding
         self.n_groups = n_groups
         self.batch_size = batch_size
+
+        self.image_shape = image_shape
+
+    @property
+    def image_shape(self):
+        """Return image shape."""
+        return self._image_shape
+
+    @image_shape.setter
+    def image_shape(self, value):
+        """Set image shape."""
+        if not value:
+            return
+        self._image_shape = value
+
+        h, w, n_filters = self.filter_shape
+        conv_filter_shape = (n_filters, self.image_shape[2]/self.n_groups,
+                             h, w)
 
         n_out = self.filter_shape[0] * np.prod(self.filter_shape[2:])
         W_value = np.asarray(
             np.random.normal(
                 loc=0.,
                 scale=np.sqrt(1. / n_out),
-                size=self.conv_filter_shape
+                size=conv_filter_shape
             ),
             dtype=theano.config.floatX
         )
@@ -80,13 +95,16 @@ class ConvolutionalLayer(WeightedLayer):
 
         layer_input: Layer input.
         """
-        n_group_channels = self.conv_filter_shape[1]
-        n_group_filters = self.n_filters / self.n_groups
+        n_channels = self.image_shape[2]
+        n_filters = self.filter_shape[2]
 
-        h, w, n_channels = self.image_shape
+        n_group_channels = n_channels / self.n_groups
+        n_group_filters = n_filters / self.n_groups
+
+        h, w = self.image_shape[0:2]
         group_image_shape = (self.batch_size, n_group_channels, h, w)
 
-        h, w, n_filters = self.filter_shape
+        h, w = self.filter_shape[0:2]
         group_filter_shape = (n_group_filters, n_group_channels, h, w)
 
         conv_output = None

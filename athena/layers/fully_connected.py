@@ -10,25 +10,42 @@ from athena.layers import WeightedLayer
 
 class FullyConnectedLayer(WeightedLayer):
     """Fully connected layer."""
-    def __init__(self, n_in, n_out):
+    def __init__(self, n_out, n_in=None):
         """Create fully connected layer.
 
-        n_in: Number of input neurons
-        n_out: Number of output neurons
+        n_out: Number of output neurons.
+        n_in: Number of input neurons.
         """
         super(FullyConnectedLayer, self).__init__()
+        self._n_in = None
+        self.W_shared = None
+
+        self.n_out = n_out
+        self.n_in = n_in
+
+    @property
+    def n_in(self):
+        """Return number of input neurons."""
+        return self._n_in
+
+    @n_in.setter
+    def n_in(self, value):
+        """Set number of input neurons."""
+        if not value:
+            return
+        self._n_in = value
 
         W_value = np.asarray(
             np.random.normal(
                 loc=0.,
-                scale=np.sqrt(1. / n_out),
-                size=(n_in, n_out)
+                scale=np.sqrt(1. / self.n_out),
+                size=(self.n_in, self.n_out)
             ),
             dtype=theano.config.floatX
         )
         self.W_shared = theano.shared(W_value, borrow=True)
 
-        b_value = np.zeros((n_out,), dtype=theano.config.floatX)
+        b_value = np.zeros((self.n_out,), dtype=theano.config.floatX)
         self.b_shared = theano.shared(b_value, borrow=True)
 
         self.params = [self.W_shared, self.b_shared]
