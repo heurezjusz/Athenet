@@ -58,7 +58,7 @@ class TestLayers(TestCase):
         self.assertEqual(out.shape, (1, 6, 5, 4))
 
     def test_activation_layer(self):
-        in_data = np.zeros((1, 4, 5, 6))
+        in_data = np.zeros((1, 4, 5, 6), dtype=theano.config.floatX)
         for i in xrange(in_data.shape[1]):
             for j in xrange(in_data.shape[2]):
                 for k in xrange(in_data.shape[3]):
@@ -76,7 +76,7 @@ class TestLayers(TestCase):
                     self.assertEqual(out[0][i][j][k], in_data[0][i][j][k] ** 3 / 16.)
 
     def test_relu_layer(self):
-        in_data = np.zeros((1, 13, 5, 7))
+        in_data = np.zeros((1, 13, 5, 7), dtype=theano.config.floatX)
         for i in xrange(in_data.shape[1]):
             for j in xrange(in_data.shape[2]):
                 for k in xrange(in_data.shape[3]):
