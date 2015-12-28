@@ -2,7 +2,7 @@
 
 import theano.tensor as T
 
-from athena.layers import Layer
+from athenet.layers import Layer
 
 
 class LRN(Layer):

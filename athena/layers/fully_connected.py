@@ -5,7 +5,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athena.layers import WeightedLayer
+from athenet.layers import WeightedLayer
 
 
 class FullyConnectedLayer(WeightedLayer):

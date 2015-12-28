@@ -6,7 +6,7 @@ import theano
 import theano.tensor as T
 from theano.tensor.nnet import conv
 
-from athena.layers import WeightedLayer
+from athenet.layers import WeightedLayer
 
 
 class ConvolutionalLayer(WeightedLayer):

@@ -4,7 +4,7 @@ import theano
 import theano.tensor as T
 from theano.tensor import shared_randomstreams
 
-from athena.layers import Layer
+from athenet.layers import Layer
 
 
 class Dropout(Layer):

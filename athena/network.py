@@ -6,7 +6,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athena.layers import WeightedLayer, ConvolutionalLayer
+from athenet.layers import WeightedLayer, ConvolutionalLayer
 
 
 class Network(object):

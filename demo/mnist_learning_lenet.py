@@ -1,9 +1,9 @@
 """Training LeNet on MNIST data."""
 
-from athena import Network
-from athena.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
+from athenet import Network
+from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
     ConvolutionalLayer
-from athena.utils import load_mnist_data
+from athenet.utils import load_mnist_data
 
 
 network = Network([

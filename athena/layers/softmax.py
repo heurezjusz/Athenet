@@ -3,7 +3,7 @@
 import theano.tensor as T
 from theano.tensor.nnet import softmax
 
-from athena.layers import Layer
+from athenet.layers import Layer
 
 
 class Softmax(Layer):

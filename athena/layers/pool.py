@@ -2,7 +2,7 @@
 
 from theano.tensor.signal import downsample
 
-from athena.layers import Layer
+from athenet.layers import Layer
 
 
 class MaxPool(Layer):
