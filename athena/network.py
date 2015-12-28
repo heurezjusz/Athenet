@@ -52,10 +52,6 @@ class Network(object):
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
-        self.params = []
-        for layer in self.weighted_layers:
-            self.params += layer.params
-
         self.batch_size = batch_size
 
     @property
@@ -78,6 +74,10 @@ class Network(object):
         self.output = self.layers[-1].output
         self.train_output = self.layers[-1].train_output
         self.y_out = T.argmax(self.output, axis=1)
+
+        self.params = []
+        for layer in self.weighted_layers:
+            self.params += layer.params
 
         self._data_accuracy = T.mean(T.eq(self.y, self.y_out))
         self.get_output = theano.function(

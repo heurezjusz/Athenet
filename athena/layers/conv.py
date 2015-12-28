@@ -46,7 +46,7 @@ class ConvolutionalLayer(WeightedLayer):
     @image_shape.setter
     def image_shape(self, value):
         """Set image shape."""
-        if not value:
+        if not value or self._image_shape == value:
             return
         self._image_shape = value
 
@@ -69,6 +69,25 @@ class ConvolutionalLayer(WeightedLayer):
         self.b_shared = theano.shared(b_values, borrow=True)
 
         self.params = [self.W_shared, self.b_shared]
+
+    @property
+    def input_shape(self):
+        return self.image_shape
+
+    @input_shape.setter
+    def input_shape(self, value):
+        self.image_shape = value
+
+    @property
+    def output_shape(self):
+        """Return output shape."""
+        image_h, image_w, n_channels = self.image_shape
+        filter_h, filter_w, n_filters = self.filter_shape
+        stride_h, stride_w = self.stride
+
+        output_h = (image_h - filter_h) / stride_h + 1
+        output_w = (image_w - filter_w) / stride_w + 1
+        return (output_h, output_w, n_filters)
 
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for convolutional layer.

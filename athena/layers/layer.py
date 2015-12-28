@@ -7,6 +7,7 @@ class Layer(object):
         self.output = None
         self.train_output = None
         self.cost = None
+        self._input_shape = None
 
         self._input = None
         self._train_input = None
@@ -58,6 +59,19 @@ class Layer(object):
         self.train_output = self._get_train_output(self.train_input)
 
     @property
+    def input_shape(self):
+        return self._input_shape
+
+    @input_shape.setter
+    def input_shape(self, value):
+        self._input_shape = value
+
+    @property
+    def output_shape(self):
+        """Return output shape."""
+        return self.input_shape
+
+    @property
     def input_layer(self):
         """Return input layer."""
         return self._input_layer
@@ -66,6 +80,9 @@ class Layer(object):
     def input_layer(self, input_layer):
         """Set input layer."""
         self._input_layer = input_layer
+        self.input_shape = input_layer.output_shape
+        input_layer.output_shape
+
         self.input = input_layer.output
         self.train_input = input_layer.train_output
 

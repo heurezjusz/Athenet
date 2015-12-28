@@ -10,12 +10,12 @@ network = Network([
     ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(5, 5, 20)),
     ReLU(),
     MaxPool(poolsize=(2, 2)),
-    ConvolutionalLayer(image_shape=(12, 12, 20), filter_shape=(5, 5, 50)),
+    ConvolutionalLayer(filter_shape=(5, 5, 50)),
     ReLU(),
     MaxPool(poolsize=(2, 2)),
-    FullyConnectedLayer(n_in=50*4*4, n_out=500),
+    FullyConnectedLayer(n_out=500),
     ReLU(),
-    FullyConnectedLayer(n_in=500, n_out=10),
+    FullyConnectedLayer(n_out=10),
     Softmax(),
 ])
 

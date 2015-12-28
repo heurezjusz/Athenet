@@ -17,6 +17,20 @@ class MaxPool(Layer):
         self.poolsize = poolsize
         self.stride = stride
 
+    @property
+    def output_shape(self):
+        """Return output shape."""
+        image_h, image_w, n_channels = self.input_shape
+        pool_h, pool_w = self.poolsize
+        if self.stride:
+            stride_h, stride_w = self.stride
+        else:
+            stride_h, stride_w = pool_h, pool_w
+
+        output_h = (image_h - pool_h) / stride_h + 1
+        output_w = (image_w - pool_w) / stride_w + 1
+        return (output_h, output_w, n_channels)
+
     def _get_output(self, layer_input):
         """Return layer's output.
 

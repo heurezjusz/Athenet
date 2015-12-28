@@ -31,8 +31,9 @@ class FullyConnectedLayer(WeightedLayer):
     @n_in.setter
     def n_in(self, value):
         """Set number of input neurons."""
-        if not value:
+        if not value or self._n_in == value:
             return
+
         self._n_in = value
 
         W_value = np.asarray(
@@ -50,6 +51,19 @@ class FullyConnectedLayer(WeightedLayer):
 
         self.params = [self.W_shared, self.b_shared]
 
+    @property
+    def input_shape(self):
+        return self.n_in
+
+    @input_shape.setter
+    def input_shape(self, value):
+        self.n_in = np.prod(value)
+
+    @property
+    def output_shape(self):
+        """Return output shape."""
+        return self.n_out
+
     def _reshape_input(self, raw_layer_input):
         """Return input in the format that is suitable for this layer.
 
@@ -63,3 +77,10 @@ class FullyConnectedLayer(WeightedLayer):
         layer_input: Layer input.
         """
         return T.dot(self.input, self.W_shared) + self.b_shared
+
+    def get_output_shape(self, input_shape):
+        """Return output shape.
+
+        input_shape: Input shape.
+        """
+        return input_shape
