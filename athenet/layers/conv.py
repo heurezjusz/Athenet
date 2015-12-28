@@ -104,7 +104,10 @@ class ConvolutionalLayer(WeightedLayer):
         pad_h, pad_w = self.padding
         h_in = h + 2*pad_h
         w_in = w + 2*pad_w
-        extra_pixels = T.alloc(0., self.batch_size, n_channels, h_in, w_in)
+        shape = (self.batch_size, n_channels, h_in, w_in)
+
+        val = np.zeros(shape=shape, dtype=theano.config.floatX)
+        extra_pixels = T.alloc(val, shape[0], shape[1], shape[2], shape[3])
         extra_pixels = T.set_subtensor(
             extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
         return extra_pixels
