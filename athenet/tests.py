@@ -16,7 +16,8 @@ class TestNetworkBasics(TestCase):
             return T.minimum(x, 0.)
 
         net = Network([
-            ConvolutionalLayer(image_shape=(42, 21, 2), filter_shape=(5, 5, 3)),
+            ConvolutionalLayer(image_shape=(42, 21, 2),
+                               filter_shape=(5, 5, 3)),
             ReLU(),
             ConvolutionalLayer(filter_shape=(5, 5, 3)),
             Activation(foo),
@@ -49,11 +50,13 @@ def eval_matrix_on_layer(layer, matrix):
 class TestLayers(TestCase):
     def test_convolutional_layer(self):
         image = np.ndarray((10, 10), dtype=theano.config.floatX)
-        layer = ConvolutionalLayer(image_shape=(10, 10, 1), filter_shape=(5, 5, 3))
+        layer = ConvolutionalLayer(image_shape=(10, 10, 1),
+                                   filter_shape=(5, 5, 3))
         out = eval_matrix_on_layer(layer, image)
         self.assertEqual(out.shape, (1, 3, 6, 6))
 
-        layer2 = ConvolutionalLayer(filter_shape=(2, 3, 6), image_shape=(6, 6, 3))
+        layer2 = ConvolutionalLayer(image_shape=(6, 6, 3),
+                                    filter_shape=(2, 3, 6))
         out = eval_tensor_on_layer(layer2, out)
         self.assertEqual(out.shape, (1, 6, 5, 4))
 
@@ -73,7 +76,8 @@ class TestLayers(TestCase):
         for i in xrange(in_data.shape[1]):
             for j in xrange(in_data.shape[2]):
                 for k in xrange(in_data.shape[3]):
-                    self.assertEqual(out[0][i][j][k], in_data[0][i][j][k] ** 3 / 16.)
+                    self.assertEqual(out[0][i][j][k],
+                                     in_data[0][i][j][k] ** 3 / 16.)
 
     def test_relu_layer(self):
         in_data = np.zeros((1, 13, 5, 7), dtype=theano.config.floatX)
@@ -92,7 +96,6 @@ class TestLayers(TestCase):
                         self.assertEqual(out[0][i][j][k], 0.)
                     else:
                         self.assertEqual(out[0][i][j][k], in_data[0][i][j][k])
-
 
 
 if __name__ == '__main__':
