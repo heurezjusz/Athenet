@@ -67,7 +67,7 @@ def _mnist_shared_dataset(data, borrow=True):
         return: Theano shared variables created from data.
         """
         data_x, data_y = data
-        data_x = np.resize(data_x, (data_x.shape[0], 28, 28, 1))
+        data_x = np.resize(data_x, (data_x.shape[0], 1, 28, 28))
         shared_x = theano.shared(np.asarray(data_x,
                                             dtype=theano.config.floatX),
                                  borrow=borrow)

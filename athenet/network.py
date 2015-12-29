@@ -128,8 +128,8 @@ class Network(object):
             x_in,
             dtype=theano.config.floatX
         )
-        height, width = x_in.shape
-        x_in = np.resize(x_in, (1, 1, height, width))
+        n_channels, height, width = x_in.shape
+        x_in = np.resize(x_in, (1, n_channels, height, width))
         return self.get_output(x_in)
 
     @property

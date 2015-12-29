@@ -82,6 +82,9 @@ class ConvolutionalLayer(WeightedLayer):
     def output_shape(self):
         """Return output shape."""
         image_h, image_w, n_channels = self.image_shape
+        pad_h, pad_w = self.padding
+        image_h += 2 * pad_h
+        image_w += 2 * pad_w
         filter_h, filter_w, n_filters = self.filter_shape
         stride_h, stride_w = self.stride
 
@@ -124,7 +127,9 @@ class ConvolutionalLayer(WeightedLayer):
         n_group_filters = n_filters / self.n_groups
 
         h, w = self.image_shape[0:2]
-        group_image_shape = (self.batch_size, n_group_channels, h, w)
+        pad_h, pad_w = self.padding
+        group_image_shape = (self.batch_size, n_group_channels,
+                             h + 2*pad_h, w + 2*pad_w)
 
         h, w = self.filter_shape[0:2]
         group_filter_shape = (n_group_filters, n_group_channels, h, w)
