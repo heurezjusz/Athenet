@@ -1,7 +1,7 @@
 """Module for loading the MNIST data"""
 
 import gzip
-import cPickle
+import cPickle as pickle
 import urllib
 import os
 import sys
@@ -17,17 +17,40 @@ _MNIST_ORIGIN = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
                  'mnist.pkl.gz')
 
 
-def load_mnist_data(filename=_MNIST_FILENAME):
-    """Load MNIST data from file.
+def load_data(filename, url=None):
+    """Load data from file, download file if it doesn't exist.
 
-    filename: Name of the file with MNIST data
+    filename: File with pickled data.
+    url: Url for downloading file.
+    return: Unpickled data.
     """
     if not os.path.isfile(filename):
-        download_mnist_data(filename)
+        if not url:
+            return None
+        else:
+            directory = os.path.dirname(filename)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+
+            print 'Downloading ' + os.path.basename(filename) + '...',
+            sys.stdout.flush()
+            urllib.urlretrieve(url, filename)
+            print 'Done'
 
     f = gzip.open(filename, 'rb')
-    train_set, valid_set, test_set = cPickle.load(f)
+    data = pickle.load(f)
     f.close()
+    return data
+
+
+def load_mnist_data(filename=_MNIST_FILENAME, url=_MNIST_ORIGIN):
+    """Load MNIST data from file.
+
+    filename: Name of the file with MNIST data.
+    url: Url for downloading MNIST data.
+    return: List of training, validation and test data in the format (x, y).
+    """
+    train_set, valid_set, test_set = load_data(filename, url)
 
     test_set_x, test_set_y = _mnist_shared_dataset(test_set)
     valid_set_x, valid_set_y = _mnist_shared_dataset(valid_set)
@@ -37,26 +60,13 @@ def load_mnist_data(filename=_MNIST_FILENAME):
             (test_set_x, test_set_y)]
 
 
-def download_mnist_data(filename):
-    """Download MNIST data.
-
-    filename: Name of the MNIST data file to be created
-    """
-    directory = os.path.dirname(filename)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    print 'Downloading MNIST data... ',
-    sys.stdout.flush()
-    urllib.urlretrieve(_MNIST_ORIGIN, filename)
-    print 'Done.'
-
-
-def _mnist_shared_dataset(data_xy, borrow=True):
+def _mnist_shared_dataset(data, borrow=True):
         """Create shared variables from given data.
 
-        data_xy: data consisting of pairs (x, y)
+        data: Data consisting of pairs (x, y).
+        return: Theano shared variables created from data.
         """
-        data_x, data_y = data_xy
+        data_x, data_y = data
         data_x = np.resize(data_x, (data_x.shape[0], 28, 28, 1))
         shared_x = theano.shared(np.asarray(data_x,
                                             dtype=theano.config.floatX),
