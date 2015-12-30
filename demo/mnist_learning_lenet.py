@@ -3,7 +3,7 @@
 from athenet import Network
 from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
     ConvolutionalLayer
-from athenet.utils import load_mnist_data
+from athenet.utils import MNISTDataLoader
 
 
 network = Network([
@@ -19,5 +19,5 @@ network = Network([
     Softmax(),
 ])
 
-network.datasets = load_mnist_data()
+network.data_loader = MNISTDataLoader()
 network.train(learning_rate=0.1, n_epochs=10, batch_size=300)

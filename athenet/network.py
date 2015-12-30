@@ -22,25 +22,15 @@ class Network(object):
         layers: List of network's layers
         batch_size: Minibatch size
         """
-        self.output = None
-        self.train_output = None
-        self.y_out = None
-        self.n_train_batches = None
-        self.n_valid_batches = None
-        self.n_test_batches = None
-        self.train_set_x = None
-        self.train_set_y = None
-        self.valid_set_x = None
-        self.valid_set_y = None
-        self.test_set_x = None
-        self.test_set_y = None
-        self.get_output = None
-
         self._data_accuracy = None
         self._test_data_accuracy = None
-        self._validation_data_accuracy = None
-        self._datasets = None
+        self._valid_data_accuracy = None
         self._batch_size = None
+        self._data_loader = None
+
+        self.output = None
+        self.train_output = None
+        self.get_output = None
 
         self.layers = layers
         self.x = T.tensor4('x')
@@ -55,6 +45,17 @@ class Network(object):
         self.batch_size = batch_size
 
     @property
+    def data_loader(self):
+        """Return data loader."""
+        return self._data_loader
+
+    @data_loader.setter
+    def data_loader(self, value):
+        """Set data loader."""
+        self._data_loader = value
+        self.data_loader.batch_size = self.batch_size
+
+    @property
     def batch_size(self):
         """Return batch size."""
         return self._batch_size
@@ -64,28 +65,32 @@ class Network(object):
         """Set batch size."""
         if self._batch_size == value:
             return
+
         self._batch_size = value
+        if self.data_loader:
+            self.data_loader.batch_size = value
+
         for layer in self.convolutional_layers:
             layer.batch_size = self.batch_size
-
         self.layers[0].input = self.x
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
+
         self.output = self.layers[-1].output
         self.train_output = self.layers[-1].train_output
-        self.y_out = T.argmax(self.output, axis=1)
+        y_out = T.argmax(self.output, axis=1)
 
         self.params = []
         for layer in self.weighted_layers:
             self.params += layer.params
 
-        self._data_accuracy = T.mean(T.eq(self.y, self.y_out))
+        self._data_accuracy = T.mean(T.eq(self.y, y_out))
         self.get_output = theano.function(
             inputs=[self.x],
             outputs=self.output.flatten(1)
         )
 
-        if self.datasets:
+        if self.data_loader:
             self._update()
 
     def test_accuracy(self):
@@ -96,7 +101,7 @@ class Network(object):
         return: A number between 0 and 1 representing average accuracy
         """
         test_accuracies = [self._test_data_accuracy(i) for i in
-                           xrange(self.n_test_batches)]
+                           xrange(self.data_loader.n_test_batches)]
         return np.mean(test_accuracies)
 
     def get_params(self):
@@ -123,44 +128,15 @@ class Network(object):
 
         x_in: Input for the network
         """
+        batch_size = self.batch_size
         self.batch_size = 1
-        x_in = np.asarray(
-            x_in,
-            dtype=theano.config.floatX
-        )
+        x_in = np.asarray(x_in, dtype=theano.config.floatX)
         n_channels, height, width = x_in.shape
         x_in = np.resize(x_in, (1, n_channels, height, width))
+        self.batch_size = batch_size
         return self.get_output(x_in)
 
-    @property
-    def datasets(self):
-        """Return datasets.
-
-        return: Tuple containing training, validation and test data
-        """
-        return self._datasets
-
-    @datasets.setter
-    def datasets(self, value):
-        """Load training data into network.
-
-        value: Tuple containing training, validation and test data
-        """
-        self._datasets = value
-        if value:
-            self.train_set_x, self.train_set_y = self.datasets[0]
-            self.valid_set_x, self.valid_set_y = self.datasets[1]
-            self.test_set_x, self.test_set_y = self.datasets[2]
-        else:
-            self.train_set_x, self.train_set_y = None, None
-            self.valid_set_x, self.valid_set_y = None, None
-            self.test_set_x, self.test_set_y = None, None
-
-        if self.batch_size:
-            self._update()
-
-    def train(self, learning_rate=0.1, n_epochs=100, batch_size=500,
-              datasets=None):
+    def train(self, learning_rate=0.1, n_epochs=100, batch_size=None):
         """Train and test the network.
 
         learning_rate: Learning rate
@@ -168,9 +144,9 @@ class Network(object):
         batch_size: Size of minibatch
         datasets: Train, validation and test sets
         """
-        self.batch_size = batch_size
-        if datasets:
-            self.datasets = datasets
+        old_batch_size = self.batch_size
+        if batch_size:
+            self.batch_size = batch_size
 
         # set cost function for the last layer
         self.layers[-1].set_cost(self.y)
@@ -185,15 +161,14 @@ class Network(object):
             outputs=cost,
             updates=updates,
             givens={
-                self.x: self.train_set_x[self._batch_index * batch_size:
-                                         (self._batch_index+1) * batch_size],
-                self.y: self.train_set_y[self._batch_index * batch_size:
-                                         (self._batch_index+1) * batch_size]
+                self.x: self.data_loader.train_input(self._batch_index),
+                self.y: self.data_loader.train_output(self._batch_index)
             }
         )
 
         patience = self.initial_patience
-        validation_interval = min(self.n_train_batches, patience / 2)
+        validation_interval = min(self.data_loader.n_train_batches,
+                                  patience/2)
         best_validation_accuracy = 0.0
         epoch = 0
         iteration = 0
@@ -203,13 +178,13 @@ class Network(object):
         while (epoch < n_epochs) and (not done_looping):
             epoch += 1
             print 'Epoch {}'.format(epoch)
-            for minibatch_index in xrange(self.n_train_batches):
+            for minibatch_index in xrange(self.data_loader.n_train_batches):
                 train_model(minibatch_index)
                 iteration += 1
                 if iteration % validation_interval == 0:
                     validation_accuracies = [
-                        self._validation_data_accuracy(i)
-                        for i in xrange(self.n_valid_batches)]
+                        self._valid_data_accuracy(i)
+                        for i in xrange(self.data_loader.n_valid_batches)]
                     validation_accuracy = np.mean(validation_accuracies)
                     print '\tAccuracy on validation data: {:.2f}%'.format(
                         100 * validation_accuracy)
@@ -227,48 +202,27 @@ class Network(object):
             100 * self.test_accuracy())
         print 'Training time: {:.1f}s'.format(end_time - start_time)
 
-    def _update(self):
-        """Update fields that depend on both batch size and datasets."""
-        if self.datasets:
-            self.n_train_batches = (self.train_set_x.get_value(borrow=True).
-                                    shape[0] / self.batch_size)
-            self.n_valid_batches = (self.valid_set_x.get_value(borrow=True).
-                                    shape[0] / self.batch_size)
-            self.n_test_batches = (self.test_set_x.get_value(borrow=True).
-                                   shape[0] / self.batch_size)
+        self.batch_size = batch_size
 
-            self._validation_data_accuracy = theano.function(
+    def _update(self):
+        """Update fields that depend on both batch size and data loader."""
+        if self.data_loader:
+            self._valid_data_accuracy = theano.function(
                 inputs=[self._batch_index],
                 outputs=self._data_accuracy,
                 givens={
-                    self.x: self.valid_set_x[
-                        self._batch_index * self.batch_size:
-                        (self._batch_index+1) * self.batch_size
-                    ],
-                    self.y: self.valid_set_y[
-                        self._batch_index * self.batch_size:
-                        (self._batch_index+1) * self.batch_size
-                    ]
+                    self.x: self.data_loader.valid_input(self._batch_index),
+                    self.y: self.data_loader.valid_output(self._batch_index)
                 }
             )
             self._test_data_accuracy = theano.function(
                 inputs=[self._batch_index],
                 outputs=self._data_accuracy,
                 givens={
-                    self.x: self.test_set_x[
-                        self._batch_index * self.batch_size:
-                        (self._batch_index+1) * self.batch_size
-                    ],
-                    self.y: self.test_set_y[
-                        self._batch_index * self.batch_size:
-                        (self._batch_index+1) * self.batch_size
-                    ]
+                    self.x: self.data_loader.test_input(self._batch_index),
+                    self.y: self.data_loader.test_output(self._batch_index)
                 }
             )
         else:
-            self.n_train_batches = None
-            self.n_valid_batches = None
-            self.n_test_batches = None
-
-            self._validation_data_accuracy = None
+            self._valid_data_accuracy = None
             self._test_data_accuracy = None

@@ -1,20 +1,10 @@
-"""Module for loading the MNIST data"""
+"""Data loader class and functions."""
 
 import gzip
 import cPickle as pickle
 import urllib
 import os
 import sys
-import numpy as np
-
-import theano
-import theano.tensor as T
-
-
-_MNIST_FILENAME = os.path.join(os.path.dirname(__file__),
-                               '../../bin/mnist.pkl.gz')
-_MNIST_ORIGIN = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
-                 'mnist.pkl.gz')
 
 
 def load_data(filename, url=None):
@@ -43,35 +33,59 @@ def load_data(filename, url=None):
     return data
 
 
-def load_mnist_data(filename=_MNIST_FILENAME, url=_MNIST_ORIGIN):
-    """Load MNIST data from file.
+class DataLoader(object):
+    """Data loader."""
+    def __init__(self):
+        self.batch_size = 1
 
-    filename: Name of the file with MNIST data.
-    url: Url for downloading MNIST data.
-    return: List of training, validation and test data in the format (x, y).
-    """
-    train_set, valid_set, test_set = load_data(filename, url)
+    def _get_subset(self, data, batch_index):
+        return data[batch_index*self.batch_size:
+                    (batch_index+1)*self.batch_size]
 
-    test_set_x, test_set_y = _mnist_shared_dataset(test_set)
-    valid_set_x, valid_set_y = _mnist_shared_dataset(valid_set)
-    train_set_x, train_set_y = _mnist_shared_dataset(train_set)
+    def train_input(self, batch_index):
+        """Return minibatch of training data input.
 
-    return [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
-            (test_set_x, test_set_y)]
-
-
-def _mnist_shared_dataset(data, borrow=True):
-        """Create shared variables from given data.
-
-        data: Data consisting of pairs (x, y).
-        return: Theano shared variables created from data.
+        batch_index: Batch index.
+        return: List of minibatch training data input.
         """
-        data_x, data_y = data
-        data_x = np.resize(data_x, (data_x.shape[0], 1, 28, 28))
-        shared_x = theano.shared(np.asarray(data_x,
-                                            dtype=theano.config.floatX),
-                                 borrow=borrow)
-        shared_y = theano.shared(np.asarray(data_y,
-                                            dtype=theano.config.floatX),
-                                 borrow=borrow)
-        return shared_x, T.cast(shared_y, 'int32')
+        raise NotImplementedError()
+
+    def train_output(self, batch_index):
+        """Return minibatch of training data output.
+
+        batch_index: Batch index.
+        return: List of minibatch training data output.
+        """
+        raise NotImplementedError()
+
+    def valid_input(self, batch_index):
+        """Return minibatch of validation data input.
+
+        batch_index: Batch index.
+        return: List of minibatch validation data input.
+        """
+        raise NotImplementedError()
+
+    def valid_output(self, batch_index):
+        """Return minibatch of validation data output.
+
+        batch_index: Batch index.
+        return: List of minibatch validation data output.
+        """
+        raise NotImplementedError()
+
+    def test_input(self, batch_index):
+        """Return minibatch of testing data input.
+
+        batch_index: Batch index.
+        return: List of minibatch testing data input.
+        """
+        raise NotImplementedError()
+
+    def test_output(self, batch_index):
+        """Return minibatch of testing data output.
+
+        batch_index: Batch index.
+        return: List of minibatch testing data output.
+        """
+        raise NotImplementedError()
