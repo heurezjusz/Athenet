@@ -40,11 +40,24 @@ def load_data(filename, url=None):
 class DataLoader(object):
     """Data loader."""
     def __init__(self):
+        self._batch_size = None
         self.n_train_batches = None
         self.n_valid_batches = None
         self.n_test_batches = None
 
         self.batch_size = 1
+
+    @property
+    def batch_size(self):
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        self._batch_size = value
+
+        self.n_train_batches = self.train_set_size / self.batch_size
+        self.n_valid_batches = self.valid_set_size / self.batch_size
+        self.n_test_batches = self.test_set_size / self.batch_size
 
     def _get_subset(self, data, batch_index):
         return data[batch_index*self.batch_size:
@@ -54,7 +67,7 @@ class DataLoader(object):
         """Return minibatch of training data input.
 
         batch_index: Batch index.
-        return: List of minibatch training data input.
+        return: Minibatch of training data input.
         """
         raise NotImplementedError()
 
@@ -62,7 +75,7 @@ class DataLoader(object):
         """Return minibatch of training data output.
 
         batch_index: Batch index.
-        return: List of minibatch training data output.
+        return: Minibatch of training data output.
         """
         raise NotImplementedError()
 
@@ -70,7 +83,7 @@ class DataLoader(object):
         """Return minibatch of validation data input.
 
         batch_index: Batch index.
-        return: List of minibatch validation data input.
+        return: Minibatch of validation data input.
         """
         raise NotImplementedError()
 
@@ -78,7 +91,7 @@ class DataLoader(object):
         """Return minibatch of validation data output.
 
         batch_index: Batch index.
-        return: List of minibatch validation data output.
+        return: Minibatch of validation data output.
         """
         raise NotImplementedError()
 
@@ -86,7 +99,7 @@ class DataLoader(object):
         """Return minibatch of testing data input.
 
         batch_index: Batch index.
-        return: List of minibatch testing data input.
+        return: Minibatch of testing data input.
         """
         raise NotImplementedError()
 
@@ -94,6 +107,6 @@ class DataLoader(object):
         """Return minibatch of testing data output.
 
         batch_index: Batch index.
-        return: List of minibatch testing data output.
+        return: Minibatch of testing data output.
         """
         raise NotImplementedError()
