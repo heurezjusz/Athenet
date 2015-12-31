@@ -10,7 +10,7 @@ import sys
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
 
-    filename: File with pickled data.
+    filename: File with pickled data, may be gzipped.
     url: Url for downloading file.
     return: Unpickled data.
     """
@@ -27,8 +27,12 @@ def load_data(filename, url=None):
             urllib.urlretrieve(url, filename)
             print 'Done'
 
-    f = gzip.open(filename, 'rb')
-    data = pickle.load(f)
+    try:
+        f = gzip.open(filename, 'rb')
+        data = pickle.load(f)
+    except:
+        f = open(filename, 'rb')
+        data = pickle.load(f)
     f.close()
     return data
 
@@ -36,6 +40,10 @@ def load_data(filename, url=None):
 class DataLoader(object):
     """Data loader."""
     def __init__(self):
+        self.n_train_batches = None
+        self.n_valid_batches = None
+        self.n_test_batches = None
+
         self.batch_size = 1
 
     def _get_subset(self, data, batch_index):
