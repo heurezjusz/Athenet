@@ -33,6 +33,11 @@ def _mnist_shared_dataset(data):
 class MNISTDataLoader(DataLoader):
     """MNIST data loader."""
     def __init__(self, filename=_MNIST_FILENAME, url=_MNIST_ORIGIN):
+        """Create MNIST data loader.
+
+        filename: Name of a file with MNIST data.
+        url: Url for downloading MNIST data.
+        """
         train_set, valid_set, test_set = load_data(filename, url)
 
         self.test_set_in, self.test_set_out =\
