@@ -6,6 +6,8 @@ import sys
 import gzip
 import urllib
 
+from athenet.utils import BIN_DIR, DATA_DIR
+
 
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
@@ -35,3 +37,21 @@ def load_data(filename, url=None):
         data = pickle.load(f)
     f.close()
     return data
+
+
+def get_data_path(name):
+    """Return absolute path to the data file.
+
+    name: Name of the file.
+    return: Full path to the file.
+    """
+    return os.path.join(DATA_DIR, name)
+
+
+def get_bin_path(name):
+    """Return absolute path to the binary data file.
+
+    name: Name of the file.
+    return: Full path to the file.
+    """
+    return os.path.join(BIN_DIR, name)

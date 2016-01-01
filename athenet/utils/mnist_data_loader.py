@@ -6,13 +6,12 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athenet.utils import DataLoader, load_data
+from athenet.utils import DataLoader, load_data, get_bin_path
 
 
 class MNISTDataLoader(DataLoader):
     """MNIST data loader."""
-    MNIST_filename = os.path.join(os.path.dirname(__file__),
-                                  '../../bin/mnist.pkl.gz')
+    MNIST_filename = 'mnist.pkl.gz'
     MNIST_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
                     'mnist.pkl.gz')
 
@@ -37,7 +36,8 @@ class MNISTDataLoader(DataLoader):
         filename: Name of a file with MNIST data.
         url: Url for downloading MNIST data.
         """
-        train_set, valid_set, test_set = load_data(filename, url)
+        train_set, valid_set, test_set =\
+            load_data(get_bin_path(filename), url)
 
         self.test_set_in, self.test_set_out =\
             self._mnist_shared_dataset(test_set)
