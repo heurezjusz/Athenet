@@ -54,6 +54,7 @@ class Network(object):
         """Set data loader."""
         self._data_loader = value
         self.data_loader.batch_size = self.batch_size
+        self._update()
 
     @property
     def batch_size(self):
