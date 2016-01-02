@@ -1,67 +1,81 @@
-"""Module for loading the MNIST data"""
-
-import gzip
-import cPickle
-import urllib
-import os
-import sys
-import numpy as np
-
-import theano
-import theano.tensor as T
+"""Data loader."""
 
 
-_MNIST_FILENAME = os.path.join(os.path.dirname(__file__),
-                               '../../bin/mnist.pkl.gz')
-_MNIST_ORIGIN = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
-                 'mnist.pkl.gz')
+class DataLoader(object):
+    """Data loader."""
+    def __init__(self):
+        self._batch_size = None
+        self.n_train_batches = None
+        self.n_val_batches = None
+        self.n_test_batches = None
 
+        self.train_set_size = 0
+        self.val_set_size = 0
+        self.test_set_size = 0
+        self.train_data_available = False
+        self.val_data_available = False
+        self.test_data_available = False
 
-def load_mnist_data(filename=_MNIST_FILENAME):
-    """Load MNIST data from file.
+    @property
+    def batch_size(self):
+        return self._batch_size
 
-    filename: Name of the file with MNIST data
-    """
-    if not os.path.isfile(filename):
-        download_mnist_data(filename)
+    @batch_size.setter
+    def batch_size(self, value):
+        self._batch_size = value
 
-    f = gzip.open(filename, 'rb')
-    train_set, valid_set, test_set = cPickle.load(f)
-    f.close()
+        self.n_train_batches = self.train_set_size / self.batch_size
+        self.n_val_batches = self.val_set_size / self.batch_size
+        self.n_test_batches = self.test_set_size / self.batch_size
 
-    test_set_x, test_set_y = _mnist_shared_dataset(test_set)
-    valid_set_x, valid_set_y = _mnist_shared_dataset(valid_set)
-    train_set_x, train_set_y = _mnist_shared_dataset(train_set)
+    def _get_subset(self, data, batch_index):
+        return data[batch_index*self.batch_size:
+                    (batch_index+1)*self.batch_size]
 
-    return [(train_set_x, train_set_y), (valid_set_x, valid_set_y),
-            (test_set_x, test_set_y)]
+    def train_input(self, batch_index):
+        """Return minibatch of training data input.
 
-
-def download_mnist_data(filename):
-    """Download MNIST data.
-
-    filename: Name of the MNIST data file to be created
-    """
-    directory = os.path.dirname(filename)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    print 'Downloading MNIST data... ',
-    sys.stdout.flush()
-    urllib.urlretrieve(_MNIST_ORIGIN, filename)
-    print 'Done.'
-
-
-def _mnist_shared_dataset(data_xy, borrow=True):
-        """Create shared variables from given data.
-
-        data_xy: data consisting of pairs (x, y)
+        batch_index: Batch index.
+        return: Minibatch of training data input.
         """
-        data_x, data_y = data_xy
-        data_x = np.resize(data_x, (data_x.shape[0], 28, 28, 1))
-        shared_x = theano.shared(np.asarray(data_x,
-                                            dtype=theano.config.floatX),
-                                 borrow=borrow)
-        shared_y = theano.shared(np.asarray(data_y,
-                                            dtype=theano.config.floatX),
-                                 borrow=borrow)
-        return shared_x, T.cast(shared_y, 'int32')
+        raise NotImplementedError()
+
+    def train_output(self, batch_index):
+        """Return minibatch of training data output.
+
+        batch_index: Batch index.
+        return: Minibatch of training data output.
+        """
+        raise NotImplementedError()
+
+    def val_input(self, batch_index):
+        """Return minibatch of validation data input.
+
+        batch_index: Batch index.
+        return: Minibatch of validation data input.
+        """
+        raise NotImplementedError()
+
+    def val_output(self, batch_index):
+        """Return minibatch of validation data output.
+
+        batch_index: Batch index.
+        return: Minibatch of validation data output.
+        """
+        raise NotImplementedError()
+
+    def test_input(self, batch_index):
+        """Return minibatch of testing data input.
+
+        batch_index: Batch index.
+        return: Minibatch of testing data input.
+        """
+        raise NotImplementedError()
+
+    def test_output(self, batch_index):
+        """Return minibatch of testing data output.
+
+        batch_index: Batch index.
+        return: Minibatch of testing data output.
+        """
+        raise NotImplementedError()

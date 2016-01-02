@@ -16,7 +16,8 @@ class TestNetworkBasics(TestCase):
             return T.minimum(x, 0.)
 
         net = Network([
-            ConvolutionalLayer(image_shape=(42, 21, 2), filter_shape=(5, 5, 3)),
+            ConvolutionalLayer(image_shape=(42, 21, 2),
+                               filter_shape=(5, 5, 3)),
             ReLU(),
             ConvolutionalLayer(filter_shape=(5, 5, 3)),
             Activation(foo),
@@ -54,8 +55,13 @@ class TestLayers(TestCase):
         out = eval_matrix_on_layer(layer, image)
         self.assertEqual(out.shape, (1, 3, 6, 6))
 
+<<<<<<< HEAD
         layer2 = ConvolutionalLayer(filter_shape=(2, 3, 6),
                                     image_shape=(6, 6, 3))
+=======
+        layer2 = ConvolutionalLayer(image_shape=(6, 6, 3),
+                                    filter_shape=(2, 3, 6))
+>>>>>>> 9caaf2d6f85132611b5700cca40fd2822c8c8c3d
         out = eval_tensor_on_layer(layer2, out)
         self.assertEqual(out.shape, (1, 6, 5, 4))
 
