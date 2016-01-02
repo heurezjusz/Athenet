@@ -81,7 +81,6 @@ class Layer(object):
         """Set input layer."""
         self._input_layer = input_layer
         self.input_shape = input_layer.output_shape
-        input_layer.output_shape
 
         self.input = input_layer.output
         self.train_input = input_layer.train_output
