@@ -1,6 +1,5 @@
 """MNIST data loader."""
 
-import os
 import numpy as np
 
 import theano
@@ -40,17 +39,13 @@ class MNISTDataLoader(DataLoader):
 
         train_set, val_set, test_set = load_data(get_bin_path(filename), url)
 
-        self.test_set_in, self.test_set_out =\
-            self._mnist_shared_dataset(test_set)
-        self.val_set_in, self.val_set_out =\
-            self._mnist_shared_dataset(val_set)
-        self.train_set_in, self.train_set_out =\
-            self._mnist_shared_dataset(train_set)
+        self.test_in, self.test_out = self._mnist_shared_dataset(test_set)
+        self.val_in, self.val_out = self._mnist_shared_dataset(val_set)
+        self.train_in, self.train_out = self._mnist_shared_dataset(train_set)
 
-        self.train_set_size =\
-            self.train_set_in.get_value(borrow=True).shape[0]
-        self.val_set_size = self.val_set_in.get_value(borrow=True).shape[0]
-        self.test_set_size = self.test_set_in.get_value(borrow=True).shape[0]
+        self.train_set_size = self.train_in.get_value(borrow=True).shape[0]
+        self.val_set_size = self.val_in.get_value(borrow=True).shape[0]
+        self.test_set_size = self.test_in.get_value(borrow=True).shape[0]
 
         self.batch_size = 1
         self.train_data_available = True
@@ -58,19 +53,19 @@ class MNISTDataLoader(DataLoader):
         self.test_data_available = True
 
     def train_input(self, batch_index):
-        return self._get_subset(self.train_set_in, batch_index)
+        return self._get_subset(self.train_in, batch_index)
 
     def train_output(self, batch_index):
-        return self._get_subset(self.train_set_out, batch_index)
+        return self._get_subset(self.train_out, batch_index)
 
     def val_input(self, batch_index):
-        return self._get_subset(self.val_set_in, batch_index)
+        return self._get_subset(self.val_in, batch_index)
 
     def val_output(self, batch_index):
-        return self._get_subset(self.val_set_out, batch_index)
+        return self._get_subset(self.val_out, batch_index)
 
     def test_input(self, batch_index):
-        return self._get_subset(self.test_set_in, batch_index)
+        return self._get_subset(self.test_in, batch_index)
 
     def test_output(self, batch_index):
-        return self._get_subset(self.test_set_out, batch_index)
+        return self._get_subset(self.test_out, batch_index)
