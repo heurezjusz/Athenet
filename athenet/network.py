@@ -109,7 +109,7 @@ class Network(object):
         return: Network accuracy.
         """
         val_accuracies = [self._val_data_accuracy(i) for i in
-                           xrange(self.data_loader.n_val_batches)]
+                          xrange(self.data_loader.n_val_batches)]
         return np.mean(val_accuracies)
 
     def get_params(self):

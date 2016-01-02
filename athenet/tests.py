@@ -128,7 +128,7 @@ class TestLayers(TestCase):
         in_data[0][1][2][1] = 3.
         in_data[0][1][2][2] = 4.
 
-        layer = MaxPool(poolsize=(2, 2), stride=(1,1))
+        layer = MaxPool(poolsize=(2, 2), stride=(1, 1))
         output = eval_tensor_on_layer(layer, in_data)
 
         self.assertEqual(output.shape, (1, 2, 3, 3))
