@@ -24,7 +24,7 @@ class Network(object):
         """
         self._data_accuracy = None
         self._test_data_accuracy = None
-        self._valid_data_accuracy = None
+        self._val_data_accuracy = None
         self._batch_size = None
         self._data_loader = None
 
@@ -143,8 +143,12 @@ class Network(object):
         learning_rate: Learning rate
         n_epochs: Number of epochs
         batch_size: Size of minibatch
-        datasets: Train, validation and test sets
         """
+        if not self.data_loader:
+            raise Exception('Data loader is not set')
+        if not self.data_loader.test_data_available:
+            raise Exception('Test data are not available')
+
         old_batch_size = self.batch_size
         if batch_size:
             self.batch_size = batch_size
@@ -168,9 +172,8 @@ class Network(object):
         )
 
         patience = self.initial_patience
-        validation_interval = min(self.data_loader.n_train_batches,
-                                  patience/2)
-        best_validation_accuracy = 0.0
+        val_interval = min(self.data_loader.n_train_batches, patience/2)
+        best_val_accuracy = 0.0
         epoch = 0
         iteration = 0
         done_looping = False
@@ -181,41 +184,47 @@ class Network(object):
             print 'Epoch {}'.format(epoch)
             for minibatch_index in xrange(self.data_loader.n_train_batches):
                 train_model(minibatch_index)
-                iteration += 1
-                if iteration % validation_interval == 0:
-                    validation_accuracies = [
-                        self._valid_data_accuracy(i)
-                        for i in xrange(self.data_loader.n_valid_batches)]
-                    validation_accuracy = np.mean(validation_accuracies)
-                    print '\tAccuracy on validation data: {:.2f}%'.format(
-                        100 * validation_accuracy)
-                    if validation_accuracy > best_validation_accuracy:
-                        patience = max(patience, iteration *
-                                       self.patience_increase)
-                        best_validation_accuracy = validation_accuracy
+                if self.data_loader.val_data_available:
+                    iteration += 1
+                    if iteration % val_interval == 0:
+                        val_accuracies = [
+                            self._val_data_accuracy(i)
+                            for i in xrange(self.data_loader.n_val_batches)]
+                        val_accuracy = np.mean(val_accuracies)
+                        print '\tAccuracy on validation data: {:.2f}%'.format(
+                            100 * val_accuracy)
+                        if val_accuracy > best_val_accuracy:
+                            patience = max(patience, iteration *
+                                           self.patience_increase)
+                            best_val_accuracy = val_accuracy
 
                 if patience <= iteration:
                     done_looping = True
                     break
         end_time = timeit.default_timer()
 
-        print 'Accuracy on test data: {:.2f}%'.format(
-            100 * self.test_accuracy())
         print 'Training time: {:.1f}s'.format(end_time - start_time)
+        if self.data_loader.test_data_available:
+            print 'Accuracy on test data: {:.2f}%'.format(
+                100*self.test_accuracy())
 
         self.batch_size = batch_size
 
     def _update(self):
         """Update fields that depend on both batch size and data loader."""
-        if self.data_loader:
-            self._valid_data_accuracy = theano.function(
+        if self.data_loader.val_data_available:
+            self._val_data_accuracy = theano.function(
                 inputs=[self._batch_index],
                 outputs=self._data_accuracy,
                 givens={
-                    self.x: self.data_loader.valid_input(self._batch_index),
-                    self.y: self.data_loader.valid_output(self._batch_index)
+                    self.x: self.data_loader.val_input(self._batch_index),
+                    self.y: self.data_loader.val_output(self._batch_index)
                 }
             )
+        else:
+            self._val_data_accuracy = None
+
+        if self.data_loader.test_data_available:
             self._test_data_accuracy = theano.function(
                 inputs=[self._batch_index],
                 outputs=self._data_accuracy,
@@ -225,5 +234,4 @@ class Network(object):
                 }
             )
         else:
-            self._valid_data_accuracy = None
             self._test_data_accuracy = None

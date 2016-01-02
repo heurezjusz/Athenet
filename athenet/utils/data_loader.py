@@ -8,10 +8,15 @@ class DataLoader(object):
     def __init__(self):
         self._batch_size = None
         self.n_train_batches = None
-        self.n_valid_batches = None
+        self.n_val_batches = None
         self.n_test_batches = None
+        self.train_set_size = None
+        self.val_set_size = None
+        self.test_set_size = None
 
-        self.batch_size = 1
+        self.train_data_available = False
+        self.val_data_available = False
+        self.test_data_available = False
 
     @property
     def batch_size(self):
@@ -21,9 +26,12 @@ class DataLoader(object):
     def batch_size(self, value):
         self._batch_size = value
 
-        self.n_train_batches = self.train_set_size / self.batch_size
-        self.n_valid_batches = self.valid_set_size / self.batch_size
-        self.n_test_batches = self.test_set_size / self.batch_size
+        if self.train_set_size:
+            self.n_train_batches = self.train_set_size / self.batch_size
+        if self.val_set_size:
+            self.n_val_batches = self.val_set_size / self.batch_size
+        if self.test_set_size:
+            self.n_test_batches = self.test_set_size / self.batch_size
 
     def _get_subset(self, data, batch_index):
         return data[batch_index*self.batch_size:
@@ -45,7 +53,7 @@ class DataLoader(object):
         """
         raise NotImplementedError()
 
-    def valid_input(self, batch_index):
+    def val_input(self, batch_index):
         """Return minibatch of validation data input.
 
         batch_index: Batch index.
@@ -53,7 +61,7 @@ class DataLoader(object):
         """
         raise NotImplementedError()
 
-    def valid_output(self, batch_index):
+    def val_output(self, batch_index):
         """Return minibatch of validation data output.
 
         batch_index: Batch index.

@@ -36,24 +36,26 @@ class MNISTDataLoader(DataLoader):
         filename: Name of a file with MNIST data.
         url: Url for downloading MNIST data.
         """
-        train_set, valid_set, test_set =\
-            load_data(get_bin_path(filename), url)
+        super(MNISTDataLoader, self).__init__()
+
+        train_set, val_set, test_set = load_data(get_bin_path(filename), url)
 
         self.test_set_in, self.test_set_out =\
             self._mnist_shared_dataset(test_set)
-        self.valid_set_in, self.valid_set_out =\
-            self._mnist_shared_dataset(valid_set)
+        self.val_set_in, self.val_set_out =\
+            self._mnist_shared_dataset(val_set)
         self.train_set_in, self.train_set_out =\
             self._mnist_shared_dataset(train_set)
 
         self.train_set_size =\
             self.train_set_in.get_value(borrow=True).shape[0]
-        self.valid_set_size =\
-            self.valid_set_in.get_value(borrow=True).shape[0]
-        self.test_set_size =\
-            self.test_set_in.get_value(borrow=True).shape[0]
+        self.val_set_size = self.val_set_in.get_value(borrow=True).shape[0]
+        self.test_set_size = self.test_set_in.get_value(borrow=True).shape[0]
 
-        super(MNISTDataLoader, self).__init__()
+        self.batch_size = 1
+        self.train_data_available = True
+        self.val_data_available = True
+        self.test_data_available = True
 
     def train_input(self, batch_index):
         return self._get_subset(self.train_set_in, batch_index)
@@ -61,11 +63,11 @@ class MNISTDataLoader(DataLoader):
     def train_output(self, batch_index):
         return self._get_subset(self.train_set_out, batch_index)
 
-    def valid_input(self, batch_index):
-        return self._get_subset(self.valid_set_in, batch_index)
+    def val_input(self, batch_index):
+        return self._get_subset(self.val_set_in, batch_index)
 
-    def valid_output(self, batch_index):
-        return self._get_subset(self.valid_set_out, batch_index)
+    def val_output(self, batch_index):
+        return self._get_subset(self.val_set_out, batch_index)
 
     def test_input(self, batch_index):
         return self._get_subset(self.test_set_in, batch_index)
