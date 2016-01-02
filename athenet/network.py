@@ -16,7 +16,7 @@ class Network(object):
     initial_patience = 10000
     patience_increase = 2
 
-    def __init__(self, layers, batch_size=1):
+    def __init__(self, layers):
         """Create neural network.
 
         layers: List of network's layers
@@ -42,7 +42,7 @@ class Network(object):
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
-        self.batch_size = batch_size
+        self.batch_size = 1
 
     @property
     def data_loader(self):
@@ -127,31 +127,31 @@ class Network(object):
     def evaluate(self, x_in):
         """Return network output for a given input.
 
+        Batch size should be set to 1 before using this method. If it isn't,
+        it will be set to 1.
+
         x_in: Input for the network
         """
-        batch_size = self.batch_size
         self.batch_size = 1
         x_in = np.asarray(x_in, dtype=theano.config.floatX)
         n_channels, height, width = x_in.shape
         x_in = np.resize(x_in, (1, n_channels, height, width))
-        self.batch_size = batch_size
         return self.get_output(x_in)
 
     def train(self, learning_rate=0.1, n_epochs=100, batch_size=None):
         """Train and test the network.
 
-        learning_rate: Learning rate
-        n_epochs: Number of epochs
-        batch_size: Size of minibatch
+        learning_rate: Learning rate.
+        n_epochs: Number of epochs.
+        batch_size: Size of minibatch to be set. If None then batch size that
+                    is currenty set will be used.
         """
         if not self.data_loader:
             raise Exception('Data loader is not set')
         if not self.data_loader.test_data_available:
             raise Exception('Test data are not available')
 
-        old_batch_size = self.batch_size
-        if batch_size:
-            self.batch_size = batch_size
+        self.batch_size = batch_size
 
         # set cost function for the last layer
         self.layers[-1].set_cost(self.y)
@@ -207,8 +207,6 @@ class Network(object):
         if self.data_loader.test_data_available:
             print 'Accuracy on test data: {:.2f}%'.format(
                 100*self.test_accuracy())
-
-        self.batch_size = batch_size
 
     def _update(self):
         """Update fields that depend on both batch size and data loader."""
