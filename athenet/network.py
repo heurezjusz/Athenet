@@ -95,15 +95,22 @@ class Network(object):
             self._update()
 
     def test_accuracy(self):
-        """Return average network accuracy on the test data.
+        """Return network accuracy on the test data.
 
-        Datasets must be set before using this method.
-
-        return: A number between 0 and 1 representing average accuracy
+        return: Network accuracy.
         """
         test_accuracies = [self._test_data_accuracy(i) for i in
                            xrange(self.data_loader.n_test_batches)]
         return np.mean(test_accuracies)
+
+    def val_accuracy(self):
+        """Return network accuracy on the validation data.
+
+        return: Network accuracy.
+        """
+        val_accuracies = [self._val_data_accuracy(i) for i in
+                           xrange(self.data_loader.n_val_batches)]
+        return np.mean(val_accuracies)
 
     def get_params(self):
         """Return network's weights and biases.
@@ -187,16 +194,13 @@ class Network(object):
                 if self.data_loader.val_data_available:
                     iteration += 1
                     if iteration % val_interval == 0:
-                        val_accuracies = [
-                            self._val_data_accuracy(i)
-                            for i in xrange(self.data_loader.n_val_batches)]
-                        val_accuracy = np.mean(val_accuracies)
+                        accuracy = self.val_accuracy()
                         print '\tAccuracy on validation data: {:.2f}%'.format(
-                            100 * val_accuracy)
-                        if val_accuracy > best_val_accuracy:
-                            patience = max(patience, iteration *
-                                           self.patience_increase)
-                            best_val_accuracy = val_accuracy
+                            100*accuracy)
+                        if accuracy > best_val_accuracy:
+                            patience = max(patience,
+                                           iteration*self.patience_increase)
+                            best_val_accuracy = accuracy
 
                 if patience <= iteration:
                     done_looping = True
