@@ -33,10 +33,12 @@ class Network(object):
         self.train_output = None
         self.get_output = None
 
+        self._batch_index = T.lscalar()
+        self._top_range = T.iscalar()
+
         self.layers = layers
         self.input = T.tensor4()
         self.correct_answer = T.ivector()
-        self._batch_index = T.lscalar()
 
         self.weighted_layers = [layer for layer in self.layers
                                 if isinstance(layer, WeightedLayer)]
@@ -80,10 +82,13 @@ class Network(object):
 
         self.output = self.layers[-1].output
         self.train_output = self.layers[-1].train_output
-
         self.answer = T.argsort(-self.output, axis=1)
-        self._data_accuracy = T.mean(T.eq(self.correct_answer,
-                                          self.answer[:,0]))
+
+        expanded = self.correct_answer.dimshuffle(0, 'x')
+        expanded = expanded.repeat(self._top_range, axis=1)
+        eq = T.eq(expanded, self.answer[:, :self._top_range])
+        self._data_accuracy = T.any(eq, axis=1).mean()
+
         self.get_output = theano.function(
             inputs=[self.input],
             outputs=[self.output.flatten(1), self.answer.flatten(1)]
@@ -91,23 +96,43 @@ class Network(object):
 
         self._update()
 
-    def test_accuracy(self):
-        """Return network accuracy on the test data.
+    def _get_accuracy(self, top_range, accuracy_fun, n_batches):
+        return_list = isinstance(top_range, list)
+        if not return_list:
+            top_range = [top_range]
 
-        return: Network accuracy.
+        accuracy = []
+        for top in top_range:
+            val_accuracies = [accuracy_fun(i, top) for i in xrange(n_batches)]
+            accuracy += [np.mean(val_accuracies)]
+
+        if not return_list:
+            return accuracy[0]
+        return accuracy
+
+    def test_accuracy(self, top_range=1):
+        """Return network's accuracy on the test data.
+
+        top_range: Number or list represinting top ranges to be used.
+                   Network's answer is considered correct if correct answer is
+                   among top_range most probable answers given by network.
+        return: Number or list representing network accuracy for given top
+                ranges.
         """
-        test_accuracies = [self._test_data_accuracy(i) for i in
-                           xrange(self.data_loader.n_test_batches)]
-        return np.mean(test_accuracies)
+        return self._get_accuracy(top_range, self._test_data_accuracy,
+                                  self.data_loader.n_test_batches)
 
-    def val_accuracy(self):
-        """Return network accuracy on the validation data.
+    def val_accuracy(self, top_range=1):
+        """Return network's accuracy on the validation data.
 
-        return: Network accuracy.
+        top_range: Number or list represinting top ranges to be used.
+                   Network's answer is considered correct if correct answer is
+                   among top_range most probable answers given by network.
+        return: Number or list representing network accuracy for given top
+                ranges.
         """
-        val_accuracies = [self._val_data_accuracy(i) for i in
-                          xrange(self.data_loader.n_val_batches)]
-        return np.mean(val_accuracies)
+        return self._get_accuracy(top_range, self._val_data_accuracy,
+                                  self.data_loader.n_val_batches)
 
     def get_params(self):
         """Return network's weights and biases.
@@ -217,7 +242,7 @@ class Network(object):
 
         if self.data_loader.val_data_available:
             self._val_data_accuracy = theano.function(
-                inputs=[self._batch_index],
+                inputs=[self._batch_index, self._top_range],
                 outputs=self._data_accuracy,
                 givens={
                     self.input:
@@ -231,7 +256,7 @@ class Network(object):
 
         if self.data_loader.test_data_available:
             self._test_data_accuracy = theano.function(
-                inputs=[self._batch_index],
+                inputs=[self._batch_index, self._top_range],
                 outputs=self._data_accuracy,
                 givens={
                     self.input:

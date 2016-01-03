@@ -40,9 +40,9 @@ class MNISTDataLoader(DataLoader):
 
         train_set, val_set, test_set = load_data(get_bin_path(filename), url)
 
-        self.test_in, self.test_out = self._mnist_shared_dataset(test_set)
-        self.val_in, self.val_out = self._mnist_shared_dataset(val_set)
         self.train_in, self.train_out = self._mnist_shared_dataset(train_set)
+        self.val_in, self.val_out = self._mnist_shared_dataset(val_set)
+        self.test_in, self.test_out = self._mnist_shared_dataset(test_set)
 
         self.train_set_size = self.train_in.get_value(borrow=True).shape[0]
         self.val_set_size = self.val_in.get_value(borrow=True).shape[0]
