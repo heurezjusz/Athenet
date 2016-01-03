@@ -19,8 +19,7 @@ class Network(object):
     def __init__(self, layers):
         """Create neural network.
 
-        layers: List of network's layers
-        batch_size: Minibatch size
+        layers: List of network's layers.
         """
         self._data_accuracy = None
         self._test_data_accuracy = None
@@ -28,13 +27,15 @@ class Network(object):
         self._batch_size = None
         self._data_loader = None
 
+        self.params = None
         self.output = None
+        self.answer = None
         self.train_output = None
         self.get_output = None
 
         self.layers = layers
-        self.x = T.tensor4('x')
-        self.y = T.ivector('y')
+        self.input = T.tensor4()
+        self.correct_answer = T.ivector()
         self._batch_index = T.lscalar()
 
         self.weighted_layers = [layer for layer in self.layers
@@ -46,24 +47,20 @@ class Network(object):
 
     @property
     def data_loader(self):
-        """Return data loader."""
         return self._data_loader
 
     @data_loader.setter
     def data_loader(self, value):
-        """Set data loader."""
         self._data_loader = value
         self.data_loader.batch_size = self.batch_size
         self._update()
 
     @property
     def batch_size(self):
-        """Return batch size."""
         return self._batch_size
 
     @batch_size.setter
     def batch_size(self, value):
-        """Set batch size."""
         if self._batch_size == value:
             return
 
@@ -73,26 +70,26 @@ class Network(object):
 
         for layer in self.convolutional_layers:
             layer.batch_size = self.batch_size
-        self.layers[0].input = self.x
+        self.layers[0].input = self.input
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
-
-        self.output = self.layers[-1].output
-        self.train_output = self.layers[-1].train_output
-        y_out = T.argmax(self.output, axis=1)
 
         self.params = []
         for layer in self.weighted_layers:
             self.params += layer.params
 
-        self._data_accuracy = T.mean(T.eq(self.y, y_out))
+        self.output = self.layers[-1].output
+        self.train_output = self.layers[-1].train_output
+
+        self.answer = T.argsort(-self.output, axis=1)
+        self._data_accuracy = T.mean(T.eq(self.correct_answer,
+                                          self.answer[:,0]))
         self.get_output = theano.function(
-            inputs=[self.x],
-            outputs=self.output.flatten(1)
+            inputs=[self.input],
+            outputs=[self.output.flatten(1), self.answer.flatten(1)]
         )
 
-        if self.data_loader:
-            self._update()
+        self._update()
 
     def test_accuracy(self):
         """Return network accuracy on the test data.
@@ -131,19 +128,19 @@ class Network(object):
             layer.W = p[0]
             layer.b = p[1]
 
-    def evaluate(self, x_in):
+    def evaluate(self, net_input):
         """Return network output for a given input.
 
         Batch size should be set to 1 before using this method. If it isn't,
         it will be set to 1.
 
-        x_in: Input for the network
+        net_input: Input for the network
         """
         self.batch_size = 1
-        x_in = np.asarray(x_in, dtype=theano.config.floatX)
-        n_channels, height, width = x_in.shape
-        x_in = np.resize(x_in, (1, n_channels, height, width))
-        return self.get_output(x_in)
+        net_input = np.asarray(net_input, dtype=theano.config.floatX)
+        n_channels, height, width = net_input.shape
+        net_input = np.resize(net_input, (1, n_channels, height, width))
+        return self.get_output(net_input)
 
     def train(self, learning_rate=0.1, n_epochs=100, batch_size=None):
         """Train and test the network.
@@ -161,7 +158,7 @@ class Network(object):
         self.batch_size = batch_size
 
         # set cost function for the last layer
-        self.layers[-1].set_cost(self.y)
+        self.layers[-1].set_cost(self.correct_answer)
         cost = self.layers[-1].cost
 
         grad = T.grad(cost, self.params)
@@ -173,8 +170,9 @@ class Network(object):
             outputs=cost,
             updates=updates,
             givens={
-                self.x: self.data_loader.train_input(self._batch_index),
-                self.y: self.data_loader.train_output(self._batch_index)
+                self.input: self.data_loader.train_input(self._batch_index),
+                self.correct_answer:
+                    self.data_loader.train_output(self._batch_index)
             }
         )
 
@@ -214,13 +212,18 @@ class Network(object):
 
     def _update(self):
         """Update fields that depend on both batch size and data loader."""
+        if not self.data_loader:
+            return
+
         if self.data_loader.val_data_available:
             self._val_data_accuracy = theano.function(
                 inputs=[self._batch_index],
                 outputs=self._data_accuracy,
                 givens={
-                    self.x: self.data_loader.val_input(self._batch_index),
-                    self.y: self.data_loader.val_output(self._batch_index)
+                    self.input:
+                        self.data_loader.val_input(self._batch_index),
+                    self.correct_answer:
+                        self.data_loader.val_output(self._batch_index)
                 }
             )
         else:
@@ -231,8 +234,10 @@ class Network(object):
                 inputs=[self._batch_index],
                 outputs=self._data_accuracy,
                 givens={
-                    self.x: self.data_loader.test_input(self._batch_index),
-                    self.y: self.data_loader.test_output(self._batch_index)
+                    self.input:
+                        self.data_loader.test_input(self._batch_index),
+                    self.correct_answer:
+                        self.data_loader.test_output(self._batch_index)
                 }
             )
         else:

@@ -10,6 +10,7 @@ from athenet.utils import DataLoader, load_data, get_bin_path
 
 class MNISTDataLoader(DataLoader):
     """MNIST data loader."""
+
     MNIST_filename = 'mnist.pkl.gz'
     MNIST_origin = ('http://www.iro.umontreal.ca/~lisa/deep/data/mnist/'
                     'mnist.pkl.gz')
