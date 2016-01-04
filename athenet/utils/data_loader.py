@@ -79,3 +79,24 @@ class DataLoader(object):
         return: Minibatch of testing data output.
         """
         raise NotImplementedError()
+
+    def load_train_data(self, batch_index):
+        """Assure that train data are loaded into memory.
+
+        batch_index: Batch index to be loaded.
+        """
+        pass
+
+    def load_val_data(self, batch_index):
+        """Assure that validation data are loaded into memory.
+
+        batch_index: Batch index to be loaded.
+        """
+        pass
+
+    def load_test_data(self, batch_index):
+        """Assure that test data are loaded into memory.
+
+        batch_index: Batch index to be loaded.
+        """
+        pass
