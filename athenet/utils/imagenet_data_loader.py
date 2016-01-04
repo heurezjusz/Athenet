@@ -10,6 +10,7 @@ import theano.tensor as T
 
 from athenet.utils import DataLoader, get_bin_path, get_data_path
 
+
 class ImageNetDataLoader(DataLoader):
     """ImageNet data loader."""
 
@@ -24,7 +25,8 @@ class ImageNetDataLoader(DataLoader):
 
         year: Specifies which year's data should be loaded.
         val_size: Maximal size of validation data. If None, then all
-                  validation data will be used.
+                  validation data will be used. If not None, then val_size
+                  images will be chosen randomly from the whole set.
         val_buffer_size: Number of batches to be stored in memory.
         """
         super(ImageNetDataLoader, self).__init__()
@@ -50,23 +52,22 @@ class ImageNetDataLoader(DataLoader):
                 answers[filename] = int(answer)
         f.close()
 
-        self.val_files = answers.keys()
-        val_answers = answers.values()
+        self.val_files = np.asarray(answers.keys())
+        val_answers = np.asarray(answers.values())
         self.val_set_size = len(self.val_files)
 
         if val_size and val_size < self.val_set_size:
-            self.val_files = self.val_files[:val_size]
-            val_answers = val_answers[:val_size]
+            ind = np.random.permutation(self.val_set_size)[:val_size]
+            self.val_files = self.val_files[ind]
+            val_answers = val_answers[ind]
             self.val_set_size = val_size
 
         self.val_in = theano.shared(
-            np.zeros((1, 3, 227, 227),
-                     dtype=theano.config.floatX),
+            np.zeros((1, 3, 227, 227), dtype=theano.config.floatX),
             borrow=True)
         self.batch_size = 1
 
-        self.val_out = theano.shared(
-            np.asarray(val_answers, dtype='int32'), borrow=True)
+        self.val_out = theano.shared(val_answers, borrow=True)
         self.val_data_available = True
 
     def _get_img(self, filename):

@@ -113,6 +113,8 @@ class Network(object):
                     print '\tMinibatch {}'.format(batch_index)
                 load_fun(batch_index)
                 accuracy = accuracy_fun(batch_index, top)
+                if self.verbosity > 0:
+                    print '\t\tAccuracy: {:.1f}%'.format(100*accuracy)
                 batch_accuracies += [accuracy]
             accuracies += [np.mean(batch_accuracies)]
 
