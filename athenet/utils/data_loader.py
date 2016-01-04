@@ -28,9 +28,9 @@ class DataLoader(object):
         self.n_val_batches = self.val_set_size / self.batch_size
         self.n_test_batches = self.test_set_size / self.batch_size
 
-    def _get_subset(self, data, batch_index):
-        return data[batch_index*self.batch_size:
-                    (batch_index+1)*self.batch_size]
+    def _get_subset(self, data, index, size=1):
+        return data[index*self.batch_size:
+                    (index+size)*self.batch_size]
 
     def train_input(self, batch_index):
         """Return minibatch of training data input.

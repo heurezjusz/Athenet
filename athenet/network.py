@@ -12,6 +12,8 @@ from athenet.layers import WeightedLayer, ConvolutionalLayer
 class Network(object):
     """Neural network."""
 
+    verbosity = 0
+
     # Early stopping parameters
     initial_patience = 10000
     patience_increase = 2
@@ -96,19 +98,18 @@ class Network(object):
 
         self._update()
 
-    def _get_accuracy(self, top_range, accuracy_fun, load_fun, n_batches,
-                      verbose):
+    def _get_accuracy(self, top_range, accuracy_fun, load_fun, n_batches):
         return_list = isinstance(top_range, list)
         if not return_list:
             top_range = [top_range]
 
-        if verbose:
+        if self.verbosity > 0:
             print 'Calculate accuracy:'
         accuracies = []
         for top in top_range:
             batch_accuracies = []
             for batch_index in xrange(n_batches):
-                if verbose:
+                if self.verbosity > 0:
                     print '\tMinibatch {}'.format(batch_index)
                 load_fun(batch_index)
                 accuracy = accuracy_fun(batch_index, top)
@@ -119,37 +120,33 @@ class Network(object):
             return accuracies[0]
         return accuracies
 
-    def test_accuracy(self, top_range=1, verbose=False):
+    def test_accuracy(self, top_range=1):
         """Return network's accuracy on the test data.
 
         top_range: Number or list represinting top ranges to be used.
                    Network's answer is considered correct if correct answer is
                    among top_range most probable answers given by network.
-        verbose: Specifies whether to print additional information.
         return: Number or list representing network accuracy for given top
                 ranges.
         """
         return self._get_accuracy(top_range,
                                   self._test_data_accuracy,
                                   self.data_loader.load_test_data,
-                                  self.data_loader.n_test_batches,
-                                  verbose)
+                                  self.data_loader.n_test_batches)
 
-    def val_accuracy(self, top_range=1, verbose=False):
+    def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
 
         top_range: Number or list represinting top ranges to be used.
                    Network's answer is considered correct if correct answer is
                    among top_range most probable answers given by network.
-        verbose: Specifies whether to print additional information.
         return: Number or list representing network accuracy for given top
                 ranges.
         """
         return self._get_accuracy(top_range,
                                   self._val_data_accuracy,
                                   self.data_loader.load_val_data,
-                                  self.data_loader.n_val_batches,
-                                  verbose)
+                                  self.data_loader.n_val_batches)
 
     def get_params(self):
         """Return network's weights and biases.
