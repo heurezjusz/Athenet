@@ -103,19 +103,16 @@ class Network(object):
         if not return_list:
             top_range = [top_range]
 
-        if self.verbosity > 0:
-            print 'Calculate accuracy:'
         accuracies = []
         for top in top_range:
             batch_accuracies = []
             for batch_index in xrange(n_batches):
-                if self.verbosity > 0:
-                    print '\tMinibatch {}'.format(batch_index)
                 load_fun(batch_index)
                 accuracy = accuracy_fun(batch_index, top)
-                if self.verbosity > 0:
-                    print '\t\tAccuracy: {:.1f}%'.format(100*accuracy)
                 batch_accuracies += [accuracy]
+                if self.verbosity > 0 and batch_index % (n_batches / 10) == 0:
+                    print 'Minibatch {} accuracy: {:.1f}%'.format(
+                        batch_index, 100*accuracy)
             accuracies += [np.mean(batch_accuracies)]
 
         if not return_list:

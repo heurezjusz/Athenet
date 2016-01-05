@@ -1,7 +1,7 @@
 """Training LeNet on MNIST data."""
 
 from athenet import Network
-from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
+from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer,\
     ConvolutionalLayer
 from athenet.utils import MNISTDataLoader
 

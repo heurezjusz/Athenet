@@ -18,7 +18,7 @@ class ImageNetDataLoader(DataLoader):
     name_infix = '_img_'
     verbosity = 0
 
-    def __init__(self, year, val_size=None, val_buffer_size=10):
+    def __init__(self, year, val_size=None, val_buffer_size=1):
         """Create ImageNet data loader.
 
         Only validation data are currently supported.
@@ -83,13 +83,13 @@ class ImageNetDataLoader(DataLoader):
 
         files = self._get_subset(self.val_files, batch_index,
                                  self.val_buffer_size)
-        val_input = self._get_img(self.val_dir_name + files[0])
-        for filename in files[1:]:
-            img = self._get_img(self.val_dir_name + filename)
-            val_input = np.concatenate([val_input, img], axis=0)
+        imgs = []
+        for filename in files:
+            imgs += [self._get_img(self.val_dir_name + filename)]
 
+        imgs = np.concatenate(imgs, axis=0)
         self.val_in.set_value(
-            np.asarray(val_input, dtype=theano.config.floatX), borrow=True)
+            np.asarray(imgs, dtype=theano.config.floatX), borrow=True)
         self._offset.set_value(batch_index)
         self._val_low = batch_index
         self._val_high = batch_index + self.val_buffer_size

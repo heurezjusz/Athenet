@@ -134,9 +134,9 @@ class ConvolutionalLayer(WeightedLayer):
         h, w = self.filter_shape[0:2]
         group_filter_shape = (n_group_filters, n_group_channels, h, w)
 
-        conv_output = None
+        conv_outputs = []
         for i in xrange(self.n_groups):
-            group_output = conv.conv2d(
+            conv_outputs += [conv.conv2d(
                 input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
                                  :, :],
                 filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
@@ -144,11 +144,7 @@ class ConvolutionalLayer(WeightedLayer):
                 filter_shape=group_filter_shape,
                 image_shape=group_image_shape,
                 subsample=self.stride
-            )
-            if conv_output:
-                conv_output = T.concatenate([conv_output, group_output],
-                                            axis=1)
-            else:
-                conv_output = group_output
+            )]
 
+        conv_output = T.concatenate(conv_outputs, axis=1)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
