@@ -47,7 +47,10 @@ class Network(object):
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
+        # batch_size: Minibatch size
         self.batch_size = 1
+        # data_loader: instance of class athenet.utils.DataLoader
+        self.data_loader = None
 
     @property
     def data_loader(self):
