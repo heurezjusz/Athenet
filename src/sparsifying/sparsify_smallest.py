@@ -3,7 +3,7 @@ import numpy as np
 def set_zeros_on_layer(layer, percentage, order):
     W = layer.W
     percentile = np.percentile([order(a) for a in W.flat], percentage)
-    W[order(W) <= percentile] = 0
+    W[order(W) < percentile] = 0
     layer.W = W   
     
 def set_zeros_on_network(network, percentage, order):
@@ -11,10 +11,9 @@ def set_zeros_on_network(network, percentage, order):
     percentile = np.percentile([order(a) for a in weights.flat], percentage)
     for layer in network.weighted_layers:
         W = layer.W
-        W[order(W) <= percentile] = 0
+        W[order(W) < percentile] = 0
         layer.W = W 
        
-
 def sparsify_smallest_on_network(network, percentage):
     set_zeros_on_network(network, percentage, abs)
     
