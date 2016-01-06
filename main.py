@@ -1,4 +1,4 @@
-from src.sparsifying.rat import rat1_on_network
+from src.sparsifying.sparsify_smallest import rat1_on_network
 
 def sparsify(network, algorithm='rat1', percentage = 7, *args):
     if algorithm == 'rat1':
