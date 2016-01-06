@@ -111,7 +111,7 @@ class WeightedLayer(Layer):
     def W(self, value):
         """Set the layer's weights.
 
-        value: Array of weights' alues
+        value: Array of weights' values
         """
         self.W_shared.set_value(value)
 
