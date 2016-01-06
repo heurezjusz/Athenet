@@ -9,7 +9,6 @@ from athenet import Network
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
         ReLU, Activation, LRN, MaxPool, Dropout
 
-
 class TestNetworkBasics(TestCase):
     def test_layers_lists(self):
         def foo(x):
@@ -68,7 +67,7 @@ class TestLayers(TestCase):
                     in_data[0][i][j][k] = i + j ** 2 - 3 * k ** 3
 
         def foo(x):
-            return x ** 3 / 16.
+            return x ** 2 / 16. - x
 
         layer = Activation(foo)
         out = eval_tensor_on_layer(layer, in_data)
@@ -76,8 +75,9 @@ class TestLayers(TestCase):
         for i in xrange(in_data.shape[1]):
             for j in xrange(in_data.shape[2]):
                 for k in xrange(in_data.shape[3]):
+                    tmp = in_data[0][i][j][k]
                     self.assertEqual(out[0][i][j][k],
-                                     in_data[0][i][j][k] ** 3 / 16.)
+                                     tmp ** 2 / 16. - tmp)
 
     def test_relu_layer(self):
         in_data = np.zeros((1, 13, 5, 7), dtype=theano.config.floatX)
@@ -206,7 +206,6 @@ class TestLayers(TestCase):
                                          in_data[0][i][j][k])
                     else:
                         dropped_out += 1.
-        print dropped_out / in_data.size
         self.assertTrue(abs(dropped_out / in_data.size - 0.75) <= 0.05)
 
     def test_fully_connected_layer(self):

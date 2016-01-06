@@ -58,6 +58,8 @@ class Network(object):
 
     @data_loader.setter
     def data_loader(self, value):
+        if not value:
+            return
         self._data_loader = value
         self.data_loader.batch_size = self.batch_size
         self._update()
