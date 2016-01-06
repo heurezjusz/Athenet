@@ -108,6 +108,9 @@ class Network(object):
         if not return_list:
             top_range = [top_range]
 
+        interval = n_batches / 10
+        if interval == 0:
+            interval = 1
         accuracies = []
         for top in top_range:
             batch_accuracies = []
@@ -115,9 +118,10 @@ class Network(object):
                 load_fun(batch_index)
                 accuracy = accuracy_fun(batch_index, top)
                 batch_accuracies += [accuracy]
-                if self.verbosity > 0 and batch_index % (n_batches / 10) == 0:
-                    print 'Minibatch {} accuracy: {:.1f}%'.format(
-                        batch_index, 100*accuracy)
+                if self.verbosity >= 2 or\
+                    (self.verbosity >= 1 and batch_index % interval == 0):
+                    print 'Minibatch {} top-{} accuracy: {:.1f}%'.format(
+                        batch_index, top, 100*accuracy)
             accuracies += [np.mean(batch_accuracies)]
 
         if not return_list:

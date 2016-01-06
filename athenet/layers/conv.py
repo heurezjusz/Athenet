@@ -103,7 +103,6 @@ class ConvolutionalLayer(WeightedLayer):
         conv_image_shape = (self.batch_size, n_channels, h, w)
         reshaped_input = raw_layer_input.reshape(conv_image_shape)
 
-        h, w, n_channels = self.image_shape
         pad_h, pad_w = self.padding
         h_in = h + 2*pad_h
         w_in = w + 2*pad_w

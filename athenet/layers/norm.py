@@ -30,7 +30,7 @@ class LRN(Layer):
         layer_input: Input in the format (batch size, number of channels,
                                           image height, image width).
         """
-        half = self.local_range // 2
+        half = self.local_range / 2
         sq = T.sqr(layer_input)
         bs, n_channels, h, w = layer_input.shape
         extra_channels = T.alloc(0., bs, n_channels + 2*half, h, w)
