@@ -7,7 +7,7 @@ from nose.tools import assert_equal, assert_true
 
 class SparsifySmallestTest(unittest.TestCase):
     
-    def set_network(self, number_of_layers=5, size_of_layer=30):
+    def set_network(self, number_of_layers=5, size_of_layer=100):
         layers = [LayerMock(
                         weights=np.random.uniform(low=-15, high=30, size=size_of_layer),
                         biases=np.random.uniform(low=-15, high=30, size=size_of_layer)) 
