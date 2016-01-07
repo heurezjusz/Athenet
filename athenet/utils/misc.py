@@ -19,15 +19,10 @@ def load_data(filename, url=None):
     if not os.path.isfile(filename):
         if not url:
             return None
-        else:
-            directory = os.path.dirname(filename)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-            print 'Downloading ' + os.path.basename(filename) + '...',
-            sys.stdout.flush()
-            urllib.urlretrieve(url, filename)
-            print 'Done'
+        directory = os.path.dirname(filename)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        download_file(filename, url)
 
     try:
         f = gzip.open(filename, 'rb')
@@ -37,6 +32,18 @@ def load_data(filename, url=None):
         data = pickle.load(f)
     f.close()
     return data
+
+
+def download_file(filename, url):
+    """Download file from given url.
+
+    filename: Name of a file to be downloaded.
+    url: Url for downloading file.
+    """
+    print 'Downloading ' + os.path.basename(filename) + '...',
+    sys.stdout.flush()
+    urllib.urlretrieve(url, filename)
+    print 'Done'
 
 
 def get_data_path(name):
