@@ -56,6 +56,8 @@ docs/build/
 # PyBuilder
 target/
 
-# gzip files
-# Used for storing MNIST data
-*.gz
+# Data files
+data/
+
+# Binary data files
+bin/
