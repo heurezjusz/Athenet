@@ -1,28 +1,29 @@
-athena package
-==============
+athenet package
+===============
 
 Subpackages
 -----------
 
 .. toctree::
 
-    athena.utils
+    athenet.layers
+    athenet.utils
 
 Submodules
 ----------
 
-athena.layers module
---------------------
+athenet.network module
+----------------------
 
-.. automodule:: athena.layers
+.. automodule:: athenet.network
     :members:
     :undoc-members:
     :show-inheritance:
 
-athena.network module
----------------------
+athenet.tests module
+--------------------
 
-.. automodule:: athena.network
+.. automodule:: athenet.tests
     :members:
     :undoc-members:
     :show-inheritance:
@@ -31,7 +32,7 @@ athena.network module
 Module contents
 ---------------
 
-.. automodule:: athena
+.. automodule:: athenet
     :members:
     :undoc-members:
     :show-inheritance:

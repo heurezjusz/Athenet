@@ -1,10 +1,10 @@
-.. Athena documentation master file, created by
-   sphinx-quickstart on Mon Dec 21 18:01:32 2015.
+.. Athenet documentation master file, created by
+   sphinx-quickstart on Thu Jan  7 09:45:55 2016.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Athena's documentation!
-==================================
+Welcome to Athenet's documentation!
+===================================
 
 Contents:
 

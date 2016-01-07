@@ -1,7 +1,7 @@
-athena
-======
+athenet
+=======
 
 .. toctree::
    :maxdepth: 4
 
-   athena
+   athenet
