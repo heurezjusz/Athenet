@@ -15,10 +15,11 @@ class Softmax(Layer):
         """
         return softmax(layer_input)
 
-    def set_cost(self, y):
+    def set_cost(self, answer):
         """
         Set layer's cost variables.
 
-        y: Desired output
+        answer: Vector of desired answers for minibatch.
         """
-        self.cost = T.mean(-T.log(self.train_output)[T.arange(y.shape[0]), y])
+        self.cost = T.mean(-T.log(self.train_output)
+                           [T.arange(answer.shape[0]), answer])

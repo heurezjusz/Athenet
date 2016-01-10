@@ -119,7 +119,7 @@ class Network(object):
                 accuracy = accuracy_fun(batch_index, top)
                 batch_accuracies += [accuracy]
                 if self.verbosity >= 2 or\
-                    (self.verbosity >= 1 and batch_index % interval == 0):
+                        (self.verbosity >= 1 and batch_index % interval == 0):
                     print 'Minibatch {} top-{} accuracy: {:.1f}%'.format(
                         batch_index, top, 100*accuracy)
             accuracies += [np.mean(batch_accuracies)]
