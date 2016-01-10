@@ -7,7 +7,7 @@ from unittest import TestCase, main
 
 from athenet import Network
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
-        ReLU, Activation, LRN, MaxPool, Dropout
+    ReLU, Activation, LRN, MaxPool, Dropout
 from athenet.utils import DataLoader
 
 
@@ -39,7 +39,8 @@ class DummyDataLoader(DataLoader):
             data_out: list of batches witch output data
         """
         super(DummyDataLoader, self).__init__()
-        self.data_in = theano.shared(np.asarray((data_in), dtype=theano.config.floatX))
+        self.data_in = theano.shared(np.asarray((data_in),
+                                                dtype=theano.config.floatX))
         self.data_out = T.cast(theano.shared(np.asarray(data_out)), 'int32')
 
         self.train_set_size = len(data_in)
@@ -52,11 +53,13 @@ class DummyDataLoader(DataLoader):
 
     def train_input(self, batch_index):
         return self.data_in[batch_index:batch_index + 1]
+
     def train_output(self, batch_index):
         return self._get_subset(self.data_out, batch_index)[0]
 
     def test_input(self, batch_index):
         return self.train_input(batch_index)
+
     def test_output(self, batch_index):
         return self.train_output(batch_index)
 
@@ -90,7 +93,8 @@ class TestTrainingProcess(TestCase):
                         correct += 1.
 
         self.assertEqual(correct / len(data_in), net.test_accuracy())
-        self.assertEqual(net.batch_size, 1) #it should be automatically corrected
+        # it should be automatically corrected
+        self.assertEqual(net.batch_size, 1)
 
 
 def eval_tensor_on_layer(layer, tensor):
