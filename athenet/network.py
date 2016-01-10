@@ -176,7 +176,9 @@ class Network(object):
             layer.b = p[1]
 
     def evaluate(self, net_input):
-        """Return network output for a given input.
+        """Return network output for a given input in format:
+            (list of probabilities for every answer index,
+             list of answer indexes sorted by its probabilities)
 
         Batch size should be set to 1 before using this method. If it isn't,
         it will be set to 1.
