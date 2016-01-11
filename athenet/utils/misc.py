@@ -12,9 +12,9 @@ from athenet.utils import BIN_DIR, DATA_DIR
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
 
-    filename: File with pickled data, may be gzipped.
-    url: Url for downloading file.
-    return: Unpickled data.
+    :filename: File with pickled data, may be gzipped.
+    :url: Url for downloading file.
+    :return: Unpickled data.
     """
     if not os.path.isfile(filename):
         if not url:
@@ -37,8 +37,8 @@ def load_data(filename, url=None):
 def download_file(filename, url):
     """Download file from given url.
 
-    filename: Name of a file to be downloaded.
-    url: Url for downloading file.
+    :filename: Name of a file to be downloaded.
+    :url: Url for downloading file.
     """
     print 'Downloading ' + os.path.basename(filename) + '...',
     sys.stdout.flush()
@@ -49,8 +49,8 @@ def download_file(filename, url):
 def get_data_path(name):
     """Return absolute path to the data file.
 
-    name: Name of the file.
-    return: Full path to the file.
+    :name: Name of the file.
+    :return: Full path to the file.
     """
     return os.path.join(DATA_DIR, name)
 
@@ -58,7 +58,7 @@ def get_data_path(name):
 def get_bin_path(name):
     """Return absolute path to the binary data file.
 
-    name: Name of the file.
-    return: Full path to the file.
+    :name: Name of the file.
+    :return: Full path to the file.
     """
     return os.path.join(BIN_DIR, name)

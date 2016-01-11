@@ -9,15 +9,10 @@ from athenet.layers import Layer
 class Softmax(Layer):
     """Softmax layer."""
     def _get_output(self, layer_input):
-        """Return layer's output.
-
-        layer_input: Layer input.
-        """
         return softmax(layer_input)
 
     def set_cost(self, answer):
-        """
-        Set layer's cost variables.
+        """Set layer's cost function.
 
         answer: Vector of desired answers for minibatch.
         """

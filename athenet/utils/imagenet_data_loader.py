@@ -24,11 +24,11 @@ class ImageNetDataLoader(DataLoader):
 
         Only validation data are currently supported.
 
-        year: Specifies which year's data should be loaded.
-        val_size: Maximal size of validation data. If None, then all
-                  validation data will be used. If not None, then val_size
-                  images will be chosen randomly from the whole set.
-        val_buffer_size: Number of batches to be stored in memory.
+        :year: Specifies which year's data should be loaded.
+        :val_size: Maximal size of validation data. If None, then all
+                   validation data will be used. If not None, then val_size
+                   images will be chosen randomly from the whole set.
+        :val_buffer_size: Number of batches to be stored in memory.
         """
         super(ImageNetDataLoader, self).__init__()
         self._val_low = None
