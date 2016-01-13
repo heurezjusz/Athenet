@@ -2,7 +2,10 @@
 
 
 class DataLoader(object):
-    """Data loader."""
+    """Data loader.
+
+    Provides input and output data for network.
+    """
     def __init__(self):
         self._batch_size = None
         self.n_train_batches = None

@@ -47,10 +47,7 @@ class Network(object):
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
-        # batch_size: Minibatch size
         self.batch_size = 1
-        # data_loader: instance of class athenet.utils.DataLoader
-        self.data_loader = None
 
     @property
     def data_loader(self):
@@ -59,15 +56,14 @@ class Network(object):
 
     @data_loader.setter
     def data_loader(self, value):
-        if not value:
-            return
         self._data_loader = value
-        self.data_loader.batch_size = self.batch_size
+        if value:
+            self.data_loader.batch_size = self.batch_size
         self._update()
 
     @property
     def batch_size(self):
-        """Batch size."""
+        """Minibatch size."""
         return self._batch_size
 
     @batch_size.setter
@@ -266,6 +262,8 @@ class Network(object):
                 100*self.test_accuracy())
 
     def _update(self):
+        self._val_data_accuracy = None
+        self._test_data_accuracy = None
         if not self.data_loader:
             return
 
@@ -280,8 +278,6 @@ class Network(object):
                         self.data_loader.val_output(self._batch_index)
                 }
             )
-        else:
-            self._val_data_accuracy = None
 
         if self.data_loader.test_data_available:
             self._test_data_accuracy = theano.function(
@@ -294,5 +290,3 @@ class Network(object):
                         self.data_loader.test_output(self._batch_index)
                 }
             )
-        else:
-            self._test_data_accuracy = None
