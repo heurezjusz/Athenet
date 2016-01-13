@@ -67,6 +67,7 @@ class Network(object):
 
     @property
     def batch_size(self):
+        """Batch size."""
         return self._batch_size
 
     @batch_size.setter
@@ -162,7 +163,7 @@ class Network(object):
     def get_params(self):
         """Return list of network's weights and biases.
 
-        :return: List of tuples (W, b).
+        :return: List of pairs (W, b).
         """
         params = []
         for layer in self.weighted_layers:
@@ -172,7 +173,7 @@ class Network(object):
     def set_params(self, params):
         """Set network's weights and biases.
 
-        :params: List of tuples (W, b).
+        :params: List of pairs (W, b).
         """
         for p, layer in zip(params, self.weighted_layers):
             layer.W = p[0]

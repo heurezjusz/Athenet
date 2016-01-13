@@ -18,6 +18,7 @@ class DataLoader(object):
 
     @property
     def batch_size(self):
+        """Batch size."""
         return self._batch_size
 
     @batch_size.setter
