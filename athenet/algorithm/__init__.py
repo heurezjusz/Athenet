@@ -1,1 +1,1 @@
-from simple_network_deleter import simple_network_deleter
+from simple_neuron_deleter import simple_neuron_deleter

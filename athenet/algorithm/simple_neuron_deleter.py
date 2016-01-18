@@ -18,13 +18,13 @@ def simple_neuron_deleter(network, p, layer_limit):
             If layer_limit < p then at most [layer_limit] neurons will be
             deleted.
     """
-    assert p >= 0. && p <= 1.
-    assert layer_limit >= 0. && layer_limit <= 1.
+    assert p >= 0. and p <= 1.
+    assert layer_limit >= 0. and layer_limit <= 1.
 
     all_columns = []
-    neurons_for_layer = np.zeros((len(network, weighted_layers)))
+    neurons_for_layer = np.zeros((len(network.weighted_layers),))
     neurons_in_general = 0
-    deleted_for_layer = np.zeros((len(network, weighted_layers)))
+    deleted_for_layer = np.zeros((len(network.weighted_layers),))
     deleted_in_general = 0
 
     for i in xrange(len(network.weighted_layers)):
