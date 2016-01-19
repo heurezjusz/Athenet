@@ -86,7 +86,8 @@ def zero_fraction(network):
     n_non_zero = 0
     n_fields = 0
     for param in params:
-        n_fields += numpy.size(param)
-        n_non_zero += numpy.count_nonzero(param)
+        param_val = param.get_value(borrow=True)
+        n_fields += numpy.size(param_val)
+        n_non_zero += numpy.count_nonzero(param_val)
     n_zero = n_fields - n_non_zero
     return (1.0 * n_zero) / (1.0 * n_fields)
