@@ -34,14 +34,14 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     n_of_cases = len(config_l)
     n_of_cases_passed = 0
     if verbose:
-        print 'cases to run', n_of_cases
+        print 'Cases to run:', n_of_cases
     for config in config_l:
         results[config] = algorithm(copy.deepcopy(neural_network), config)
         n_of_cases_passed += 1
         if verbose:
-            print 'cases passed:', n_of_cases_passed, '/', n_of_cases
+            print 'Cases passed:', n_of_cases_passed, '/', n_of_cases
         if results_pkl:
             save_data_to_pickle(results, results_pkl)
     if verbose:
-        print 'algorithm run successfully'
+        print 'Algorithm run successfully'
     return results
