@@ -129,7 +129,7 @@ class Network(object):
     def test_accuracy(self, top_range=1):
         """Return network's accuracy on the test data.
 
-        :top_range: Number or list represinting top ranges to be used.
+        :top_range: Number or list representing top ranges to be used.
                     Network's answer is considered correct if correct answer
                     is among top_range most probable answers given by the
                     network.
@@ -144,7 +144,7 @@ class Network(object):
     def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
 
-        :top_range: Number or list represinting top ranges to be used.
+        :top_range: Number or list representing top ranges to be used.
                     Network's answer is considered correct if correct answer
                     is among top_range most probable answers given by the
                     network.
