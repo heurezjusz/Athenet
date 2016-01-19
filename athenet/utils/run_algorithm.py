@@ -30,7 +30,13 @@ def run_algorithm(neural_network, algorithm, config_l,
     if verbose:
         print 'cases to run', n_of_cases
     for config in config_l:
-        results[config] = algorithm(copy.deepcopy(neural_network), config)
+        transformed_net = copy.deepcopy(neural_network)
+        zeros_before = transformed_net.zero_fraction()
+        algorithm(transformed_net, config)
+        zeros_after = transformed_net.zero_fraction()
+        zeroed_fraction = zeros_after - zeros_before
+        error_rate = transformed_net.test_accuracy()
+        results[config] = (zeroed_fraction, error_rate)
         n_of_cases_passed += 1
         if verbose:
             print 'cases passed:', n_of_cases_passed, '/', n_of_cases
