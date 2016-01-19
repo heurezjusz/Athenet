@@ -7,7 +7,7 @@
 import numpy as np
 
 from athenet.layers import FullyConnectedLayer
-from athenet.algorithm.utils import list_of_percentage_columns, delete_column
+from athenet.algorithm.utils import list_of_percentage_rows, delete_row
 
 
 def simple_neuron_deleter(network, p, layer_limit):
@@ -21,7 +21,7 @@ def simple_neuron_deleter(network, p, layer_limit):
     assert p >= 0. and p <= 1.
     assert layer_limit >= 0. and layer_limit <= 1.
 
-    all_columns = []
+    all_rows = []
     neurons_for_layer = np.zeros((len(network.weighted_layers),))
     neurons_in_general = 0
     deleted_for_layer = np.zeros((len(network.weighted_layers),))
@@ -30,17 +30,17 @@ def simple_neuron_deleter(network, p, layer_limit):
     for i in xrange(len(network.weighted_layers)):
         layer = network.weighted_layers[i]
         if isinstance(layer, FullyConnectedLayer):
-            all_columns += list_of_percentage_columns(i, layer)
+            all_rows += list_of_percentage_rows(i, layer)
             neurons_for_layer[i] = layer.W.shape[1]
             neurons_in_general += neurons_for_layer[i]
 
-    all_columns = sorted(all_columns)
+    all_rows = sorted(all_rows)
 
-    for val, column, layer_id in all_columns:
+    for val, row, layer_id in all_rows:
         if deleted_in_general >= p * neurons_in_general:
             break
         if 1 + deleted_for_layer[layer_id] > layer_limit * neurons_for_layer[i]:
             continue
         deleted_for_layer[layer_id] += 1
-        delete_column(network.weighted_layers[layer_id], column)
+        delete_row(network.weighted_layers[layer_id], row)
         deleted_in_general += 1

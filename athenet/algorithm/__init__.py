@@ -1,1 +1,2 @@
 from simple_neuron_deleter import simple_neuron_deleter
+from middlelayer_neuron_deleter import middlelayer_neuron_deleter

@@ -1,4 +1,5 @@
 import numpy as np
+from statistics import median
 
 class Filter(object):
     """Filters used to modify convolutional layer's weights
@@ -52,37 +53,37 @@ class WeightedFilter(Filter):
 
 
 avg_filter = WeightedFilter(np.asarray( #removes noise, but blurs image
-    [[ 1., 1., 1.],
-     [ 1., 1., 1.],
-     [ 1., 1., 1.]]
+    [[ 1., 1., 1. ],
+     [ 1., 1., 1. ],
+     [ 1., 1., 1. ]]
 ))
 
 
 lp1_filter = WeightedFilter(np.asarray( #don't blurs image as much as previous
-    [[ 1., 1., 1.],
-     [ 1., 2., 1.],
-     [ 1., 1., 1.]]
+    [[ 1., 1., 1. ],
+     [ 1., 2., 1. ],
+     [ 1., 1., 1. ]]
 ))
 
 
 lp2_filter = WeightedFilter(np.asarray( #don't blurs image as much as previous
-    [[ 1., 1., 1.],
-     [ 1., 4., 1.],
-     [ 1., 1., 1.]]
+    [[ 1., 1., 1. ],
+     [ 1., 4., 1. ],
+     [ 1., 1., 1. ]]
 ))
 
 
 lp3_filter = WeightedFilter(np.asarray( #don't blurs image as much as previous
-    [[ 1., 1., 1.],
-     [ 1., 12., 1.],
-     [ 1., 1., 1.]]
+    [[ 1., 1., 1. ],
+     [ 1., 12., 1. ],
+     [ 1., 1., 1. ]]
 ))
 
 
 hp3_filter = WeightedFilter(np.asarray( #sharpens an image
-    [[  0., -1.,  0.],
-     [ -1., 20., -1.],
-     [  0., -1.,  0.]]
+    [[  0., -1.,  0. ],
+     [ -1., 20., -1. ],
+     [  0., -1.,  0. ]]
 ))
 
 

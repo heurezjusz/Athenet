@@ -9,7 +9,7 @@ from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
     ReLU, MaxPool
 from athenet.utils import DataLoader
 
-from athenet.algorithm import simple_neuron_deleter
+from athenet.algorithm import simple_neuron_deleter, middlelayer_neuron_deleter
 
 def get_simple_network():
     result = Network([
@@ -34,8 +34,12 @@ class TestSender(TestCase):
     def test_algorithm(self):
         net = get_simple_network()
         for layer in net.weighted_layers:
-            print layer.W
-        simple_neuron_deleter(net, 0.5, 0.75)
+            layer.W = np.ones(layer.W.shape)
+            print layer.W.shape
+        W = net.weighted_layers[-1].W
+        W[0][1] = 200
+        net.weighted_layers[-1].W = W
+        middlelayer_neuron_deleter(net, 0.5, 0.75)
         for layer in net.weighted_layers:
             print layer.W
 
