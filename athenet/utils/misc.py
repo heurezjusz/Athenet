@@ -5,8 +5,10 @@ import os
 import sys
 import gzip
 import urllib
+import numpy
 
 from athenet.utils import BIN_DIR, DATA_DIR
+
 
 def load_data_from_pickle(filename):
     """Load data from pickle file
@@ -23,6 +25,7 @@ def load_data_from_pickle(filename):
     f.close()
     return data
 
+
 def save_data_to_pickle(data, filename):
     """Saves data to gzipped pickle file.
 
@@ -31,6 +34,7 @@ def save_data_to_pickle(data, filename):
     """
     with gzip.open(filename, 'wb') as f:
         pickle.dump(data, f)
+
 
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
@@ -52,7 +56,7 @@ def load_data(filename, url=None):
             urllib.urlretrieve(url, filename)
             print 'Done'
 
-    data = load_pickle(filename)
+    data = load_data_from_pickle(filename)
     return data
 
 
@@ -72,3 +76,17 @@ def get_bin_path(name):
     return: Full path to the file.
     """
     return os.path.join(BIN_DIR, name)
+
+def zero_fraction(network):
+    """Returns fraction of zeros in weights of Network
+
+    :network: Network for which we count fraction of zeros
+    """
+    params = network.params
+    n_non_zero = 0
+    n_fields = 0
+    for param in params:
+        n_fields += numpy.size(param)
+        n_non_zero += numpy.count_nonzero(param)
+    n_zero = n_fields - n_non_zero
+    return (1.0 * n_zero) / (1.0 * n_fields)
