@@ -8,6 +8,29 @@ import urllib
 
 from athenet.utils import BIN_DIR, DATA_DIR
 
+def load_data_from_pickle(filename):
+    """Load data from pickle file
+
+    filename: File with pickled data, may be gzipped.
+    """
+    data = None
+    try:
+        f = gzip.open(filename, 'rb')
+        data = pickle.load(f)
+    except:
+        f = open(filename, 'rb')
+        data = pickle.load(f)
+    f.close()
+    return data
+
+def save_data_to_pickle(data, filename):
+    """Saves data to gzipped pickle file.
+
+    :data: Data to be saved.
+    :filename: Name of file to save data.
+    """
+    with gzip.open(filename, 'wb') as f:
+        pickle.dump(data, f)
 
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
@@ -29,13 +52,7 @@ def load_data(filename, url=None):
             urllib.urlretrieve(url, filename)
             print 'Done'
 
-    try:
-        f = gzip.open(filename, 'rb')
-        data = pickle.load(f)
-    except:
-        f = open(filename, 'rb')
-        data = pickle.load(f)
-    f.close()
+    data = load_pickle(filename)
     return data
 
 
