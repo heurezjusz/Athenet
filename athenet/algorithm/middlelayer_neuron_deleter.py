@@ -11,12 +11,15 @@ from athenet.algorithm.utils import list_of_percentage_columns, \
     list_of_percentage_rows, delete_column, delete_row
 
 
-def middlelayer_neuron_deleter(network, p, layer_limit):
+def middlelayer_neuron_deleter(network, config):
     """I think this algorithm is supposed to have better name.
 
+        :config: - tuple of 2 foats, p, and layer_limit
         It do not support pooling and convolutional layers between
         fully connected layers
     """
+    p, layer_limit = config
+
     assert p >= 0. and p <= 1.
     assert layer_limit >= 0. and layer_limit <= 1.
 
