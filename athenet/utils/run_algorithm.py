@@ -1,24 +1,30 @@
 #!/usr/bin/python2
 
-import os, cPickle, gzip, copy
+import os
+import cPickle as pickle
+import gzip
+import copy
+
 from athenet.utils import save_data_to_pickle, load_data_from_pickle
 
-def run_algorithm(neural_network, algorithm, config_l,
-        results_pkl=None, verbose=False):
+
+def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
+                  verbose=False):
     """Runs algorithm on copy of neural_network for config_l cases.
 
     :neural_network: Instance of Network class to be copied and used for
-                     algorithm
+                     algorithm.
     :algorithm: Function executing algorithm on network, takes Network and
-                config parameters
+                config parameters.
     :config_l:  List of configs to be passed to algorithm. For every config
                 algorithm is being executed once.
     :results_pkl: File where results of algorithm are saved online and from
                   where they are initially loaded. Stores dictionary
-                  {config: algorithm(neural_network, config)}
+                  {config: algorithm(neural_network, config)}.
     :verbose: If True, then progress of tests is being printed.
+    :return: Dictionary {config: algorithm(neural_network, config)}.
     """
-    results = dict([])
+    results = {}
     if results_pkl:
         try:
             results = load_data_from_pickle(results_pkl)

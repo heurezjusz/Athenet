@@ -3,11 +3,12 @@
 import matplotlib.pyplot as plt
 from athenet.utils import save_data_to_pickle, load_data_from_pickle
 
+
 def merge_pickles(out_pkl, in_pkl1, in_pkl2):
     """ Merge pickled dictionaries.
 
     Merges 2 pickled dictionaries from two files named in_pkl1 and in_pkl2.
-    Pickles results to to file named out_pkl.
+    Pickles results to file named out_pkl.
 
     :out_pkl: Output pickle with merged
     in_pkl1: Name of file with first pickled dictionary.
@@ -18,11 +19,12 @@ def merge_pickles(out_pkl, in_pkl1, in_pkl2):
     pkl1.update(pkl2)
     save_data_to_pickle(pkl1, out_pkl)
 
+
 def plot_2d_results(answers, xlabel='fraction of zero-filled weights',
-        ylabel='error rate', xlog=False, ylog=False):
+                    ylabel='error rate', xlog=False, ylog=False):
     """Create 2d plot of answers given by sparsifying algorithm.
 
-    Creates 2d plot with answers' values on axis'.
+    Creates 2d plot with answers' values on axes.
 
     :answers: Dictionary with pairs as values (for any key). Keys must be
               recognized by matplotlib.pylot.
