@@ -82,7 +82,7 @@ def zero_fraction(network):
 
     :network: Network for which we count fraction of zeros
     """
-    params = [weights[0] for weights in network.get_params()]
+    params = [layer.W for layer in network.weighted_layers]
     n_non_zero = 0
     n_fields = 0
     for param in params:
