@@ -5,7 +5,8 @@ import cPickle as pickle
 import gzip
 import copy
 
-from athenet.utils import save_data_to_pickle, load_data_from_pickle, zero_fraction
+from athenet.utils import save_data_to_pickle, load_data_from_pickle, \
+    zero_fraction
 
 
 def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
