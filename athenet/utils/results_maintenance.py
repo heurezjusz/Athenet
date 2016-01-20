@@ -22,7 +22,7 @@ def merge_pickles(out_pkl, in_pkl1, in_pkl2):
 
 def plot_2d_results(results, xlabel='fraction of zero-filled weights',
                     ylabel='error rate', xlog=False, ylog=False,
-                    title='No title'):
+                    title=None):
     """Create 2d plot of results given by sparsifying algorithm.
 
     Creates 2d plot with results' values on axes.
@@ -47,5 +47,6 @@ def plot_2d_results(results, xlabel='fraction of zero-filled weights',
         plt.yscale('log')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.title(title)
+    if title:
+        plt.title(title)
     plt.show()
