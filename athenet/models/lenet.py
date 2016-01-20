@@ -4,7 +4,7 @@ from athenet import Network
 from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer,\
     ConvolutionalLayer
 from athenet.utils import BIN_DIR, DATA_DIR, load_data, get_bin_path,\
-    save_data_to_pickle
+    save_data_to_pickle, MNISTDataLoader
 
 lenet_filename = 'lenet_weights.pkl.gz'
 lenet_url = 'http://students.mimuw.edu.pl/~wg346897/hosting/athenet/lenet_weights.pkl.gz'
@@ -26,7 +26,7 @@ def lenet_untrained():
 
 def load_lenet_weights():
     try:
-        weights = load_data(get_bin_path(lenet_filename), lenet_url)
+        return load_data(get_bin_path(lenet_filename), lenet_url)
     except:
         return None
 
