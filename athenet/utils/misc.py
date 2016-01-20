@@ -77,6 +77,7 @@ def get_bin_path(name):
     """
     return os.path.join(BIN_DIR, name)
 
+
 def zero_fraction(network):
     """Returns fraction of zeros in weights of Network. Biases not considered.
 
