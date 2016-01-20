@@ -11,11 +11,11 @@ from athenet.utils import BIN_DIR, DATA_DIR
 
 
 def load_data_from_pickle(filename):
-    """Load data from pickle file
+    """Load data from pickle file.
 
-    filename: File with pickled data, may be gzipped.
+    :filename: File with pickled data, may be gzipped.
+    :return: Data loaded from file.
     """
-    data = None
     try:
         f = gzip.open(filename, 'rb')
         data = pickle.load(f)
@@ -39,9 +39,9 @@ def save_data_to_pickle(data, filename):
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
 
-    filename: File with pickled data, may be gzipped.
-    url: Url for downloading file.
-    return: Unpickled data.
+    :filename: File with pickled data, may be gzipped.
+    :url: Url for downloading file.
+    :return: Unpickled data.
     """
     if not os.path.isfile(filename):
         if not url:
@@ -63,8 +63,8 @@ def load_data(filename, url=None):
 def get_data_path(name):
     """Return absolute path to the data file.
 
-    name: Name of the file.
-    return: Full path to the file.
+    :name: Name of the file.
+    :return: Full path to the file.
     """
     return os.path.join(DATA_DIR, name)
 
@@ -72,16 +72,19 @@ def get_data_path(name):
 def get_bin_path(name):
     """Return absolute path to the binary data file.
 
-    name: Name of the file.
-    return: Full path to the file.
+    :name: Name of the file.
+    :return: Full path to the file.
     """
     return os.path.join(BIN_DIR, name)
 
 
 def zero_fraction(network):
-    """Returns fraction of zeros in weights of Network. Biases not considered.
+    """Returns fraction of zeros in weights of Network.
 
-    :network: Network for which we count fraction of zeros
+    Biases are not considered.
+
+    :network: Network for which we count fraction of zeros.
+    :return: Fraction of zeros.
     """
     params = [layer.W for layer in network.weighted_layers]
     n_non_zero = 0
