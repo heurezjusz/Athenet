@@ -1,17 +1,18 @@
-"""Functions returning out-of-box lenet, instance of Network"""
+"""Functions returning out-of-the-box LeNet, instance of Network"""
 
 from athenet import Network
-from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer,\
+from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
     ConvolutionalLayer
-from athenet.utils import BIN_DIR, DATA_DIR, load_data, get_bin_path,\
-    save_data_to_pickle, MNISTDataLoader
+from athenet.utils import load_data, get_bin_path, save_data_to_pickle, \
+    MNISTDataLoader
 
 lenet_filename = 'lenet_weights.pkl.gz'
-lenet_url = 'http://students.mimuw.edu.pl/~wg346897/hosting/athenet/lenet_weights.pkl.gz'
+lenet_url = 'http://students.mimuw.edu.pl/~wg346897/hosting/athenet/' \
+    'lenet_weights.pkl.gz'
 
 
 def load_lenet_weights():
-    """Loads lenet from file or internet, returns None if failed."""
+    """Load LeNet from file or internet, returns None if failed."""
     try:
         return load_data(get_bin_path(lenet_filename), lenet_url)
     except:
@@ -19,7 +20,7 @@ def load_lenet_weights():
 
 
 def lenet_untrained():
-    """Returns untrained lenet network."""
+    """Return untrained LeNet network."""
     lenet = Network([
         ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(5, 5, 20)),
         ReLU(),
@@ -36,9 +37,12 @@ def lenet_untrained():
 
 
 def lenet():
-    """Returns trained lenet network.
+    """Return trained LeNet network.
     
-    Tries to load network from file, from internet or trains it."""
+    Tries to load network from file, from internet or trains it.
+
+    :return: Trained LeNet network.
+    """
     lenet_embryo = lenet_untrained()
     lenet_embryo.data_loader = MNISTDataLoader()
     weights = load_lenet_weights()
