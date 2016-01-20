@@ -78,11 +78,11 @@ def get_bin_path(name):
     return os.path.join(BIN_DIR, name)
 
 def zero_fraction(network):
-    """Returns fraction of zeros in weights of Network
+    """Returns fraction of zeros in weights of Network. Biases not considered.
 
     :network: Network for which we count fraction of zeros
     """
-    params = network.params
+    params = [weights[0] for weights in network.get_params()]
     n_non_zero = 0
     n_fields = 0
     for param in params:
