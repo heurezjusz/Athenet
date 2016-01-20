@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+"""Function for running algorithm on network for multiple cases. """
 
 import os
 import cPickle as pickle

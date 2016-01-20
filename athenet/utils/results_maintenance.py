@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+"""Auxiliary functions for managing results of algorithms"""
 
 import matplotlib.pyplot as plt
 from athenet.utils import save_data_to_pickle, load_data_from_pickle
