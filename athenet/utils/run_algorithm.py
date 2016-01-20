@@ -43,9 +43,9 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
         zeroed_fraction = zeros_after - zeros_before
         error_rate = None
         if transformed_net.data_loader.test_data_available:
-            error_rate = transformed_net.test_accuracy()
+            error_rate = 1.0 - transformed_net.test_accuracy()
         elif transformed_net.data_loader.val_data_available:
-            error_rate = transformed_net.val_accuracy()
+            error_rate = 1.0 - transformed_net.val_accuracy()
         else:
             raise Exception('test data and valid data not in Network')
         results[config] = (zeroed_fraction, error_rate)
