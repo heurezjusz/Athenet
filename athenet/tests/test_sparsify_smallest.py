@@ -1,6 +1,6 @@
 import unittest
-from src.sparsifying.sparsify_smallest import sparsify_smallest_on_layers
-from src.sparsifying.sparsify_smallest import sparsify_smallest_on_network
+from athenet.sparsifying.sparsify_smallest import sparsify_smallest_on_layers
+from athenet.sparsifying.sparsify_smallest import sparsify_smallest_on_network
 import numpy as np
 from mocks.mock_network import NetworkMock, LayerMock
 from nose.tools import assert_equal, assert_true
