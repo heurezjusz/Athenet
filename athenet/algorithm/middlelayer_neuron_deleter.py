@@ -38,18 +38,15 @@ def middlelayer_neuron_deleter(network, config):
             weights.append((list_of_percentage_rows(i, layer),
                             list_of_percentage_columns(i, layer)))
             neurons_for_layer[i] = layer.W.shape[0]
-            neurons_in_general += neurons_for_layer[i]
         elif was_fully_connected_layer:
             assert not isinstance(layer, ConvolutionalLayer)
             assert not isinstance(layer, MaxPool)
-
-    for a, b in weights:
-        print len(a), len(b)
 
     all_neurons = []
     for i in xrange(len(weights) - 1):
         for j in xrange(len(weights[i][1])):
             # value, number of column, column_layer_id, row_layer_id
+            neurons_in_general += neurons_for_layer[i]
             all_neurons.append((weights[i][1][j][0] * weights[i + 1][0][j][0],
                                 weights[i][1][j][1], weights[i][1][j][2],
                                 weights[i + 1][0][j][2]))
@@ -58,7 +55,7 @@ def middlelayer_neuron_deleter(network, config):
     for val, neuron_id, column_layer_id, row_layer_id in all_neurons:
         if deleted_in_general >= p * neurons_in_general:
             break
-        if deleted_for_layer[row_layer_id] + 1 >= \
+        if deleted_for_layer[row_layer_id] + 1 > \
                 layer_limit * neurons_for_layer[row_layer_id]:
             continue
         delete_column(network.layers[column_layer_id], neuron_id)

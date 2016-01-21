@@ -33,7 +33,7 @@ def simple_neuron_deleter(network, config):
         layer = network.weighted_layers[i]
         if isinstance(layer, FullyConnectedLayer):
             all_rows += list_of_percentage_rows(i, layer)
-            neurons_for_layer[i] = layer.W.shape[1]
+            neurons_for_layer[i] = layer.W.shape[0]
             neurons_in_general += neurons_for_layer[i]
 
     all_rows = sorted(all_rows)

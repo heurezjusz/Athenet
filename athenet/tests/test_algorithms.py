@@ -39,7 +39,7 @@ class TestSender(TestCase):
         W = net.weighted_layers[-1].W
         W[0][1] = 200
         net.weighted_layers[-1].W = W
-        middlelayer_neuron_deleter(net, 0.5, 0.75)
+        middlelayer_neuron_deleter(net, (1., 1.))
         for layer in net.weighted_layers:
             print layer.W
 
