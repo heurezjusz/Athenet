@@ -16,7 +16,7 @@ class ImageNetDataLoader(DataLoader):
 
     name_prefix = 'ILSVRC'
     name_infix = '_img_'
-    mean_suffix = '_mean.jpg'
+    mean_rgb = [123, 117, 104]
     verbosity = 0
 
     def __init__(self, year, val_size=None, val_buffer_size=1):
@@ -40,12 +40,6 @@ class ImageNetDataLoader(DataLoader):
         self.val_name = base_name + 'val'
         self.val_dir_name = self.val_name + '/'
         self.val_buffer_size = val_buffer_size
-
-        mean_path = get_bin_path(self.val_name + self.mean_suffix)
-        if os.path.isfile(mean_path):
-            self.mean = self._get_img(mean_path)
-        else:
-            self.mean = 0.
 
         files = os.listdir(get_bin_path(self.val_dir_name))
         answers = OrderedDict()
@@ -80,12 +74,11 @@ class ImageNetDataLoader(DataLoader):
     def _get_img(self, filename):
         img = misc.imread(get_bin_path(filename))
         img = np.rollaxis(img, 2)
-        img = img[::-1, :, :]
         img = img.reshape((1, 3, 227, 227))
         return np.asarray(img, dtype=float)
 
     def load_val_data(self, batch_index):
-        if (batch_index >= self._val_low) and (batch_index < self._val_high):
+        if batch_index >= self._val_low and batch_index < self._val_high:
             return
         if self.verbosity > 0:
             print 'Load data'
@@ -95,7 +88,13 @@ class ImageNetDataLoader(DataLoader):
         imgs = []
         for filename in files:
             img = self._get_img(self.val_dir_name + filename)
-            imgs += [img - self.mean]
+            r, g, b = np.split(img, 3, axis=1)
+            r -= self.mean_rgb[0]
+            g -= self.mean_rgb[1]
+            b -= self.mean_rgb[2]
+            img = np.concatenate([b, g, r], axis=1)
+            img = img[:, :, ::-1, :]
+            imgs += [img]
 
         imgs = np.concatenate(imgs, axis=0)
         self.val_in.set_value(
