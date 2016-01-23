@@ -3,24 +3,23 @@
 from athenet import Network
 from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
     ConvolutionalLayer
-from athenet.utils import load_data, get_bin_path, save_data_to_pickle, \
-    MNISTDataLoader
+from athenet.utils import load_data, get_bin_path
 
-lenet_filename = 'lenet_weights.pkl.gz'
-lenet_url = 'http://students.mimuw.edu.pl/~wg346897/hosting/athenet/' \
+LENET_FILENAME = 'lenet_weights.pkl.gz'
+LENET_URL = 'http://students.mimuw.edu.pl/~wg346897/hosting/athenet/' \
     'lenet_weights.pkl.gz'
 
 
-def load_lenet_weights():
-    """Load LeNet from file or internet, returns None if failed."""
-    try:
-        return load_data(get_bin_path(lenet_filename), lenet_url)
-    except:
-        return None
+def lenet(trained=True, weights_filename=LENET_FILENAME,
+          weights_url=LENET_URL):
+    """Create and return instance of LeNet network.
 
-
-def lenet_untrained():
-    """Return untrained LeNet network."""
+    :trained: If True, trained weights will be loaded from file.
+    :weights_filename: Name of a file with LeNet weights. Will be used if
+                       ``trained`` argument is set to True.
+    :weights_url: Url from which to download file with weights.
+    :return: LeNet network.
+    """
     lenet = Network([
         ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(5, 5, 20)),
         ReLU(),
@@ -33,24 +32,10 @@ def lenet_untrained():
         FullyConnectedLayer(n_out=10),
         Softmax(),
     ])
+    if trained:
+        weights = load_data(get_bin_path(weights_filename), weights_url)
+        if weights:
+            lenet.set_params(weights)
+        else:
+            raise Exception("cannot load LeNet weights")
     return lenet
-
-
-def lenet():
-    """Return trained LeNet network.
-    
-    Tries to load network from file, from internet or trains it.
-
-    :return: Trained LeNet network.
-    """
-    lenet_embryo = lenet_untrained()
-    lenet_embryo.data_loader = MNISTDataLoader()
-    weights = load_lenet_weights()
-    if weights:
-        lenet_embryo.set_params(weights)
-    else:
-        print 'lenet file not found, will be trained now...'
-        lenet_embryo.train(learning_rate=0.1, n_epochs=10, batch_size=300)
-        filename = get_bin_path(lenet_filename)
-        save_data_to_pickle(filename)
-    return lenet_embryo
