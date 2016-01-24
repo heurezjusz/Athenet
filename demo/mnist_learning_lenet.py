@@ -2,7 +2,6 @@
 
 import athenet
 from athenet.utils import MNISTDataLoader
-from athenet.models import lenet
 
 
 network = athenet.models.lenet(trained=False)
