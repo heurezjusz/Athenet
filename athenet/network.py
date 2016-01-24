@@ -101,7 +101,15 @@ class Network(object):
 
         self._update()
 
-    def _get_accuracy(self, top_range, accuracy_fun, load_fun, n_batches):
+    def _val_batch_accuracy(self, batch_index, top_range):
+        self.data_loader.load_val_data(batch_index)
+        return self._val_data_accuracy(batch_index, top_range)
+
+    def _test_batch_accuracy(self, batch_index, top_range):
+        self.data_loader.load_test_data(batch_index)
+        return self._test_data_accuracy(batch_index, top_range)
+
+    def _get_accuracy(self, top_range, accuracy_fun, n_batches):
         return_list = isinstance(top_range, list)
         if not return_list:
             top_range = [top_range]
@@ -113,10 +121,9 @@ class Network(object):
         for top in top_range:
             batch_accuracies = []
             for batch_index in xrange(n_batches):
-                load_fun(batch_index)
                 accuracy = accuracy_fun(batch_index, top)
                 batch_accuracies += [accuracy]
-                if self.verbosity >= 2 or\
+                if self.verbosity >= 2 or \
                         (self.verbosity >= 1 and batch_index % interval == 0):
                     print 'Minibatch {} top-{} accuracy: {:.1f}%'.format(
                         batch_index, top, 100*accuracy)
@@ -137,8 +144,7 @@ class Network(object):
                  ranges.
         """
         return self._get_accuracy(top_range,
-                                  self._test_data_accuracy,
-                                  self.data_loader.load_test_data,
+                                  self._test_batch_accuracy,
                                   self.data_loader.n_test_batches)
 
     def val_accuracy(self, top_range=1):
@@ -152,8 +158,7 @@ class Network(object):
                  ranges.
         """
         return self._get_accuracy(top_range,
-                                  self._val_data_accuracy,
-                                  self.data_loader.load_val_data,
+                                  self._val_batch_accuracy,
                                   self.data_loader.n_val_batches)
 
     def get_params(self):
@@ -201,9 +206,9 @@ class Network(object):
                      is currenty set will be used.
         """
         if not self.data_loader:
-            raise Exception('Data loader is not set')
+            raise Exception('data loader is not set')
         if not self.data_loader.test_data_available:
-            raise Exception('Test data are not available')
+            raise Exception('test data are not available')
 
         self.batch_size = batch_size
 
@@ -234,11 +239,10 @@ class Network(object):
         done_looping = False
 
         start_time = timeit.default_timer()
-        while (epoch < n_epochs) and (not done_looping):
+        while epoch < n_epochs and not done_looping:
             epoch += 1
             print 'Epoch {}'.format(epoch)
             for batch_index in xrange(self.data_loader.n_train_batches):
-                self.data_loader.load_train_data(batch_index)
                 train_model(batch_index)
                 if self.data_loader.val_data_available:
                     iteration += 1
