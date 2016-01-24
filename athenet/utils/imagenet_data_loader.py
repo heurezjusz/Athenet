@@ -15,42 +15,42 @@ class ImageNetDataLoader(DataLoader):
     """ImageNet data loader."""
 
     name_prefix = 'ILSVRC'
-    name_infix = '_img_'
+    train_suffix = '_img_train'
+    val_suffix = '_img_val'
     mean_rgb = [123, 117, 104]
     verbosity = 0
 
     def __init__(self, year, val_size=None, val_buffer_size=1):
         """Create ImageNet data loader.
 
-        Only validation data are currently supported.
-
         :year: Specifies which year's data should be loaded.
         :val_size: Maximal size of validation data. If None, then all
-                   validation data will be used. If not None, then val_size
-                   images will be chosen randomly from the whole set.
+                   validation data will be used. Otherwise, val_size images
+                   will be chosen randomly from the whole set.
         :val_buffer_size: Number of batches to be stored in memory.
         """
         super(ImageNetDataLoader, self).__init__()
         self._val_low = None
         self._val_high = None
-
         self._offset = theano.shared(0)
-
-        base_name = self.name_prefix + str(year) + self.name_infix
-        self.val_name = base_name + 'val'
-        self.val_dir_name = self.val_name + '/'
         self.val_buffer_size = val_buffer_size
+
+        base_name = self.name_prefix + str(year)
+        train_name = base_name + self.train_suffix
+        val_name = base_name + self.val_suffix
+
+        self.train_dir_name = train_name + '/'
+        self.val_dir_name = val_name + '/'
 
         files = os.listdir(get_bin_path(self.val_dir_name))
         answers = OrderedDict()
-        f = open(get_data_path(self.val_name + '.txt'), 'rb')
+        f = open(get_data_path(val_name + '.txt'), 'rb')
         while True:
             line = f.readline()
             if not line:
                 break
             filename, answer = line.rsplit(' ', 1)
-            if filename in files:
-                answers[filename] = int(answer)
+            answers[filename] = int(answer)
         f.close()
 
         self.val_files = np.asarray(answers.keys())
