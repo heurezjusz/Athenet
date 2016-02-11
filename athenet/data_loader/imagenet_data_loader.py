@@ -8,7 +8,8 @@ from collections import OrderedDict
 import theano
 import theano.tensor as T
 
-from athenet.utils import DataLoader, get_bin_path, get_data_path
+from athenet.utils import get_bin_path, get_data_path
+from athenet.data_loader import DataLoader
 
 
 class ImageNetDataLoader(DataLoader):

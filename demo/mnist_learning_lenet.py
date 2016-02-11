@@ -1,7 +1,7 @@
 """Training LeNet on MNIST data."""
 
 import athenet
-from athenet.utils import MNISTDataLoader
+from athenet.data_loader import MNISTDataLoader
 
 
 network = athenet.models.lenet(trained=False)

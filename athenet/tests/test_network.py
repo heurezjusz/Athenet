@@ -8,7 +8,7 @@ from unittest import TestCase, main
 from athenet import Network
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
     Activation, ReLU
-from athenet.utils import DataLoader
+from athenet.data_loader import DataLoader
 
 
 class TestNetworkBasics(TestCase):
