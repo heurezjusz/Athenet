@@ -21,43 +21,42 @@ class ImageNetDataLoader(DataLoader):
     mean_rgb = [123, 117, 104]
     verbosity = 0
 
-    def __init__(self, year, val_size=None, val_buffer_size=1):
+    def __init__(self, year, buffer_size=1, val_size=None):
         """Create ImageNet data loader.
 
         :year: Specifies which year's data should be loaded.
+        :buffer_size: Number of batches to be stored in memory.
         :val_size: Maximal size of validation data. If None, then all
                    validation data will be used. Otherwise, val_size images
                    will be chosen randomly from the whole set.
-        :val_buffer_size: Number of batches to be stored in memory.
         """
         super(ImageNetDataLoader, self).__init__()
         self._val_low = None
         self._val_high = None
         self._offset = theano.shared(0)
-        self.val_buffer_size = val_buffer_size
+        self.buffer_size = buffer_size
 
         base_name = self.name_prefix + str(year)
         train_name = base_name + self.train_suffix
         val_name = base_name + self.val_suffix
-
         self.train_dir_name = train_name + '/'
         self.val_dir_name = val_name + '/'
 
+        # Prepare validation metadata
         files = os.listdir(get_bin_path(self.val_dir_name))
         answers = OrderedDict()
-        f = open(get_data_path(val_name + '.txt'), 'rb')
-        while True:
-            line = f.readline()
-            if not line:
-                break
-            filename, answer = line.rsplit(' ', 1)
-            answers[filename] = int(answer)
-        f.close()
-
+        with open(get_data_path(val_name + '.txt'), 'rb') as f:
+            while True:
+                line = f.readline()
+                if not line:
+                    break
+                filename, answer = line.rsplit(' ', 1)
+                answers[filename] = int(answer)
         self.val_files = np.asarray(answers.keys())
         val_answers = np.asarray(answers.values())
         self.val_set_size = len(self.val_files)
 
+        # Reduce amount of validation data, if necessary
         if val_size and val_size < self.val_set_size:
             ind = np.random.permutation(self.val_set_size)[:val_size]
             self.val_files = self.val_files[ind]
@@ -68,7 +67,6 @@ class ImageNetDataLoader(DataLoader):
             np.zeros((1, 3, 227, 227), dtype=theano.config.floatX),
             borrow=True)
         self.batch_size = 1
-
         self.val_out = theano.shared(val_answers, borrow=True)
         self.val_data_available = True
 
@@ -85,7 +83,7 @@ class ImageNetDataLoader(DataLoader):
             print 'Load data'
 
         files = self._get_subset(self.val_files, batch_index,
-                                 self.val_buffer_size)
+                                 self.buffer_size)
         imgs = []
         for filename in files:
             img = self._get_img(self.val_dir_name + filename)
@@ -102,7 +100,7 @@ class ImageNetDataLoader(DataLoader):
             np.asarray(imgs, dtype=theano.config.floatX), borrow=True)
         self._offset.set_value(batch_index)
         self._val_low = batch_index
-        self._val_high = batch_index + self.val_buffer_size
+        self._val_high = batch_index + self.buffer_size
 
     def val_input(self, batch_index):
         return self._get_subset(self.val_in, batch_index - self._offset)
