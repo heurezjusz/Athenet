@@ -6,10 +6,9 @@ from scipy import misc
 from collections import OrderedDict
 
 import theano
-import theano.tensor as T
 
 from athenet.utils import get_bin_path, get_data_path
-from athenet.data_loader import DataLoader
+from athenet.data_loader import DataLoader, Buffer
 
 
 class ImageNetDataLoader(DataLoader):
@@ -35,6 +34,7 @@ class ImageNetDataLoader(DataLoader):
         self._val_high = None
         self._offset = theano.shared(0)
         self.buffer_size = buffer_size
+        self._val_buffer = Buffer()
 
         base_name = self.name_prefix + str(year)
         train_name = base_name + self.train_suffix
@@ -63,9 +63,6 @@ class ImageNetDataLoader(DataLoader):
             val_answers = val_answers[ind]
             self.val_set_size = val_size
 
-        self.val_in = theano.shared(
-            np.zeros((1, 3, 227, 227), dtype=theano.config.floatX),
-            borrow=True)
         self.batch_size = 1
         self.val_out = theano.shared(val_answers, borrow=True)
         self.val_data_available = True
@@ -77,7 +74,8 @@ class ImageNetDataLoader(DataLoader):
         return np.asarray(img, dtype=float)
 
     def load_val_data(self, batch_index):
-        if batch_index >= self._val_low and batch_index < self._val_high:
+        if batch_index >= self._val_buffer.low and \
+                batch_index < self._val_buffer.high:
             return
         if self.verbosity > 0:
             print 'Load data'
@@ -95,15 +93,11 @@ class ImageNetDataLoader(DataLoader):
             img = img[:, :, ::-1, :]
             imgs += [img]
 
-        imgs = np.concatenate(imgs, axis=0)
-        self.val_in.set_value(
-            np.asarray(imgs, dtype=theano.config.floatX), borrow=True)
+        self._val_buffer.set(imgs, batch_index, self.buffer_size)
         self._offset.set_value(batch_index)
-        self._val_low = batch_index
-        self._val_high = batch_index + self.buffer_size
 
     def val_input(self, batch_index):
-        return self._get_subset(self.val_in, batch_index - self._offset)
+        return self._get_subset(self._val_buffer, batch_index - self._offset)
 
     def val_output(self, batch_index):
         return self._get_subset(self.val_out, batch_index)
