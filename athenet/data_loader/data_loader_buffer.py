@@ -11,8 +11,9 @@ class Buffer(object):
     Content of a buffer is a 4-dimensional floating-point tensor.
     """
     def __init__(self):
-        self.low = -1
-        self.high = 0
+        self.begin = -1
+        self.end = 0
+        self.offset = theano.shared(0)
 
         # Create a 4-dimensinal tensor shared variable for data. Exact size of
         # the tensor is determined when data is set, and can change over time.
@@ -38,10 +39,20 @@ class Buffer(object):
         :n_of_batches: Number of minibatches that are contained in given data.
         """
         if batch_index:
-            self.low = batch_index
+            self.begin = batch_index
+            self.offset.set_value(batch_index)
             if n_of_batches:
-                self.high = batch_index + n_of_batches
+                self.end = batch_index + n_of_batches
         self._data.set_value(
             np.asarray(np.concatenate(data, axis=0),
                        dtype=theano.config.floatX),
             borrow=True)
+
+    def contains(self, batch_index):
+        """Check if minibatch is contained in a buffer.
+
+        :batch_index: Index of a minibatch.
+        :return: True, if minibatch of a given index is contained in a buffer.
+                 False otherwise.
+        """
+        return batch_index >= self.begin and batch_index < self.end

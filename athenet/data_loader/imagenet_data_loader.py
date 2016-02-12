@@ -32,7 +32,6 @@ class ImageNetDataLoader(DataLoader):
         super(ImageNetDataLoader, self).__init__()
         self._val_low = None
         self._val_high = None
-        self._offset = theano.shared(0)
         self.buffer_size = buffer_size
         self._val_buffer = Buffer()
 
@@ -74,8 +73,7 @@ class ImageNetDataLoader(DataLoader):
         return np.asarray(img, dtype=float)
 
     def load_val_data(self, batch_index):
-        if batch_index >= self._val_buffer.low and \
-                batch_index < self._val_buffer.high:
+        if self._val_buffer.contains(batch_index):
             return
         if self.verbosity > 0:
             print 'Load data'
@@ -94,10 +92,9 @@ class ImageNetDataLoader(DataLoader):
             imgs += [img]
 
         self._val_buffer.set(imgs, batch_index, self.buffer_size)
-        self._offset.set_value(batch_index)
 
     def val_input(self, batch_index):
-        return self._get_subset(self._val_buffer, batch_index - self._offset)
+        return self._get_subset(self._val_buffer, batch_index - self._val_buffer.offset)
 
     def val_output(self, batch_index):
         return self._get_subset(self.val_out, batch_index)
