@@ -30,10 +30,7 @@ class ImageNetDataLoader(DataLoader):
                    will be chosen randomly from the whole set.
         """
         super(ImageNetDataLoader, self).__init__()
-        self._val_low = None
-        self._val_high = None
         self.buffer_size = buffer_size
-        self._val_in = Buffer(self)
 
         base_name = self.name_prefix + str(year)
         train_name = base_name + self.train_suffix
@@ -62,9 +59,11 @@ class ImageNetDataLoader(DataLoader):
             val_answers = val_answers[ind]
             self.val_set_size = val_size
 
-        self.batch_size = 1
-        self.val_out = theano.shared(val_answers, borrow=True)
+        self._val_in = Buffer(self)
+        self._val_out = theano.shared(val_answers, borrow=True)
         self.val_data_available = True
+
+        self.batch_size = 1
 
     def _get_img(self, filename):
         img = misc.imread(get_bin_path(filename))
@@ -97,4 +96,4 @@ class ImageNetDataLoader(DataLoader):
         return self._get_subset(self._val_in, batch_index)
 
     def val_output(self, batch_index):
-        return self._get_subset(self.val_out, batch_index)
+        return self._get_subset(self._val_out, batch_index)
