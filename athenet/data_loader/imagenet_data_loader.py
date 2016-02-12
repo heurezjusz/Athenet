@@ -20,7 +20,8 @@ class ImageNetDataLoader(DataLoader):
     mean_rgb = [123, 117, 104]
     verbosity = 0
 
-    def __init__(self, year, buffer_size=1, val_size=None):
+    def __init__(self, year, buffer_size=1, train_data=True, val_data=True,
+                 val_size=None):
         """Create ImageNet data loader.
 
         :year: Specifies which year's data should be loaded.
@@ -33,35 +34,50 @@ class ImageNetDataLoader(DataLoader):
         self.buffer_size = buffer_size
 
         base_name = self.name_prefix + str(year)
-        train_name = base_name + self.train_suffix
-        val_name = base_name + self.val_suffix
-        self.train_dir_name = train_name + '/'
-        self.val_dir_name = val_name + '/'
+        self.train_name = base_name + self.train_suffix
+        self.val_name = base_name + self.val_suffix
 
-        # Prepare validation metadata
-        files = os.listdir(get_bin_path(self.val_dir_name))
-        answers = OrderedDict()
-        with open(get_data_path(val_name + '.txt'), 'rb') as f:
-            while True:
-                line = f.readline()
-                if not line:
-                    break
-                filename, answer = line.rsplit(' ', 1)
-                answers[filename] = int(answer)
-        self.val_files = np.asarray(answers.keys())
-        val_answers = np.asarray(answers.values())
-        self.val_set_size = len(self.val_files)
+        if train_data:
+            index = 0
+            answers = []
+            self.train_files = []
+            train_dirs = os.listdir(get_bin_path(self.train_name))
+            for d in train_dirs:
+                path = os.path.join(self.train_name, d)
+                files = os.listdir(get_bin_path(path))
+                self.train_files += [os.path.join(d, f) for f in files]
+                answers += [index for i in range(len(files))]
+                index += 1
 
-        # Reduce amount of validation data, if necessary
-        if val_size and val_size < self.val_set_size:
-            ind = np.random.permutation(self.val_set_size)[:val_size]
-            self.val_files = self.val_files[ind]
-            val_answers = val_answers[ind]
-            self.val_set_size = val_size
+            self._train_in = Buffer(self)
+            self._train_out = theano.shared(np.asarray(answers), borrow=True)
+            self.train_data_available = True
+            self.train_set_size = len(answers)
 
-        self._val_in = Buffer(self)
-        self._val_out = theano.shared(val_answers, borrow=True)
-        self.val_data_available = True
+        if val_data:
+            files = os.listdir(get_bin_path(self.val_name))
+            answers = OrderedDict()
+            with open(get_data_path(self.val_name + '.txt'), 'rb') as f:
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    filename, answer = line.rsplit(' ', 1)
+                    answers[filename] = int(answer)
+            self.val_files = np.asarray(answers.keys())
+            val_answers = np.asarray(answers.values())
+            self.val_set_size = len(self.val_files)
+
+            # Reduce amount of validation data, if necessary
+            if val_size and val_size < self.val_set_size:
+                ind = np.random.permutation(self.val_set_size)[:val_size]
+                self.val_files = self.val_files[ind]
+                val_answers = val_answers[ind]
+                self.val_set_size = val_size
+
+            self._val_in = Buffer(self)
+            self._val_out = theano.shared(val_answers, borrow=True)
+            self.val_data_available = True
 
         self.batch_size = 1
 
@@ -71,25 +87,26 @@ class ImageNetDataLoader(DataLoader):
         img = img.reshape((1, 3, 227, 227))
         return np.asarray(img, dtype=float)
 
-    def load_val_data(self, batch_index):
-        if self._val_in.contains(batch_index):
-            return
-        if self.verbosity > 0:
-            print 'Load data'
-
-        files = self._get_subset(self.val_files, batch_index,
-                                 self.buffer_size)
+    def _load_imgs(self, dir_name, files):
         imgs = []
         for filename in files:
-            img = self._get_img(self.val_dir_name + filename)
+            img = self._get_img(os.path.join(dir_name, filename))
             r, g, b = np.split(img, 3, axis=1)
             r -= self.mean_rgb[0]
             g -= self.mean_rgb[1]
             b -= self.mean_rgb[2]
             img = np.concatenate([b, g, r], axis=1)
-            img = img[:, :, ::-1, :]
+            img = img[:, :, :, :]
             imgs += [img]
+        return imgs
 
+    def load_val_data(self, batch_index):
+        if self._val_in.contains(batch_index):
+            return
+
+        files = self._get_subset(self.val_files, batch_index,
+                                 self.buffer_size)
+        imgs = self._load_imgs(self.val_name, files)
         self._val_in.set(imgs, batch_index, self.buffer_size)
 
     def val_input(self, batch_index):
@@ -97,3 +114,18 @@ class ImageNetDataLoader(DataLoader):
 
     def val_output(self, batch_index):
         return self._get_subset(self._val_out, batch_index)
+
+    def load_train_data(self, batch_index):
+        if self._train_in.contains(batch_index):
+            return
+
+        files = self._get_subset(self.train_files, batch_index,
+                                 self.buffer_size)
+        imgs = self._load_imgs(self.train_name, files)
+        self._train_in.set(imgs, batch_index, self.buffer_size)
+
+    def train_input(self, batch_index):
+        return self._get_subset(self._train_in, batch_index)
+
+    def train_output(self, batch_index):
+        return self._get_subset(self._train_out, batch_index)

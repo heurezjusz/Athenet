@@ -207,8 +207,8 @@ class Network(object):
         """
         if not self.data_loader:
             raise Exception('data loader is not set')
-        if not self.data_loader.test_data_available:
-            raise Exception('test data are not available')
+        if not self.data_loader.train_data_available:
+            raise Exception('train data are not available')
 
         self.batch_size = batch_size
 
@@ -243,6 +243,7 @@ class Network(object):
             epoch += 1
             print 'Epoch {}'.format(epoch)
             for batch_index in xrange(self.data_loader.n_train_batches):
+                self.data_loader.load_train_data(batch_index)
                 train_model(batch_index)
                 if self.data_loader.val_data_available:
                     iteration += 1
@@ -259,11 +260,7 @@ class Network(object):
                     done_looping = True
                     break
         end_time = timeit.default_timer()
-
         print 'Training time: {:.1f}s'.format(end_time - start_time)
-        if self.data_loader.test_data_available:
-            print 'Accuracy on test data: {:.2f}%'.format(
-                100*self.test_accuracy())
 
     def _update(self):
         self._val_data_accuracy = None

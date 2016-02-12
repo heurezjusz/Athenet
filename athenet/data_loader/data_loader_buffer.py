@@ -41,7 +41,8 @@ class Buffer(object):
         Parent must be set before using this method, as minibatch size is
         needed to determine shift that has to be uses in data array.
 
-        :key: Symbolic index or slice representing indices of minibatches to return.
+        :key: Symbolic index or slice representing indices of minibatches to
+              return.
         :return: Minibatches data.
         """
         shift = self.offset * self.parent.batch_size
