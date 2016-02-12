@@ -33,7 +33,7 @@ class ImageNetDataLoader(DataLoader):
         self._val_low = None
         self._val_high = None
         self.buffer_size = buffer_size
-        self._val_buffer = Buffer()
+        self._val_in = Buffer(self)
 
         base_name = self.name_prefix + str(year)
         train_name = base_name + self.train_suffix
@@ -73,7 +73,7 @@ class ImageNetDataLoader(DataLoader):
         return np.asarray(img, dtype=float)
 
     def load_val_data(self, batch_index):
-        if self._val_buffer.contains(batch_index):
+        if self._val_in.contains(batch_index):
             return
         if self.verbosity > 0:
             print 'Load data'
@@ -91,10 +91,10 @@ class ImageNetDataLoader(DataLoader):
             img = img[:, :, ::-1, :]
             imgs += [img]
 
-        self._val_buffer.set(imgs, batch_index, self.buffer_size)
+        self._val_in.set(imgs, batch_index, self.buffer_size)
 
     def val_input(self, batch_index):
-        return self._get_subset(self._val_buffer, batch_index - self._val_buffer.offset)
+        return self._get_subset(self._val_in, batch_index)
 
     def val_output(self, batch_index):
         return self._get_subset(self.val_out, batch_index)
