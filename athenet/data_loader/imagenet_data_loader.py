@@ -26,6 +26,8 @@ class ImageNetDataLoader(DataLoader):
 
         :year: Specifies which year's data should be loaded.
         :buffer_size: Number of batches to be stored in memory.
+        :train_data: Specifies whether to load training data.
+        :val_data: Specifies whether to load validation data.
         :val_size: Maximal size of validation data. If None, then all
                    validation data will be used. Otherwise, val_size images
                    will be chosen randomly from the whole set.
