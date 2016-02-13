@@ -39,7 +39,7 @@ class Buffer(object):
         can be used as if it contained all of the minibatches data.
 
         Parent must be set before using this method, as minibatch size is
-        needed to determine shift that has to be uses in data array.
+        needed to determine shift that has to be used in data array.
 
         :key: Symbolic index or slice representing indices of minibatches to
               return.
