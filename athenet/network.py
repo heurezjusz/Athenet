@@ -8,6 +8,7 @@ import theano.tensor as T
 
 from athenet.layers import WeightedLayer, ConvolutionalLayer
 from athenet.data_loader import DataType
+from athenet.utils import overwrite
 
 
 class Network(object):
@@ -119,7 +120,7 @@ class Network(object):
         expanded = self._correct_answers.dimshuffle(0, 'x')
         expanded = expanded.repeat(max_top_range, axis=1)
         eq = T.eq(expanded, self.answers[:, :max_top_range])
-        get_accuracies = theano.function(
+        get_accuracy = theano.function(
             inputs=[self._batch_index],
             outputs=[T.any(eq[:, :top], axis=1).mean() for top in top_range],
             givens={
@@ -129,17 +130,27 @@ class Network(object):
                     self.data_loader.output(self._batch_index, data_type)
             }
         )
-        
-        accuracies = []
-        for batch_index in xrange(self.data_loader.n_batches(data_type)):
-            self.data_loader.load_data(batch_index, data_type)
-            accuracies += [get_accuracies(batch_index)]
-        accuracies = np.asarray(accuracies)
-        accuracies = accuracies.mean(axis=0).transpose()
 
+        n_batches = self.data_loader.n_batches(data_type)
+        accuracy = np.zeros(shape=(n_batches, len(top_range)))
+        interval = n_batches/10
+        if interval == 0:
+            interval = 1
+        for batch_index in xrange(n_batches):
+            self.data_loader.load_data(batch_index, data_type)
+            accuracy[batch_index, :] = np.asarray(get_accuracy(batch_index))
+            if self.verbosity >= 2 or (self.verbosity >= 1 and batch_index % interval == 0):
+                partial_accuracy = accuracy[:batch_index+1, :].mean(axis=0)
+                text = ''
+                for a in partial_accuracy:
+                    text += ' {:.2f}%'.format(100*a)
+                overwrite('{}/{} minibatches accuracy:{}'.format(batch_index+1, n_batches, text))
+        overwrite()
+
+        accuracy = accuracy.mean(axis=0).tolist()
         if not return_list:
-            return accuracies[0]
-        return accuracies
+            return accuracy[0]
+        return accuracy
 
     def get_params(self):
         """Return list of network's weights and biases.
@@ -190,7 +201,8 @@ class Network(object):
         if not self.data_loader.train_data_available:
             raise Exception('train data are not available')
 
-        self.batch_size = batch_size
+        if batch_size is not None:
+            self.batch_size = batch_size
 
         # set cost function for the last layer
         self.layers[-1].set_cost(self._correct_answers)

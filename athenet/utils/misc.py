@@ -106,7 +106,7 @@ def zero_fraction(network):
 len_prev = 0
 
 
-def overwrite(text, length=None):
+def overwrite(text='', length=None):
     """Write text in a current line, overwriting previously written text.
 
     Previously written text also needs to be written using this function for
@@ -119,6 +119,6 @@ def overwrite(text, length=None):
     global len_prev
     if length is None:
         length = len_prev
-    print '\r', ' '*length,
-    print '\r', text,
+    print '\r' + ' '*length,
+    print '\r' + text,
     len_prev = len(text)
