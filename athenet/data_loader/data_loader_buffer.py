@@ -17,7 +17,7 @@ class Buffer(object):
         """
         self.begin = -1
         self.end = 0
-        self.offset = theano.shared(0)
+        self._offset = theano.shared(0)
         self.parent = data_loader
 
         # Create a 4-dimensinal tensor shared variable for data. Exact size of
@@ -45,7 +45,7 @@ class Buffer(object):
               return.
         :return: Minibatches data.
         """
-        shift = self.offset * self.parent.batch_size
+        shift = self._offset * self.parent.batch_size
         if isinstance(key, slice):
             start, stop, step = key.start, key.stop, key.step
             return self._data[start-shift:stop-shift:step]
@@ -60,9 +60,9 @@ class Buffer(object):
                       data.
         :n_of_batches: Number of minibatches that are contained in given data.
         """
-        if batch_index:
+        if batch_index is not None:
             self.begin = batch_index
-            self.offset.set_value(batch_index)
+            self._offset.set_value(batch_index)
             if n_of_batches:
                 self.end = batch_index + n_of_batches
         self._data.set_value(
