@@ -7,6 +7,7 @@ import theano
 import theano.tensor as T
 
 from athenet.layers import WeightedLayer, ConvolutionalLayer
+from athenet.data_loader import DataType
 
 
 class Network(object):
@@ -23,24 +24,18 @@ class Network(object):
 
         layers: List of network's layers.
         """
-        self._data_accuracy = None
-        self._test_data_accuracy = None
-        self._val_data_accuracy = None
         self._batch_size = None
         self._data_loader = None
-
         self.params = None
         self.output = None
-        self.answer = None
+        self.answers = None
         self.train_output = None
         self.get_output = None
 
         self._batch_index = T.lscalar()
-        self._top_range = T.iscalar()
-
+        self._input = T.tensor4()
+        self._correct_answers = T.ivector()
         self.layers = layers
-        self.input = T.tensor4()
-        self.correct_answer = T.ivector()
 
         self.weighted_layers = [layer for layer in self.layers
                                 if isinstance(layer, WeightedLayer)]
@@ -59,7 +54,6 @@ class Network(object):
         self._data_loader = value
         if value:
             self.data_loader.batch_size = self.batch_size
-        self._update()
 
     @property
     def batch_size(self):
@@ -70,14 +64,13 @@ class Network(object):
     def batch_size(self, value):
         if self._batch_size == value:
             return
-
         self._batch_size = value
         if self.data_loader:
             self.data_loader.batch_size = value
 
         for layer in self.convolutional_layers:
             layer.batch_size = self.batch_size
-        self.layers[0].input = self.input
+        self.layers[0].input = self._input
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
 
@@ -87,51 +80,11 @@ class Network(object):
 
         self.output = self.layers[-1].output
         self.train_output = self.layers[-1].train_output
-        self.answer = T.argsort(-self.output, axis=1)
-
-        expanded = self.correct_answer.dimshuffle(0, 'x')
-        expanded = expanded.repeat(self._top_range, axis=1)
-        eq = T.eq(expanded, self.answer[:, :self._top_range])
-        self._data_accuracy = T.any(eq, axis=1).mean()
-
+        self.answers = T.argsort(-self.output, axis=1)
         self.get_output = theano.function(
-            inputs=[self.input],
-            outputs=[self.output.flatten(1), self.answer.flatten(1)]
+            inputs=[self._input],
+            outputs=[self.output.flatten(1), self.answers.flatten(1)]
         )
-
-        self._update()
-
-    def _val_batch_accuracy(self, batch_index, top_range):
-        self.data_loader.load_val_data(batch_index)
-        return self._val_data_accuracy(batch_index, top_range)
-
-    def _test_batch_accuracy(self, batch_index, top_range):
-        self.data_loader.load_test_data(batch_index)
-        return self._test_data_accuracy(batch_index, top_range)
-
-    def _get_accuracy(self, top_range, accuracy_fun, n_batches):
-        return_list = isinstance(top_range, list)
-        if not return_list:
-            top_range = [top_range]
-
-        interval = n_batches / 10
-        if interval == 0:
-            interval = 1
-        accuracies = []
-        for top in top_range:
-            batch_accuracies = []
-            for batch_index in xrange(n_batches):
-                accuracy = accuracy_fun(batch_index, top)
-                batch_accuracies += [accuracy]
-                if self.verbosity >= 2 or \
-                        (self.verbosity >= 1 and batch_index % interval == 0):
-                    print 'Minibatch {} top-{} accuracy: {:.1f}%'.format(
-                        batch_index, top, 100*accuracy)
-            accuracies += [np.mean(batch_accuracies)]
-
-        if not return_list:
-            return accuracies[0]
-        return accuracies
 
     def test_accuracy(self, top_range=1):
         """Return network's accuracy on the test data.
@@ -143,9 +96,7 @@ class Network(object):
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
-        return self._get_accuracy(top_range,
-                                  self._test_batch_accuracy,
-                                  self.data_loader.n_test_batches)
+        return self._get_accuracy(top_range, DataType.test_data)
 
     def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
@@ -157,9 +108,38 @@ class Network(object):
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
-        return self._get_accuracy(top_range,
-                                  self._val_batch_accuracy,
-                                  self.data_loader.n_val_batches)
+        return self._get_accuracy(top_range, DataType.validation_data)
+
+    def _get_accuracy(self, top_range, data_type):
+        return_list = isinstance(top_range, list)
+        if not return_list:
+            top_range = [top_range]
+        max_top_range = max(top_range)
+
+        expanded = self._correct_answers.dimshuffle(0, 'x')
+        expanded = expanded.repeat(max_top_range, axis=1)
+        eq = T.eq(expanded, self.answers[:, :max_top_range])
+        get_accuracies = theano.function(
+            inputs=[self._batch_index],
+            outputs=[T.any(eq[:, :top], axis=1).mean() for top in top_range],
+            givens={
+                self._input:
+                    self.data_loader.input(self._batch_index, data_type),
+                self._correct_answers:
+                    self.data_loader.output(self._batch_index, data_type)
+            }
+        )
+        
+        accuracies = []
+        for batch_index in xrange(self.data_loader.n_batches(data_type)):
+            self.data_loader.load_data(batch_index, data_type)
+            accuracies += [get_accuracies(batch_index)]
+        accuracies = np.asarray(accuracies)
+        accuracies = accuracies.mean(axis=0).transpose()
+
+        if not return_list:
+            return accuracies[0]
+        return accuracies
 
     def get_params(self):
         """Return list of network's weights and biases.
@@ -213,7 +193,7 @@ class Network(object):
         self.batch_size = batch_size
 
         # set cost function for the last layer
-        self.layers[-1].set_cost(self.correct_answer)
+        self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
 
         grad = T.grad(cost, self.params)
@@ -225,8 +205,8 @@ class Network(object):
             outputs=cost,
             updates=updates,
             givens={
-                self.input: self.data_loader.train_input(self._batch_index),
-                self.correct_answer:
+                self._input: self.data_loader.train_input(self._batch_index),
+                self._correct_answers:
                     self.data_loader.train_output(self._batch_index)
             }
         )
@@ -261,33 +241,3 @@ class Network(object):
                     break
         end_time = timeit.default_timer()
         print 'Training time: {:.1f}s'.format(end_time - start_time)
-
-    def _update(self):
-        self._val_data_accuracy = None
-        self._test_data_accuracy = None
-        if not self.data_loader:
-            return
-
-        if self.data_loader.val_data_available:
-            self._val_data_accuracy = theano.function(
-                inputs=[self._batch_index, self._top_range],
-                outputs=self._data_accuracy,
-                givens={
-                    self.input:
-                        self.data_loader.val_input(self._batch_index),
-                    self.correct_answer:
-                        self.data_loader.val_output(self._batch_index)
-                }
-            )
-
-        if self.data_loader.test_data_available:
-            self._test_data_accuracy = theano.function(
-                inputs=[self._batch_index, self._top_range],
-                outputs=self._data_accuracy,
-                givens={
-                    self.input:
-                        self.data_loader.test_input(self._batch_index),
-                    self.correct_answer:
-                        self.data_loader.test_output(self._batch_index)
-                }
-            )
