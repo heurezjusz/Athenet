@@ -101,3 +101,24 @@ def zero_fraction(network):
         n_non_zero += numpy.count_nonzero(param)
     n_zero = n_fields - n_non_zero
     return (1.0 * n_zero) / (1.0 * n_fields)
+
+
+len_prev = 0
+
+
+def overwrite(text, length=None):
+    """Write text in a current line, overwriting previously written text.
+
+    Previously written text also needs to be written using this function for
+    it to work properly. Otherwise optional argument length can be given to
+    specify length of a previous text.
+
+    :text: Text to be written.
+    :length: Length of a previous text.
+    """
+    global len_prev
+    if length is None:
+        length = len_prev
+    print '\r', ' '*length,
+    print '\r', text,
+    len_prev = len(text)
