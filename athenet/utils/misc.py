@@ -7,6 +7,8 @@ import gzip
 import urllib
 import numpy
 
+import theano
+
 from athenet.utils import BIN_DIR, DATA_DIR
 
 
