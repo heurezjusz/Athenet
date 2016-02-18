@@ -122,3 +122,14 @@ def overwrite(text='', length=None):
     print '\r' + ' '*length,
     print '\r' + text,
     len_prev = len(text)
+
+
+def cudnn_available():
+    """Check if cuDNN is available.
+
+    :return: True, if cuDNN is available, False otherwise.
+    """
+    try:
+        return theano.sandbox.cuda.dnn_available()
+    except:
+        return False

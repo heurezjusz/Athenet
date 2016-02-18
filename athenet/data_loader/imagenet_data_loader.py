@@ -87,7 +87,7 @@ class ImageNetDataLoader(DataLoader):
         img = misc.imread(get_bin_path(filename))
         img = np.rollaxis(img, 2)
         img = img.reshape((1, 3, 227, 227))
-        return np.asarray(img, dtype=float)
+        return np.asarray(img, dtype=theano.config.floatX)
 
     def _load_imgs(self, dir_name, files):
         imgs = []
