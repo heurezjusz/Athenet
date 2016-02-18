@@ -22,9 +22,9 @@ class ConvolutionalLayer(WeightedLayer):
         :stride: Pair representing interval at which to apply the filters.
         :padding: Pair representing number of zero-valued pixels to add on
                   each side of the input.
-        :n_groups: Number of groups which input and output channels will be
-                   split into. Two channels are connected only if they belong
-                   to the same group.
+        :n_groups: Number of groups input and output channels will be split
+                   into. Two channels are connected only if they belong to the
+                   same group.
         :batch_size: Minibatch size.
         """
         super(ConvolutionalLayer, self).__init__()

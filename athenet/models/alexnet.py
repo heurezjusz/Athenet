@@ -10,6 +10,11 @@ ALEXNET_FILENAME = 'alexnet_weights.pkl.gz'
 
 def alexnet(trained=True, weights_filename=ALEXNET_FILENAME,
             weights_url=None):
+    if trained:
+        weights = load_data(get_bin_path(weights_filename), weights_url)
+        if weights is None:
+            raise Exception("cannot load AlexNet weights")
+
     # Normalization parameters
     local_range = 5
     alpha = 0.0001
@@ -60,9 +65,5 @@ def alexnet(trained=True, weights_filename=ALEXNET_FILENAME,
         Softmax()
     ])
     if trained:
-        weights = load_data(get_bin_path(weights_filename), weights_url)
-        if weights:
-            alexnet.set_params(weights)
-        else:
-            raise Exception("cannot load AlexNet weights")
+        alexnet.set_params(weights)
     return alexnet

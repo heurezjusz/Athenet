@@ -27,7 +27,7 @@ class Network(object):
         """
         self._batch_size = None
         self._data_loader = None
-        self.params = None
+        self._params = None
         self.output = None
         self.answers = None
         self.train_output = None
@@ -75,9 +75,9 @@ class Network(object):
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
 
-        self.params = []
+        self._params = []
         for layer in self.weighted_layers:
-            self.params += layer.params
+            self._params += layer.params
 
         self.output = self.layers[-1].output
         self.train_output = self.layers[-1].train_output
@@ -199,7 +199,7 @@ class Network(object):
         if not self.data_loader:
             raise Exception('data loader is not set')
         if not self.data_loader.train_data_available:
-            raise Exception('train data are not available')
+            raise Exception('train data is not available')
 
         if batch_size is not None:
             self.batch_size = batch_size
@@ -208,16 +208,16 @@ class Network(object):
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
 
-        grad = T.grad(cost, self.params)
+        grad = T.grad(cost, self._params)
         updates = [(param, param - learning_rate*derivative)
-                   for param, derivative in zip(self.params, grad)]
-
+                   for param, derivative in zip(self._params, grad)]
         train_model = theano.function(
             inputs=[self._batch_index],
             outputs=cost,
             updates=updates,
             givens={
-                self._input: self.data_loader.train_input(self._batch_index),
+                self._input:
+                    self.data_loader.train_input(self._batch_index),
                 self._correct_answers:
                     self.data_loader.train_output(self._batch_index)
             }
