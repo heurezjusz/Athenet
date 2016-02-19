@@ -13,13 +13,6 @@ from athenet.utils import overwrite
 
 class Network(object):
     """Neural network."""
-
-    verbosity = 0
-
-    # Early stopping parameters
-    initial_patience = 10000
-    patience_increase = 2
-
     def __init__(self, layers):
         """Create neural network.
 
@@ -27,12 +20,10 @@ class Network(object):
         """
         self._batch_size = None
         self._data_loader = None
-        self._params = None
-        self.output = None
         self.answers = None
-        self.train_output = None
         self.get_output = None
 
+        self.verbosity = 1
         self._batch_index = T.lscalar()
         self._input = T.tensor4()
         self._correct_answers = T.ivector()
@@ -75,16 +66,11 @@ class Network(object):
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
 
-        self._params = []
-        for layer in self.weighted_layers:
-            self._params += layer.params
-
-        self.output = self.layers[-1].output
-        self.train_output = self.layers[-1].train_output
-        self.answers = T.argsort(-self.output, axis=1)
+        output = self.layers[-1].output
+        self.answers = T.argsort(-output, axis=1)
         self.get_output = theano.function(
             inputs=[self._input],
-            outputs=[self.output.flatten(1), self.answers.flatten(1)]
+            outputs=[output.flatten(1), self.answers.flatten(1)]
         )
 
     def test_accuracy(self, top_range=1):
@@ -139,7 +125,7 @@ class Network(object):
         for batch_index in xrange(n_batches):
             self.data_loader.load_data(batch_index, data_type)
             accuracy[batch_index, :] = np.asarray(get_accuracy(batch_index))
-            if self.verbosity >= 2 or (self.verbosity >= 1 and batch_index % interval == 0):
+            if self.verbosity >= 3 or (self.verbosity >= 2 and batch_index % interval == 0):
                 partial_accuracy = accuracy[:batch_index+1, :].mean(axis=0)
                 text = ''
                 for a in partial_accuracy:
@@ -188,13 +174,14 @@ class Network(object):
         net_input = np.resize(net_input, (1, n_channels, height, width))
         return self.get_output(net_input)
 
-    def train(self, learning_rate=0.1, n_epochs=100, batch_size=None):
+    def train(self, batch_size=None, n_epochs=100, learning_rate=0.1, momentum=0.):
         """Train and test the network.
-
-        :learning_rate: Learning rate.
-        :n_epochs: Number of epochs.
+ 
         :batch_size: Size of minibatch to be set. If None then batch size that
                      is currenty set will be used.
+        :n_epochs: Number of epochs.
+        :learning_rate: Learning rate.
+        :momentum: Momentum coefficient.   
         """
         if not self.data_loader:
             raise Exception('data loader is not set')
@@ -207,10 +194,27 @@ class Network(object):
         # set cost function for the last layer
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
+        params = []
+        for layer in self.weighted_layers:
+            params += layer.params
+        grad = T.grad(cost, params)
 
-        grad = T.grad(cost, self._params)
-        updates = [(param, param - learning_rate*derivative)
-                   for param, derivative in zip(self._params, grad)]
+        if momentum:
+            for layer in self.weighted_layers:
+                layer.alloc_velocity()
+            velocities = []
+            for layer in self.weighted_layers:
+                velocities += layer.params_velocity
+
+            velocity_updates = [(v, momentum*v - learning_rate*derivative)
+                                for v, derivative in zip(velocities, grad)]
+            param_updates = [(param, param + v)
+                             for param, v in zip(params, velocities)]
+            updates = velocity_updates + param_updates
+        else:
+            updates = [(param, param - learning_rate*derivative)
+                       for param, derivative in zip(params, grad)]
+
         train_model = theano.function(
             inputs=[self._batch_index],
             outputs=cost,
@@ -220,20 +224,21 @@ class Network(object):
                     self.data_loader.train_input(self._batch_index),
                 self._correct_answers:
                     self.data_loader.train_output(self._batch_index)
-            }
+            },
         )
 
-        patience = self.initial_patience
-        val_interval = min(self.data_loader.n_train_batches, patience/2)
-        best_val_accuracy = 0.0
-        epoch = 0
+        val_interval = 2*self.data_loader.n_train_batches
         iteration = 0
-        done_looping = False
-
+        if self.verbosity >= 1:
+            print 'Training with batch size = {}, learning rate = {}, '\
+                  'momentum = {}'.format(self.batch_size, learning_rate,
+                                         momentum)
+            print '{} epochs, {} minibatches per epoch'\
+                  .format(n_epochs, self.data_loader.n_train_batches)
         start_time = timeit.default_timer()
-        while epoch < n_epochs and not done_looping:
-            epoch += 1
+        for epoch in xrange(1, n_epochs+1):
             print 'Epoch {}'.format(epoch)
+            epoch_start_time = timeit.default_timer()
             for batch_index in xrange(self.data_loader.n_train_batches):
                 self.data_loader.load_train_data(batch_index)
                 train_model(batch_index)
@@ -243,13 +248,13 @@ class Network(object):
                         accuracy = self.val_accuracy()
                         print '\tAccuracy on validation data: {:.2f}%'.format(
                             100*accuracy)
-                        if accuracy > best_val_accuracy:
-                            patience = max(patience,
-                                           iteration*self.patience_increase)
-                            best_val_accuracy = accuracy
-
-                if patience <= iteration:
-                    done_looping = True
-                    break
+            epoch_end_time = timeit.default_timer()
+            print '\tTime: {:.1f}s'.format(epoch_end_time - epoch_start_time)
+            if epoch % 2 == 0:
+                learning_rate *= 0.1
         end_time = timeit.default_timer()
         print 'Training time: {:.1f}s'.format(end_time - start_time)
+
+        if momentum:
+            for layer in self.weighted_layers:
+                layer.free_velocity()
