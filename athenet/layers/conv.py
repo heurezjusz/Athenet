@@ -62,10 +62,8 @@ class ConvolutionalLayer(WeightedLayer):
         )
         self.W_shared = theano.shared(W_value, borrow=True)
 
-        b_values = np.zeros((n_filters,), dtype=theano.config.floatX)
-        self.b_shared = theano.shared(b_values, borrow=True)
-
-        self.params = [self.W_shared, self.b_shared]
+        b_value = np.zeros((n_filters,), dtype=theano.config.floatX)
+        self.b_shared = theano.shared(b_value, borrow=True)
 
     @property
     def input_shape(self):

@@ -95,10 +95,8 @@ class WeightedLayer(Layer):
         super(WeightedLayer, self).__init__()
         self.W_shared = None
         self.b_shared = None
-        self.params = None
         self.W_velocity = None
         self.b_velocity = None
-        self.params_velocity = None
 
     @property
     def W(self):
@@ -119,23 +117,15 @@ class WeightedLayer(Layer):
         self.b_shared.set_value(value)
 
     def alloc_velocity(self):
-        """Create velocity tensors.
-
-        Create velocity tensors for weights and biases, as well as
-        params_velocity list.
-        """
-        #self.W_velocity = T.zeros_like(self.W_shared)
-        #self.b_velocity = T.zeros_like(self.b_shared)
+        """Create velocity tensors for weights and biases."""
         self.W_velocity = theano.shared(
             np.zeros_like(self.W, dtype=theano.config.floatX),
             borrow=True)
         self.b_velocity = theano.shared(
             np.zeros_like(self.b, dtype=theano.config.floatX),
             borrow=True)
-        self.params_velocity = [self.W_velocity, self.b_velocity]
 
     def free_velocity(self):
         """Remove velocity tensors."""
         self.W_velocity = None
         self.b_velocity = None
-        self.params_velocity = None

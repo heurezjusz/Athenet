@@ -125,12 +125,14 @@ class Network(object):
         for batch_index in xrange(n_batches):
             self.data_loader.load_data(batch_index, data_type)
             accuracy[batch_index, :] = np.asarray(get_accuracy(batch_index))
-            if self.verbosity >= 3 or (self.verbosity >= 2 and batch_index % interval == 0):
+            if self.verbosity >= 3 or \
+                    (self.verbosity >= 2 and batch_index % interval == 0):
                 partial_accuracy = accuracy[:batch_index+1, :].mean(axis=0)
                 text = ''
                 for a in partial_accuracy:
                     text += ' {:.2f}%'.format(100*a)
-                overwrite('{}/{} minibatches accuracy:{}'.format(batch_index+1, n_batches, text))
+                overwrite('{}/{} minibatches accuracy:{}'
+                          .format(batch_index+1, n_batches, text))
         overwrite()
 
         accuracy = accuracy.mean(axis=0).tolist()
@@ -174,19 +176,21 @@ class Network(object):
         net_input = np.resize(net_input, (1, n_channels, height, width))
         return self.get_output(net_input)
 
-    def train(self, batch_size=None, n_epochs=100, learning_rate=0.1, momentum=0.):
-        """Train and test the network.
- 
-        :batch_size: Size of minibatch to be set. If None then batch size that
-                     is currenty set will be used.
+    def train(self, n_epochs, learning_rate, momentum=0., weight_decay=0.,
+              batch_size=None):
+        """Train the network.
+
         :n_epochs: Number of epochs.
         :learning_rate: Learning rate.
-        :momentum: Momentum coefficient.   
+        :momentum: Momentum coefficient.
+        :weight_decay: Weight decay coefficient for L2 regularization.
+        :batch_size: Size of minibatch to be set. If None then batch size that
+                     is currenty set will be used.
         """
         if not self.data_loader:
             raise Exception('data loader is not set')
         if not self.data_loader.train_data_available:
-            raise Exception('train data is not available')
+            raise Exception('training data not available')
 
         if batch_size is not None:
             self.batch_size = batch_size
@@ -194,26 +198,38 @@ class Network(object):
         # set cost function for the last layer
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
-        params = []
-        for layer in self.weighted_layers:
-            params += layer.params
-        grad = T.grad(cost, params)
+
+        weights = [layer.W_shared for layer in self.weighted_layers]
+        biases = [layer.b_shared for layer in self.weighted_layers]
+        weights_grad = T.grad(cost, weights)
+        biases_grad = T.grad(cost, biases)
 
         if momentum:
             for layer in self.weighted_layers:
                 layer.alloc_velocity()
-            velocities = []
-            for layer in self.weighted_layers:
-                velocities += layer.params_velocity
+            weights_vel = [layer.W_velocity for layer in self.weighted_layers]
+            biases_vel = [layer.b_velocity for layer in self.weighted_layers]
 
-            velocity_updates = [(v, momentum*v - learning_rate*derivative)
-                                for v, derivative in zip(velocities, grad)]
-            param_updates = [(param, param + v)
-                             for param, v in zip(params, velocities)]
-            updates = velocity_updates + param_updates
+            weights_vel_updates = [
+                (v, momentum*v - weight_decay*learning_rate*w -
+                    learning_rate*der)
+                for w, v, der in zip(weights, weights_vel, weights_grad)]
+            biases_vel_updates = [(v, momentum*v - learning_rate*der)
+                                  for v, der in zip(biases_vel, biases_grad)]
+
+            weights_updates = [(w, w + v)
+                               for w, v in zip(weights, weights_vel)]
+            biases_updates = [(b, b + v)
+                              for b, v in zip(biases, biases_vel)]
+            updates = weights_vel_updates + weights_updates + \
+                biases_vel_updates + biases_updates
         else:
-            updates = [(param, param - learning_rate*derivative)
-                       for param, derivative in zip(params, grad)]
+            weights_updates = [
+                (w, (1. - weight_decay*learning_rate)*w - learning_rate*der)
+                for w, der in zip(weights, weights_grad)]
+            biases_updates = [(b, b - learning_rate*der)
+                              for b, der in zip(biases, biases_grad)]
+            updates = weights_updates + biases_updates
 
         train_model = theano.function(
             inputs=[self._batch_index],
@@ -227,14 +243,16 @@ class Network(object):
             },
         )
 
-        val_interval = 2*self.data_loader.n_train_batches
+        val_interval = self.data_loader.n_train_batches
         iteration = 0
         if self.verbosity >= 1:
-            print 'Training with batch size = {}, learning rate = {}, '\
-                  'momentum = {}'.format(self.batch_size, learning_rate,
-                                         momentum)
-            print '{} epochs, {} minibatches per epoch'\
-                  .format(n_epochs, self.data_loader.n_train_batches)
+            print 'Training for {} epochs with\n'\
+                  'learning rate = {}, momentum = {}, weight decay = {}, '\
+                  'minibatch size = {}'\
+                  .format(n_epochs, learning_rate, momentum, weight_decay,
+                          self.batch_size)
+            print '{} minibatches per epoch'\
+                  .format(self.data_loader.n_train_batches)
         start_time = timeit.default_timer()
         for epoch in xrange(1, n_epochs+1):
             print 'Epoch {}'.format(epoch)
