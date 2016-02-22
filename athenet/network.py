@@ -8,7 +8,7 @@ import theano.tensor as T
 
 from athenet.layers import WeightedLayer, ConvolutionalLayer
 from athenet.data_loader import DataType
-from athenet.utils import overwrite
+from athenet.utils import overwrite, save_data_to_pickle
 
 
 class Network(object):
@@ -23,6 +23,8 @@ class Network(object):
         self.answers = None
         self.get_output = None
 
+        self.snapshot_name = 'network'
+        self.snapshot_interval = 1000
         self.verbosity = 1
         self._batch_index = T.lscalar()
         self._input = T.tensor4()
@@ -65,6 +67,7 @@ class Network(object):
         self.layers[0].input = self._input
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
+        self.layers[-1].set_cost(self._correct_answers)
 
         output = self.layers[-1].output
         self.answers = T.argsort(-output, axis=1)
@@ -159,6 +162,13 @@ class Network(object):
             layer.W = p[0]
             layer.b = p[1]
 
+    def save_to_file(self, filename):
+        """Save network's weights to file.
+
+        :filename:Name of the file.
+        """
+        save_data_to_pickle(self.get_params(), filename)
+
     def evaluate(self, net_input):
         """Return network output for a given input.
 
@@ -187,18 +197,14 @@ class Network(object):
         :batch_size: Size of minibatch to be set. If None then batch size that
                      is currenty set will be used.
         """
-        if not self.data_loader:
+        if self.data_loader is None:
             raise Exception('data loader is not set')
         if not self.data_loader.train_data_available:
             raise Exception('training data not available')
-
         if batch_size is not None:
             self.batch_size = batch_size
 
-        # set cost function for the last layer
-        self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
-
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
         weights_grad = T.grad(cost, weights)
@@ -254,6 +260,7 @@ class Network(object):
             print '{} minibatches per epoch'\
                   .format(self.data_loader.n_train_batches)
             start_time = timeit.default_timer()
+
         for epoch in xrange(1, n_epochs+1):
             if self.verbosity >= 1:
                 print 'Epoch {}'.format(epoch)
@@ -261,8 +268,12 @@ class Network(object):
             for batch_index in xrange(self.data_loader.n_train_batches):
                 self.data_loader.load_train_data(batch_index)
                 train_model(batch_index)
+                iteration += 1
+                if self.snapshot_interval and \
+                        iteration % self.snapshot_interval == 0:
+                    self.save_to_file('{}_iteration_{}.pkl.gz'
+                                      .format(self.snapshot_name, iteration))
                 if self.data_loader.val_data_available:
-                    iteration += 1
                     if iteration % val_interval == 0:
                         accuracy = self.val_accuracy()
                         if self.verbosity >= 1:
@@ -272,10 +283,10 @@ class Network(object):
                 epoch_end_time = timeit.default_timer()
                 print '\tTime: {:.1f}s'.format(
                     epoch_end_time - epoch_start_time)
+
         if self.verbosity >= 1:
             end_time = timeit.default_timer()
             print 'Training time: {:.1f}s'.format(end_time - start_time)
-
         if momentum:
             for layer in self.weighted_layers:
                 layer.free_velocity()
