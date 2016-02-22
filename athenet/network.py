@@ -114,7 +114,7 @@ class Network(object):
                     self.data_loader.input(self._batch_index, data_type),
                 self._correct_answers:
                     self.data_loader.output(self._batch_index, data_type)
-            }
+            },
         )
 
         n_batches = self.data_loader.n_batches(data_type)
@@ -253,10 +253,11 @@ class Network(object):
                           self.batch_size)
             print '{} minibatches per epoch'\
                   .format(self.data_loader.n_train_batches)
-        start_time = timeit.default_timer()
+            start_time = timeit.default_timer()
         for epoch in xrange(1, n_epochs+1):
-            print 'Epoch {}'.format(epoch)
-            epoch_start_time = timeit.default_timer()
+            if self.verbosity >= 1:
+                print 'Epoch {}'.format(epoch)
+                epoch_start_time = timeit.default_timer()
             for batch_index in xrange(self.data_loader.n_train_batches):
                 self.data_loader.load_train_data(batch_index)
                 train_model(batch_index)
@@ -264,14 +265,16 @@ class Network(object):
                     iteration += 1
                     if iteration % val_interval == 0:
                         accuracy = self.val_accuracy()
-                        print '\tAccuracy on validation data: {:.2f}%'.format(
-                            100*accuracy)
-            epoch_end_time = timeit.default_timer()
-            print '\tTime: {:.1f}s'.format(epoch_end_time - epoch_start_time)
-            if epoch % 2 == 0:
-                learning_rate *= 0.1
-        end_time = timeit.default_timer()
-        print 'Training time: {:.1f}s'.format(end_time - start_time)
+                        if self.verbosity >= 1:
+                            print '\tAccuracy on validation data: {:.2f}%'\
+                                  .format(100*accuracy)
+            if self.verbosity >= 1:
+                epoch_end_time = timeit.default_timer()
+                print '\tTime: {:.1f}s'.format(
+                    epoch_end_time - epoch_start_time)
+        if self.verbosity >= 1:
+            end_time = timeit.default_timer()
+            print 'Training time: {:.1f}s'.format(end_time - start_time)
 
         if momentum:
             for layer in self.weighted_layers:
