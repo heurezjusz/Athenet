@@ -79,7 +79,8 @@ class TestTrainingProcess(TestCase):
                     data_in.append([[[1. * i, 1. * j, 1. * k]]])
                     data_out.append([i ^ j ^ k])
         net.data_loader = DummyDataLoader(data_in, data_out)
-        net.train(n_epochs=500, batch_size=1)
+        net.snapshot_interval = 0  # don't save snapshots
+        net.train(n_epochs=500, learning_rate=0.01, batch_size=1)
 
         net.batch_size = 3
         correct = 0.

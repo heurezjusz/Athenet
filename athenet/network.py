@@ -24,7 +24,7 @@ class Network(object):
         self.get_output = None
 
         self.snapshot_name = 'network'
-        self.snapshot_interval = 1000
+        self.snapshot_interval = 0
         self.verbosity = 1
         self._batch_index = T.lscalar()
         self._input = T.tensor4()
@@ -67,7 +67,6 @@ class Network(object):
         self.layers[0].input = self._input
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
-        self.layers[-1].set_cost(self._correct_answers)
 
         output = self.layers[-1].output
         self.answers = T.argsort(-output, axis=1)
@@ -204,6 +203,7 @@ class Network(object):
         if batch_size is not None:
             self.batch_size = batch_size
 
+        self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
