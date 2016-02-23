@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def set_zeros_on_layer(layer, percentage, order):
     """
     Change weights in layer to zeros
@@ -22,6 +23,7 @@ def set_zeros_on_layer(layer, percentage, order):
     W[order(W) <= percentile] = 0
     layer.W = W
 
+
 def set_zeros_on_network(network, percentage, order):
     """
     Change weights in network to zeros
@@ -40,19 +42,21 @@ def set_zeros_on_network(network, percentage, order):
         return
 
     weights = np.concatenate(
-                [layer.W.flatten() for layer in network.weighted_layers])
+        [layer.W.flatten() for layer in network.weighted_layers])
     percentile = np.percentile([order(a) for a in weights.flat], percentage)
     for layer in network.weighted_layers:
         W = layer.W
         W[order(W) <= percentile] = 0
         layer.W = W
 
+
 def sparsify_smallest_on_network(network, percentage):
     """
     Change smallest weights in network to zeros
 
     This function changes weights in such a way,
-    that for the whole network the set percentage of the smallest of them are zeros,
+    that for the whole network the set percentage
+    of the smallest of them are zeros,
     or, if that is not possible, takes the ceiling of such a number
 
     :param Network network: network for sparsifying
@@ -61,12 +65,14 @@ def sparsify_smallest_on_network(network, percentage):
     """
     set_zeros_on_network(network, percentage, abs)
 
+
 def sparsify_nearest_to_network_mean(network, percentage):
     """
     Change weights close to mean in network to zeros
 
     This function changes weights in such a way,
-    that for the whole network the set percentage of the closest of them to mean are zeros,
+    that for the whole network the set percentage
+    of the closest of them to mean are zeros,
     or, if that is not possible, takes the ceiling of such a number
 
     :param Network network: network for sparsifying
@@ -75,9 +81,10 @@ def sparsify_nearest_to_network_mean(network, percentage):
     """
 
     weights = np.concatenate(
-                [layer.W.flatten() for layer in network.weighted_layers])
+        [layer.W.flatten() for layer in network.weighted_layers])
     mean = np.mean(weights)
     set_zeros_on_network(network, percentage, lambda x: abs(mean - x))
+
 
 def sparsify_smallest_on_layers(network, percentage):
     """
@@ -94,6 +101,7 @@ def sparsify_smallest_on_layers(network, percentage):
     for layer in network.weighted_layers:
         set_zeros_on_layer(layer, percentage, abs)
 
+
 def sparsify_nearest_to_layer_mean(network, percentage):
     """
     Change smallest close to mean in each layers to zeros
@@ -109,4 +117,3 @@ def sparsify_nearest_to_layer_mean(network, percentage):
     for layer in network.weighted_layers:
         mean = np.mean(layer.W.flatten())
         set_zeros_on_layer(layer, percentage, lambda x: abs(mean - x))
-
