@@ -1,1 +1,1 @@
-from athenet.sparsify_smallest import *
+from sparsify_smallest import *

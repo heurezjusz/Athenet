@@ -69,3 +69,6 @@ class SparsifySmallestTest(unittest.TestCase):
             for layer in self.network.weighted_layers:
                 assert_true(self.get_percentage_of_zeros_in_layer(layer)
                             == percentage)
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2, catchbreak=True)

@@ -3,14 +3,14 @@ import numpy as np
 
 def set_zeros_on_layer(layer, percentage, order):
     """
-    Change weights in layer to zeros
+    Change weights in layer to zeros.
 
     This function, for given order of weights,
-    change the set percentage of the smallest to zeros or,
-    if that is not possible, takes the ceiling of such number
+    changes the given percentage of the smallest weights to zeros or,
+    if that is not possible, takes the ceiling of such number.
 
     :param WeightedLayer layer: layer for sparsifying
-    :param percentage: percentage of weights to be changes to zeros
+    :param percentage: percentage of weights to be changed to zeros
     :param order: order of weights
     :type percentage: int, float
     """
@@ -26,14 +26,14 @@ def set_zeros_on_layer(layer, percentage, order):
 
 def set_zeros_on_network(network, percentage, order):
     """
-    Change weights in network to zeros
+    Change weights in network to zeros.
 
     This function, for given order of weights,
-    change the set percentage of the smallest to zeros or,
-    if that is not possible, takes the ceiling of such number
+    change the given percentage of the smallest to zeros or,
+    if that is not possible, takes the ceiling of such number.
 
     :param Network network: network for sparsifying
-    :param percentage: percentage of weights to be changes to zeros
+    :param percentage: percentage of weights to be changed to zeros
     :param order: order of weights
     :type percentage: int, float
     :type order: function
@@ -52,15 +52,15 @@ def set_zeros_on_network(network, percentage, order):
 
 def sparsify_smallest_on_network(network, percentage):
     """
-    Change smallest weights in network to zeros
+    Change smallest weights in network to zeros.
 
     This function changes weights in such a way,
-    that for the whole network the set percentage
+    that for the whole network the given percentage
     of the smallest of them are zeros,
-    or, if that is not possible, takes the ceiling of such a number
+    or, if that is not possible, takes the ceiling of such a number.
 
     :param Network network: network for sparsifying
-    :param percentage: percentage of weights to be changes to zeros
+    :param percentage: percentage of weights to be changed to zeros
     :type percentage: int, float
     """
     set_zeros_on_network(network, percentage, abs)
@@ -68,12 +68,12 @@ def sparsify_smallest_on_network(network, percentage):
 
 def sparsify_nearest_to_network_mean(network, percentage):
     """
-    Change weights close to mean in network to zeros
+    Change weights close to network's mean to zeros.
 
     This function changes weights in such a way,
-    that for the whole network the set percentage
+    that for the whole network the given percentage
     of the closest of them to mean are zeros,
-    or, if that is not possible, takes the ceiling of such a number
+    or, if that is not possible, takes the ceiling of such a number.
 
     :param Network network: network for sparsifying
     :param percentage: percentage of weights to be changes to zeros
@@ -91,9 +91,9 @@ def sparsify_smallest_on_layers(network, percentage):
     Change smallest weights in each layer to zeros.
 
     This function for each layer changes weights in such a way,
-    that at least the set percentage of the smallest of them are zeros.
+    that at least the given percentage of the smallest of them are zeros.
 
-    :param Network network: network for sparcifying
+    :param Network network: network for sparsifying
     :param percentage: percentage of weights to be changed to zeros
     :type percentage: int, float
     """
@@ -104,13 +104,13 @@ def sparsify_smallest_on_layers(network, percentage):
 
 def sparsify_nearest_to_layer_mean(network, percentage):
     """
-    Change smallest close to mean in each layers to zeros
+    In each layer, change weights closest to mean to zeros.
 
     This function for each layer changes weights in such a way,
-    that the set percentage of the closest to mean are zeros
-    or, if that is not possible, takes the ceiling of such a number
+    that the given percentage of the closest to mean are set to zero
+    or, if that is not possible, takes the ceiling of such a number.
 
-    :param Network network: network for sparcifying
+    :param Network network: network for sparsifying
     :param percentage: percentage of weights to be changed to zeros
     :type percentage: int, float
     """
