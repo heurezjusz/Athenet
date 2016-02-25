@@ -1,9 +1,10 @@
-"""Auxiliary functions for sparsifying with respect to estimated derivatives.
-"""
+"""Intervals in Theano including special functions for sparsifying."""
+
+from theano.printing import Print
 
 class Interval(object):
     
-    def __init__(lower, upper):
+    def __init__(self, lower, upper):
         self.lower = lower
         self.upper = upper
 
