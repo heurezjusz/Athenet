@@ -30,6 +30,10 @@ class TrainConfig(object):
         self.val_interval = 1
         self.val_units = ValUnits.epochs
 
+        self.val_range = 4
+        self.learning_rate_decay = 1.
+        self.learning_rate_threshold = 1.
+
     def __str__(self):
         output = '{} epochs, minibatch size = {}, learning rate = {}'\
                  .format(self.n_epochs, self.batch_size, self.learning_rate)
@@ -37,6 +41,11 @@ class TrainConfig(object):
             output += ', momentum = {}'.format(self.momentum)
         if self.weight_decay:
             output += ', weight_decay = {}'.format(self.weight_decay)
+        if self.learning_rate_decay != 1.:
+            output += '\nLearning rate decay = {}: threshold = {}, validation range = {}'\
+                      .format(self.learning_rate_decay,
+                              self.learning_rate_threshold,
+                              self.val_range)
         return output
 
 
@@ -240,16 +249,18 @@ class Network(object):
         biases_grad = T.grad(cost, biases)
 
         if config.momentum:
+            momentum = theano.shared(np.array(config.momentum,
+                                              dtype=theano.config.floatX))
             for layer in self.weighted_layers:
                 layer.alloc_velocity()
             weights_vel = [layer.W_velocity for layer in self.weighted_layers]
             biases_vel = [layer.b_velocity for layer in self.weighted_layers]
 
             weights_vel_updates = [
-                (v, config.momentum*v - config.weight_decay*learning_rate*w -
+                (v, momentum*v - config.weight_decay*learning_rate*w -
                     learning_rate*der)
                 for w, v, der in zip(weights, weights_vel, weights_grad)]
-            biases_vel_updates = [(v, config.momentum*v - learning_rate*der)
+            biases_vel_updates = [(v, momentum*v - learning_rate*der)
                                   for v, der in zip(biases_vel, biases_grad)]
 
             weights_updates = [(w, w + v)
@@ -279,13 +290,16 @@ class Network(object):
             },
         )
 
+        prev_accuracies = np.zeros(config.val_range)
+        pos = 0
+        cycle_finished = False
+        iteration = 0
         if self.verbosity >= 1:
             print 'Training:'
             print config
             print '{} minibatches per epoch'\
                   .format(self.data_loader.n_train_batches)
             start_time = timeit.default_timer()
-        iteration = 0
         for epoch in xrange(1, config.n_epochs+1):
             if self.verbosity >= 1:
                 print 'Epoch {}'.format(epoch)
@@ -304,6 +318,26 @@ class Network(object):
                         if self.verbosity >= 1:
                             print '\tAccuracy on validation data: {:.2f}%'\
                                   .format(100*accuracy)
+                        if config.learning_rate_decay != 1.:
+                            prev_accuracies[pos] = 100*accuracy
+                            pos = (pos + 1) % config.val_range
+                            if cycle_finished:
+                                lr = learning_rate.get_value()
+                                std = prev_accuracies.std() / lr
+                                if self.verbosity >= 2:
+                                    print '\tstd = {}'.format(std)
+                                if std < config.learning_rate_threshold:
+                                    new_lr = lr * config.learning_rate_decay
+                                    learning_rate.set_value(np.float32(new_lr))
+                                    pos = 0
+                                    cycle_finished = False
+                                    if self.verbosity >= 1:
+                                        print '\tDecrease learning rate'
+                                        print '\tLearning rate: {}'.format(
+                                            learning_rate.get_value())
+                                    #config.learning_rate_threshold *= config.learning_rate_decay
+                            elif pos == config.val_range - 1:
+                                cycle_finished = True
             if self.verbosity >= 1:
                 epoch_end_time = timeit.default_timer()
                 print '\tTime: {:.1f}s'.format(
