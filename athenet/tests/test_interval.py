@@ -5,7 +5,7 @@ import unittest
 from nose.tools import assert_true, assert_is, assert_equal
 from athenet.sparsifying.utils.interval import Interval
 import numpy as np
-from numpy.testing import assert_array_equal
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import theano.tensor as T
 from theano import function
 
@@ -143,37 +143,59 @@ class IntervalTest(unittest.TestCase):
         #power
         x, y = T.vectors('x', 'y')
         i = Interval(x, y)
-        v1l = np.array([-3, -2, -1, 0, 1, 2, 3])
-        v1u = v1l + 2
-        v2l = np.array([0, 1, 2])
-        v2u = v2l + 2
-        v3l = np.array([1, 2])
-        v3u = v3l + 2
-        fr1 = i.power(-2.5)
-        fr2 = i.power(-2.)
-        fr3 = i.power(2.)
-        fr4 = i.power(2.5)
-        fr5 = i.power(-2)
-        fr6 = i.power(-3)
-        fr7 = i.power(2)
-        fr8 = i.power(3)
-        f1 = function([x, y], r1)
-        f2 = function([x, y], r2)
-        f3 = function([x, y], r3)
-        f4 = function([x, y], r4)
-        f5 = function([x, y], r5)
-        f6 = function([x, y], r6)
-        f7 = function([x, y], r7)
-        f8 = function([x, y], r8)
-        r1 = f1(v3l, v3u)
-        r2 = f2(v3l, v3u)
-        r3 = f3(v3l, v3u)
-        r4 = f4(v3l, v3u)
-
-
-
-
-
+        v1l = np.array([-3, -2, -1, -2, 0.5, 0.5, 1, 2])
+        v1u = np.array([-2, -1, -0.5, -0.5, 2, 1, 2, 3])
+        v2l = np.array([1, 2])
+        v2u = np.array([3, 4])
+        v3l = np.array([-2., -2., -2., -1., -1., -1., -0.5, -0.5, -0.5])
+        v3u = np.array([0.5, 1., 2., 0.5, 1., 2., 0.5, 1., 2.])
+        v1 = (v1l, v1u)
+        v2 = (v2l, v2u)
+        v3 = (v3l, v3u)
+        exponents1 = [-3, -2, 2, 3]
+        exponents2 = [-2.5, -2., 2., 2.5]
+        exponents3 = [2, 3]
+        make_power = lambda exp: i.power(exp)
+        powers1 = map(make_power, exponents1)
+        powers2 = map(make_power, exponents2)
+        powers3 = map(make_power, exponents3)
+        make_lu = lambda power: (power.lower, power.upper)
+        lus1 = map(make_lu, powers1)
+        lus2 = map(make_lu, powers2)
+        lus3 = map(make_lu, powers3)
+        make_function = lambda (l, u): function([x, y], [l, u])
+        functions1 = map(make_function, lus1)
+        functions2 = map(make_function, lus2)
+        functions3 = map(make_function, lus3)
+        make_res1 = lambda f: f(*v1)
+        make_res2 = lambda f: f(*v2)
+        make_res3 = lambda f: f(*v3)
+        res1 = map(make_res1, functions1)
+        res2 = map(make_res2, functions2)
+        res3 = map(make_res3, functions3)
+        ans1l = [np.array([4., 1., 0.25, 0.25, 0.25, 0.25, 1., 4.]),
+                 np.array([-27., -8., -1., -8., 0.125, 0.125, 1., 8.])]
+        ans1u = [np.array([9., 4., 1., 4., 4., 1., 4., 9.]),
+                 np.array([-8., -1., -0.125, -0.125, 8., 1., 8., 27.])]
+        ans1l = [np.reciprocal(ans1u[1]), np.reciprocal(ans1u[0])] + ans1l
+        ans1u = [np.reciprocal(ans1l[3]), np.reciprocal(ans1l[2])] + ans1u
+        ans2l = [np.array([1., 4.]), np.array([1., 2. ** 2.5])]
+        ans2u = [np.array([9., 16.]), np.array([3. ** 2.5, 4. ** 2.5])]
+        ans2l = [np.reciprocal(ans2u[1])] + [np.reciprocal(ans2u[0])] + ans2l
+        ans2u = [np.reciprocal(ans2l[3])] + [np.reciprocal(ans2l[2])] + ans2u
+        ans3l = [np.array([0.] * 9),
+                 np.array([-8., -8., -8., -1., -1., -1., -0.125, -0.125,
+                          -0.125])]
+        ans3u = [np.array([4., 4., 4., 1., 1., 4., 0.25, 1., 4.]),
+                 np.array([0.125, 1., 8., 0.125, 1., 8., 0.125, 1., 8.])]
+        for i in range(4):
+            assert_array_almost_equal(res1[i][0], ans1l[i])
+            assert_array_almost_equal(res1[i][1], ans1u[i])
+            assert_array_almost_equal(res2[i][0], ans2l[i])
+            assert_array_almost_equal(res2[i][1], ans2u[i])
+        for i in range(2):
+            assert_array_almost_equal(res3[i][0], ans3l[i])
+            assert_array_almost_equal(res3[i][1], ans3u[i])
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

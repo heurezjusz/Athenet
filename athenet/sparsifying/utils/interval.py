@@ -104,7 +104,7 @@ class Interval(object):
         l = T.switch(self._has_zero(), 0, T.minimum(lsq, usq))
         return Interval(l, u)
 
-    def power(exponent):
+    def power(self, exponent):
         """For interval i, returns i^exponent.
         
         exponent: Number to be passed as exponent to i^exponent.
@@ -114,7 +114,7 @@ class Interval(object):
         le = T.pow(self.lower, exponent)
         ue = T.pow(self.upper, exponent)
         l, u = None, None
-        if isinstance(exponent, int, long):
+        if isinstance(exponent, (int, long)):
             if exponent > 0:
                 if exponent % 2 == 0:
                     l = T.switch(self._has_zero(), 0, T.minimum(le, ue))
