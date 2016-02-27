@@ -10,7 +10,7 @@ class Buffer(object):
 
     Content of a buffer is a 4-dimensional floating-point tensor.
     """
-    def __init__(self, data_loader=None):
+    def __init__(self, data_loader):
         """Create data Buffer.
 
         :data_loader: Instance of DataLoader that will be using Buffer.
@@ -38,37 +38,34 @@ class Buffer(object):
         minibatch index, not direct index in data array. Effectively, buffer
         can be used as if it contained all of the minibatches data.
 
-        Parent must be set before using this method, as minibatch size is
-        needed to determine shift that has to be used in data array.
-
         :key: Symbolic index or slice representing indices of minibatches to
               return.
         :return: Minibatches data.
         """
-        shift = self._offset * self.parent.batch_size
         if isinstance(key, slice):
             start, stop, step = key.start, key.stop, key.step
-            return self._data[start-shift:stop-shift:step]
+            return self._data[start-self._offset:stop-self._offset:step]
         else:
-            return self._data[key-shift]
+            return self._data[key-self._offset]
 
-    def set(self, data, batch_index=None, n_of_batches=None):
+    def __setitem__(self, key, value):
         """Set buffer data.
 
-        :data: Data to be stored in a buffer.
-        :batch_index: Index of first minibatch that is contained in given
-                      data.
-        :n_of_batches: Number of minibatches that are contained in given data.
+        :key: Indices of minibatches to be stored.
+        :value: Data to be stored in a buffer.
         """
-        if batch_index is not None:
-            self.begin = batch_index
-            self._offset.set_value(batch_index)
-            if n_of_batches:
-                self.end = batch_index + n_of_batches
-        self._data.set_value(
-            np.asarray(np.concatenate(data, axis=0),
-                       dtype=theano.config.floatX),
-            borrow=True)
+        if isinstance(key, slice):
+            start, stop, step = key.start, key.stop, key.step
+            if step is not None and step != 1:
+                raise NotImplementedError('step must be equal 1')
+        else:
+            start = key
+            stop = start + self.parent.batch_size
+
+        self.begin = start / self.parent.batch_size
+        self.end = stop / self.parent.batch_size
+        self._offset.set_value(start)
+        self._data.set_value(value, borrow=True)
 
     def contains(self, batch_index):
         """Check if minibatch is contained in a buffer.

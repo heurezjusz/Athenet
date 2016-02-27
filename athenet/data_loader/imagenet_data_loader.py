@@ -87,7 +87,7 @@ class ImageNetDataLoader(DataLoader):
         img = misc.imread(get_bin_path(filename))
         img = np.rollaxis(img, 2)
         img = img.reshape((1, 3, 227, 227))
-        return np.asarray(img, dtype=float)
+        return np.asarray(img, dtype=theano.config.floatX)
 
     def _load_imgs(self, dir_name, files):
         imgs = []
@@ -100,7 +100,8 @@ class ImageNetDataLoader(DataLoader):
             img = np.concatenate([b, g, r], axis=1)
             img = img[:, :, :, :]
             imgs += [img]
-        return imgs
+        return np.asarray(np.concatenate(imgs, axis=0),
+                          dtype=theano.config.floatX)
 
     def load_val_data(self, batch_index):
         if self._val_in.contains(batch_index):
@@ -109,7 +110,7 @@ class ImageNetDataLoader(DataLoader):
         files = self._get_subset(self.val_files, batch_index,
                                  self.buffer_size)
         imgs = self._load_imgs(self.val_name, files)
-        self._val_in.set(imgs, batch_index, self.buffer_size)
+        self._set_subset(self._val_in, imgs, batch_index, self.buffer_size)
 
     def val_input(self, batch_index):
         return self._get_subset(self._val_in, batch_index)
@@ -124,7 +125,7 @@ class ImageNetDataLoader(DataLoader):
         files = self._get_subset(self.train_files, batch_index,
                                  self.buffer_size)
         imgs = self._load_imgs(self.train_name, files)
-        self._train_in.set(imgs, batch_index, self.buffer_size)
+        self._set_subset(self._train_in, imgs, batch_index, self.buffer_size)
 
     def train_input(self, batch_index):
         return self._get_subset(self._train_in, batch_index)
