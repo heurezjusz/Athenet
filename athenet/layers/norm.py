@@ -1,5 +1,6 @@
 """Normalization layer."""
 
+import theano
 import theano.tensor as T
 
 from athenet.layers import Layer
