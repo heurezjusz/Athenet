@@ -42,7 +42,8 @@ class TrainConfig(object):
         if self.weight_decay:
             output += ', weight_decay = {}'.format(self.weight_decay)
         if self.learning_rate_decay != 1.:
-            output += '\nLearning rate decay = {}: threshold = {}, validation range = {}'\
+            output += '\nLearning rate decay = {}: threshold = {}, '\
+                      'validation range = {}'\
                       .format(self.learning_rate_decay,
                               self.learning_rate_threshold,
                               self.val_range)
@@ -60,6 +61,8 @@ class Network(object):
         self._data_loader = None
         self.answers = None
         self.get_output = None
+        self._accuracy = None
+        self._accuracy_config = None
 
         self.snapshot_name = 'network'
         self.snapshot_interval = 0
@@ -146,16 +149,21 @@ class Network(object):
         expanded = self._correct_answers.dimshuffle(0, 'x')
         expanded = expanded.repeat(max_top_range, axis=1)
         eq = T.eq(expanded, self.answers[:, :max_top_range])
-        get_accuracy = theano.function(
-            inputs=[self._batch_index],
-            outputs=[T.any(eq[:, :top], axis=1).mean() for top in top_range],
-            givens={
-                self._input:
-                    self.data_loader.input(self._batch_index, data_type),
-                self._correct_answers:
-                    self.data_loader.output(self._batch_index, data_type)
-            },
-        )
+
+        # Compile new function only if top range or data type has changed
+        if self._accuracy_config != [top_range, data_type]:
+            self._accuracy = theano.function(
+                inputs=[self._batch_index],
+                outputs=[T.any(eq[:, :top], axis=1).mean()
+                         for top in top_range],
+                givens={
+                    self._input:
+                        self.data_loader.input(self._batch_index, data_type),
+                    self._correct_answers:
+                        self.data_loader.output(self._batch_index, data_type)
+                },
+            )
+            self._accuracy_config = [top_range, data_type]
 
         n_batches = self.data_loader.n_batches(data_type)
         accuracy = np.zeros(shape=(n_batches, len(top_range)))
@@ -164,7 +172,7 @@ class Network(object):
             interval = 1
         for batch_index in xrange(n_batches):
             self.data_loader.load_data(batch_index, data_type)
-            accuracy[batch_index, :] = np.asarray(get_accuracy(batch_index))
+            accuracy[batch_index, :] = np.asarray(self._accuracy(batch_index))
             if self.verbosity >= 3 or \
                     (self.verbosity >= 2 and batch_index % interval == 0):
                 partial_accuracy = accuracy[:batch_index+1, :].mean(axis=0)
@@ -335,7 +343,6 @@ class Network(object):
                                         print '\tDecrease learning rate'
                                         print '\tLearning rate: {}'.format(
                                             learning_rate.get_value())
-                                    #config.learning_rate_threshold *= config.learning_rate_decay
                             elif pos == config.val_range - 1:
                                 cycle_finished = True
             if self.verbosity >= 1:
