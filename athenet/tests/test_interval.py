@@ -87,20 +87,25 @@ class IntervalTest(unittest.TestCase):
         l2 = l1 * 100
         u2 = l1 * 1000
         radd = i1 + i2
+        radd2 = i1 + x
         rsub = i1 - i2
         rmul = i1 * i2
-        fres = [radd.lower, radd.upper, rsub.lower, rsub.upper, rmul.lower,
-                rmul.upper]
+        fres = [radd.lower, radd.upper, radd2.lower, radd2.upper, rsub.lower,
+                rsub.upper, rmul.lower, rmul.upper]
         f = function([x, y, z, w], fres)
-        addl, addu, subl, subu, mull, mulu = f(l1, u1, l2, u2)
+        addl, addu, add2l, add2u, subl, subu, mull, mulu = f(l1, u1, l2, u2)
         raddl = l1 + l2
         raddu = u1 + u2
+        radd2l = l1 + l1
+        radd2u = u1 + l1
         rsubl = l1 - u2
         rsubu = u1 - l2
         rmull = l1 * l2
         rmulu = u1 * u2
         assert_array_equal(addl, raddl)
         assert_array_equal(addu, raddu)
+        assert_array_equal(add2l, radd2l)
+        assert_array_equal(add2u, radd2u)
         assert_array_equal(subl, rsubl)
         assert_array_equal(subu, rsubu)
         assert_array_equal(mull, rmull)

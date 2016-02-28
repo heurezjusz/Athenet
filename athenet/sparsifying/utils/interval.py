@@ -38,16 +38,24 @@ class Interval(object):
         """Returns sum of two intervals.
         
         other: Interval to be added."""
-        res_lower = self.lower + other.lower
-        res_upper = self.upper + other.upper
+        if isinstance(other, Interval):
+            res_lower = self.lower + other.lower
+            res_upper = self.upper + other.upper
+        else:
+            res_lower = self.lower + other
+            res_upper = self.upper + other
         return Interval(res_lower, res_upper)
 
     def __sub__(self, other):
         """Returns difference between two intervals.
         
         other: Interval to be subtracted."""
-        res_lower = self.lower - other.upper
-        res_upper = self.upper - other.lower
+        if isinstance(other, Interval):
+            res_lower = self.lower - other.upper
+            res_upper = self.upper - other.lower
+        else:
+            res_lower = self.lower - other
+            res_upper = self.upper - other
         return Interval(res_lower, res_upper)
 
     def __mul__(self, other):
@@ -139,4 +147,3 @@ class Interval(object):
                 l = ue
                 u = le
         return Interval(l, u)
-
