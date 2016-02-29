@@ -77,41 +77,61 @@ class IntervalTest(unittest.TestCase):
         assert_equal(rshp[0], 3)
         assert_equal(rshp[1], 2)
 
-    def test_ops(self):
+    def test_ops1(self):
         # __add__, __sub__, __mul__
         x, y, z, w = T.dmatrices('x', 'y', 'z', 'w')
         i1 = Interval(x, y)
         i2 = Interval(z, w)
         l1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        u1 = l1 * 10
-        l2 = l1 * 100
-        u2 = l1 * 1000
-        radd = i1 + i2
-        radd2 = i1 + x
-        rsub = i1 - i2
-        rmul = i1 * i2
-        fres = [radd.lower, radd.upper, radd2.lower, radd2.upper, rsub.lower,
-                rsub.upper, rmul.lower, rmul.upper]
+        u1 = l1 * 10 + 1
+        l2 = l1 * 10 + 2
+        u2 = l1 * 10 + 3
+        r_add1 = i1 + i2
+        r_add2 = i1 + x
+        r_add3 = x + i1
+        r_sub1 = i1 - i2
+        r_sub2 = x - i1
+        r_sub3 = i1 - x
+        r_mul1 = i1 * i2
+        r_mul2 = i1 * x
+        r_mul3 = x * i1
+        fres = [r_add1.lower, r_add1.upper, r_add2.lower, r_add2.upper,
+                r_add3.lower, r_add3.upper, r_sub1.lower, r_sub1.upper,
+                r_sub2.lower, r_sub2.upper, r_sub3.lower, r_sub3.upper,
+                r_mul1.lower, r_mul1.upper, r_mul2.lower, r_mul2.upper,
+                r_mul3.lower, r_mul3.upper]
         f = function([x, y, z, w], fres)
-        addl, addu, add2l, add2u, subl, subu, mull, mulu = f(l1, u1, l2, u2)
-        raddl = l1 + l2
-        raddu = u1 + u2
-        radd2l = l1 + l1
-        radd2u = u1 + l1
-        rsubl = l1 - u2
-        rsubu = u1 - l2
-        rmull = l1 * l2
-        rmulu = u1 * u2
-        assert_array_equal(addl, raddl)
-        assert_array_equal(addu, raddu)
-        assert_array_equal(add2l, radd2l)
-        assert_array_equal(add2u, radd2u)
-        assert_array_equal(subl, rsubl)
-        assert_array_equal(subu, rsubu)
-        assert_array_equal(mull, rmull)
-        assert_array_equal(mulu, rmulu)
+        add1l, add1u, add2l, add2u, add3l, add3u, \
+                sub1l, sub1u, sub2l, sub2u, sub3l, sub3u, \
+                mul1l, mul1u, mul2l, mul2u, mul3l, mul3u = f(l1, u1, l2, u2)
+        ops_results = [add1l, add1u, add2l, add2u, add3l, add3u, \
+                       sub1l, sub1u, sub2l, sub2u, sub3l, sub3u, \
+                       mul1l, mul1u, mul2l, mul2u, mul3l, mul3u]
+        r_add1l = l1 + l2
+        r_add2l = l1 + l1
+        r_add3l = l1 + l1
+        r_add1u = u1 + u2
+        r_add2u = u1 + l1
+        r_add3u = u1 + l1
+        r_sub1l = l1 - u2
+        r_sub2l = l1 - u1
+        r_sub3l = l1 - l1
+        r_sub1u = u1 - l2
+        r_sub2u = l1 - l1
+        r_sub3u = u1 - l1
+        r_mul1l = l1 * l2
+        r_mul2l = l1 * l1
+        r_mul3l = l1 * l1
+        r_mul1u = u1 * u2
+        r_mul2u = u1 * l1
+        r_mul3u = u1 * l1
+        results = [r_add1l, r_add1u, r_add2l, r_add2u, r_add3l, r_add3u, \
+                   r_sub1l, r_sub1u, r_sub2l, r_sub2u, r_sub3l, r_sub3u, \
+                   r_mul1l, r_mul1u, r_mul2l, r_mul2u, r_mul3l, r_mul3u]
+        for i  in range(len(ops_results)):
+            assert_array_equal(ops_results, results)
 
-    def test_op2(self):
+    def test_ops2(self):
         # reciprocal, neg, exp, sq
         x, y = T.dmatrices('x', 'y')
         i = Interval(x, y)
@@ -144,7 +164,7 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(rsql, thsql)
         assert_array_equal(rsqu, thsqu)
 
-    def test_op3(self):
+    def test_ops3(self):
         #power
         x, y = T.vectors('x', 'y')
         i = Interval(x, y)
