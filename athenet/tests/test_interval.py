@@ -9,6 +9,7 @@ from numpy.testing import assert_array_equal, assert_array_almost_equal
 import theano.tensor as T
 from theano import function
 
+
 class IntervalTest(unittest.TestCase):
 
     def test_interval_scalar(self):
@@ -102,10 +103,10 @@ class IntervalTest(unittest.TestCase):
                 r_mul3.lower, r_mul3.upper]
         f = function([x, y, z, w], fres)
         add1l, add1u, add2l, add2u, add3l, add3u, \
-                sub1l, sub1u, sub2l, sub2u, sub3l, sub3u, \
-                mul1l, mul1u, mul2l, mul2u, mul3l, mul3u = f(l1, u1, l2, u2)
-        ops_results = [add1l, add1u, add2l, add2u, add3l, add3u, \
-                       sub1l, sub1u, sub2l, sub2u, sub3l, sub3u, \
+            sub1l, sub1u, sub2l, sub2u, sub3l, sub3u, \
+            mul1l, mul1u, mul2l, mul2u, mul3l, mul3u = f(l1, u1, l2, u2)
+        ops_results = [add1l, add1u, add2l, add2u, add3l, add3u,
+                       sub1l, sub1u, sub2l, sub2u, sub3l, sub3u,
                        mul1l, mul1u, mul2l, mul2u, mul3l, mul3u]
         r_add1l = l1 + l2
         r_add2l = l1 + l1
@@ -125,10 +126,10 @@ class IntervalTest(unittest.TestCase):
         r_mul1u = u1 * u2
         r_mul2u = u1 * l1
         r_mul3u = u1 * l1
-        results = [r_add1l, r_add1u, r_add2l, r_add2u, r_add3l, r_add3u, \
-                   r_sub1l, r_sub1u, r_sub2l, r_sub2u, r_sub3l, r_sub3u, \
+        results = [r_add1l, r_add1u, r_add2l, r_add2u, r_add3l, r_add3u,
+                   r_sub1l, r_sub1u, r_sub2l, r_sub2u, r_sub3l, r_sub3u,
                    r_mul1l, r_mul1u, r_mul2l, r_mul2u, r_mul3l, r_mul3u]
-        for i  in range(len(ops_results)):
+        for i in range(len(ops_results)):
             assert_array_equal(ops_results, results)
 
     def test_ops2(self):
@@ -165,7 +166,7 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(rsqu, thsqu)
 
     def test_ops3(self):
-        #power
+        # power
         x, y = T.vectors('x', 'y')
         i = Interval(x, y)
         v1l = np.array([-3, -2, -1, -2, 0.5, 0.5, 1, 2])
@@ -180,21 +181,37 @@ class IntervalTest(unittest.TestCase):
         exponents1 = [-3, -2, 2, 3]
         exponents2 = [-2.5, -2., 2., 2.5]
         exponents3 = [2, 3]
-        make_power = lambda exp: i.power(exp)
+
+        def make_power(exp):
+            return i.power(exp)
+
         powers1 = map(make_power, exponents1)
         powers2 = map(make_power, exponents2)
         powers3 = map(make_power, exponents3)
-        make_lu = lambda power: (power.lower, power.upper)
+
+        def make_lu(power):
+            return (power.lower, power.upper)
+
         lus1 = map(make_lu, powers1)
         lus2 = map(make_lu, powers2)
         lus3 = map(make_lu, powers3)
-        make_function = lambda (l, u): function([x, y], [l, u])
+
+        def make_function((l, u)):
+            return function([x, y], [l, u])
+
         functions1 = map(make_function, lus1)
         functions2 = map(make_function, lus2)
         functions3 = map(make_function, lus3)
-        make_res1 = lambda f: f(*v1)
-        make_res2 = lambda f: f(*v2)
-        make_res3 = lambda f: f(*v3)
+
+        def make_res1(f):
+            return f(*v1)
+
+        def make_res2(f):
+            return f(*v2)
+
+        def make_res3(f):
+            return f(*v3)
+
         res1 = map(make_res1, functions1)
         res2 = map(make_res2, functions2)
         res3 = map(make_res3, functions3)

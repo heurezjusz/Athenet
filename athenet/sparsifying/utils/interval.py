@@ -4,6 +4,7 @@ from theano import function
 from theano import tensor as T
 from theano.ifelse import ifelse
 
+
 class Interval(object):
     """Theano interval class
 
@@ -81,7 +82,7 @@ class Interval(object):
 
     def __rsub__(self, other):
         """Returns diffeerence between number and interval.
-        
+
         other: A number that self will be subtracted from."""
         res_lower = other - self.upper
         res_upper = other - self.lower
@@ -125,8 +126,8 @@ class Interval(object):
         # If 0 is within interval, returns 1/0 that, we hope, will throw
         # some exception on the device. Be careful with this.
 
-        #Input check below couses program interrupt if any _has_zero happened.
-        #return Interval(switch(self._has_zero(),
+        # Input check below couses program interrupt if any _has_zero happened.
+        # return Interval(switch(self._has_zero(),
         #                       T.constant(1)/T.constant(0),
         #                       T.inv(self.upper)),
         #                T.inv(self.lower))
@@ -198,7 +199,7 @@ class Interval(object):
 
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method."""
-        if len(eval_map)  == 0:
+        if len(eval_map) == 0:
             f = function([], [self.lower, self.upper])
             rlower, rupper = f()
             return [rlower, rupper]
