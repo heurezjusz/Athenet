@@ -1,7 +1,9 @@
 """
     sender - SimplE Neuron DEleteR
 
-    Place for some description
+    Deletes the least significant neurons. Value of neuron is defined as
+    sum of absolute values of weights outgoing from neuron divided by
+    sum of absolute values of weights outgoing from entire layer.
 """
 
 import numpy as np
@@ -11,17 +13,22 @@ from athenet.algorithm.utils import list_of_percentage_rows, delete_row
 
 
 def simple_neuron_deleter(network, config):
-    """ (this docstring should be writen better)
-        :config: - tuple of 2 foats, p, and layer_limit
-        :p, layer_limit: - floats between 0 and 1. Deletes [p] neurons from
-            layers connected direclty to fully connected layer's, but at most
-            [layer_limit] neurons from single layer.
-            If layer_limit < p then at most [layer_limit] neurons will be
-            deleted.
+    """
+        :network: - an instance of athenet.Network.
+        :config: - tuple of 2 foats, p and layer_limit
+        :p, layer_limit: - floats between 0 and 1.
+
+        Modifies [network]. Deletes [p] neurons from layers connected direclty
+        to fully connected layer's. Do not delete more than [layer_limit]
+        neurons from single layer.
+        If [layer_limit] < [p] then at most [layer_limit] neurons will be
+        deleted.
     """
     p, layer_limit = config
     assert p >= 0. and p <= 1.
     assert layer_limit >= 0. and layer_limit <= 1.
+    if layer_limit < p:
+        p = layer_limit
 
     all_rows = []
     neurons_for_layer = np.zeros((len(network.weighted_layers),))
