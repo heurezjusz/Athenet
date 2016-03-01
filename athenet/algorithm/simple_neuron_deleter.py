@@ -23,6 +23,10 @@ def simple_neuron_deleter(network, config):
         neurons from single layer.
         If [layer_limit] < [p] then at most [layer_limit] neurons will be
         deleted.
+
+        Deletion of neuron is simulated by setting all weights outgoing
+        form to it to 0. In athenet.network they are reprezented as rows
+        of next layer's weights matrix.
     """
     p, layer_limit = config
     assert p >= 0. and p <= 1.
@@ -30,22 +34,25 @@ def simple_neuron_deleter(network, config):
     if layer_limit < p:
         p = layer_limit
 
-    all_rows = []
+    # counter of neurons
     neurons_for_layer = np.zeros((len(network.weighted_layers),))
     neurons_in_general = 0
+    # counter of deleted neurons
     deleted_for_layer = np.zeros((len(network.weighted_layers),))
     deleted_in_general = 0
 
+    # list of all neurons (interpreted as rows of matrices)
+    considered_neurons = []
     for i in xrange(len(network.weighted_layers)):
         layer = network.weighted_layers[i]
         if isinstance(layer, FullyConnectedLayer):
-            all_rows += list_of_percentage_rows(i, layer)
+            considered_neurons += list_of_percentage_rows(i, layer)
             neurons_for_layer[i] = layer.W.shape[0]
             neurons_in_general += neurons_for_layer[i]
 
-    all_rows = sorted(all_rows)
+    considered_neurons = sorted(considered_neurons)
 
-    for val, row, layer_id in all_rows:
+    for val, row, layer_id in considered_neurons:
         if deleted_in_general >= p * neurons_in_general:
             break
         if 1 + deleted_for_layer[layer_id] > layer_limit * neurons_for_layer[i]:
