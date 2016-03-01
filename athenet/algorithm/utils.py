@@ -7,6 +7,8 @@ def list_of_percentage_rows_table(table, layer_id):
 
        "percentage" is a sum of absolute values in row divided by
        sum of absolute values in all table
+
+       result list is sorted by "number of row"
     """
     sum_of_all = np.sum(abs(table))
     result = []
