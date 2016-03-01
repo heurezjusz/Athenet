@@ -239,5 +239,26 @@ class IntervalTest(unittest.TestCase):
             assert_array_almost_equal(res3[i][0], ans3l[i])
             assert_array_almost_equal(res3[i][1], ans3u[i])
 
+    def test_eval(self):
+        txl, txu, tyl, tyu = T.dmatrices('xl', 'xu', 'yl', 'yu')
+        xl = np.array([[1, 2], [3, 4]])
+        xu = np.array([[2, 4], [6, 9]])
+        yl = np.array([[-1, -5], [0, 3]])
+        yu = np.array([[4, 2], [0, 3]])
+        ix = Interval(txl, txu)
+        iy = Interval(tyl, tyu)
+        iz = ix + iy
+        d = {txl: xl, txu: xu, tyl: yl, tyu: yu}
+        zl, zu = iz.eval(d)
+        assert_array_almost_equal(zl, xl + yl)
+        assert_array_almost_equal(zu, xu + yu)
+        i2 = Interval(1, 3)
+        i2l, i2u = i2.eval()
+        assert_equal(i2l, 1)
+        assert_equal(i2u, 3)
+        i2l, i2u = i2.eval({})
+        assert_equal(i2l, 1)
+        assert_equal(i2u, 3)
+
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

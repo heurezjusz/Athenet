@@ -199,15 +199,17 @@ class Interval(object):
 
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method."""
-        if len(eval_map) == 0:
-            f = function([], [self.lower, self.upper])
-            rlower, rupper = f()
-            return [rlower, rupper]
-        eval_map = eval_map[0]
-        if len(eval_map) == 0:
-            f = function([], [self.lower, self.upper])
-            rlower, rupper = f()
-            return [rlower, rupper]
+        has_args = (len(eval_map) != 0)
+        if has_args:
+            eval_map = eval_map[0]
+            has_args = (len(eval_map) != 0)
+        if not has_args:
+            try:
+                f = function([], [self.lower, self.upper])
+                rlower, rupper = f()
+                return (rlower, rupper)
+            except:
+                return (self.lower, self.upper)
         keys = eval_map.keys()
         values = eval_map.values()
         f = function(keys, [self.lower, self.upper])
