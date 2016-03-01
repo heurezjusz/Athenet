@@ -1,7 +1,7 @@
 """
     sender - SimplE Neuron DEleteR
 
-    Deletes the least significant neurons. 
+    Deletes the least significant neurons.
     Outgoing value of neuron is defined as sum of absolute values of
     weights outgoing from neuron divided by sum of absolute values of
     weights outgoing from entire layer.
@@ -75,10 +75,12 @@ def simple_neuron_deleter2(network, config):
             # neuron is reprezented as tuple
             #(value, number of column (and row), column_layer_id, row_layer_id)
             assert weights[i][1][j][1] == weights[i + 1][0][j][1]
-            considered_neurons.append((weights[i][1][j][0] * weights[i + 1][0][j][1],
-                                       weights[i][1][j][1],
-                                       weights[i][1][j][2],
-                                       weights[i + 1][0][j][2])
+            considered_neurons.append(
+                (weights[i][1][j][0] * weights[i + 1][0][j][1],
+                 weights[i][1][j][1],
+                 weights[i][1][j][2],
+                 weights[i + 1][0][j][2])
+            )
 
     considered_neurons = sorted(considered_neurons)
     for val, neuron_id, column_layer_id, row_layer_id in considered_neurons:
@@ -91,4 +93,3 @@ def simple_neuron_deleter2(network, config):
         delete_row(network.layers[row_layer_id], neuron_id)
         deleted_for_layer[row_layer_id] += 1
         deleted_in_general += 1
-

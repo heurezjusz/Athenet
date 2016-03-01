@@ -55,7 +55,8 @@ def simple_neuron_deleter(network, config):
     for val, row, layer_id in considered_neurons:
         if deleted_in_general >= p * neurons_in_general:
             break
-        if 1 + deleted_for_layer[layer_id] > layer_limit * neurons_for_layer[i]:
+        if 1 + deleted_for_layer[layer_id] > \
+                layer_limit * neurons_for_layer[i]:
             continue
         deleted_for_layer[layer_id] += 1
         delete_row(network.weighted_layers[layer_id], row)
