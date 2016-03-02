@@ -1,11 +1,12 @@
 """Intervals in Theano including special functions for sparsifying."""
 
+from athenet.sparsifying.utils.numlike import Numlike
 from theano import function
 from theano import tensor as T
 from theano.ifelse import ifelse
 
 
-class Interval(object):
+class Interval(Numlike):
     """Theano interval class
 
     Note: Should be treated as interval type with bounds as Theano nodes.
@@ -218,3 +219,4 @@ class Interval(object):
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
         return (rlower, rupper)
+

@@ -5,20 +5,20 @@ import numpy as np
 import theano
 import theano.tensor as T
     
-def conv(self):
+def conv():
     pass
 
-def dropout(self):
+def dropout():
     pass
 
-def fully_connected(self):
+def fully_connected():
     pass
 
-def norm(self):
+def norm():
     pass
 
-def pool(self):
+def pool():
     pass
 
-def softmax(self):
+def softmax():
     pass
