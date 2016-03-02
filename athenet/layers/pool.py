@@ -15,13 +15,16 @@ class MaxPool(Layer):
         """
         super(MaxPool, self).__init__()
         self.poolsize = poolsize
-        self.stride = stride
+        if stride is None:
+            self.stride = poolsize
+        else:
+            self.stride = stride
 
     @property
     def output_shape(self):
         image_h, image_w, n_channels = self.input_shape
         pool_h, pool_w = self.poolsize
-        if self.stride:
+        if self.stride is not None:
             stride_h, stride_w = self.stride
         else:
             stride_h, stride_w = pool_h, pool_w
@@ -37,9 +40,13 @@ class MaxPool(Layer):
                                           image height, image width).
         :return: Layer output.
         """
+        if self.stride == self.poolsize:
+            stride = None
+        else:
+            stride = self.stride
         return downsample.max_pool_2d(
             input=layer_input,
             ds=self.poolsize,
             ignore_border=True,
-            st=self.stride
+            st=stride
         )
