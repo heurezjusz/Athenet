@@ -126,7 +126,7 @@ class Interval(object):
         # If 0 is within interval, returns 1/0 that, we hope, will throw
         # some exception on the device. Be careful with this.
 
-        # Input check below couses program interrupt if any _has_zero happened.
+        # Input check below causes program interrupt if any _has_zero happened.
         # return Interval(switch(self._has_zero(),
         #                       T.constant(1)/T.constant(0),
         #                       T.inv(self.upper)),
@@ -159,6 +159,9 @@ class Interval(object):
 
         Note: If interval contains some elements lower/equal to 0, exponent
         should be integer."""
+        # If You want to understand what is happening here, make plot of
+        # f(x, y) = x^y domain. 'if's divide this domain with respect to
+        # monocity.
         le = T.pow(self.lower, exponent)
         ue = T.pow(self.upper, exponent)
         l, u = None, None
