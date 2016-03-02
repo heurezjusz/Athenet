@@ -76,7 +76,7 @@ def simple_neuron_deleter2(network, config):
             #(value, number of column (and row), column_layer_id, row_layer_id)
             assert weights[i][1][j][1] == weights[i + 1][0][j][1]
             considered_neurons.append(
-                (weights[i][1][j][0] * weights[i + 1][0][j][1],
+                (weights[i][1][j][0] * weights[i + 1][0][j][0],
                  weights[i][1][j][1],
                  weights[i][1][j][2],
                  weights[i + 1][0][j][2])
