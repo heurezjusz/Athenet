@@ -5,9 +5,10 @@ import theano.tensor as T
 import numpy as np
 from unittest import TestCase, main
 
+import athenet
 from athenet import Network
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
-    Activation, ReLU
+    ActivationLayer, ReLU
 from athenet.data_loader import DataLoader
 
 
@@ -21,7 +22,7 @@ class TestNetworkBasics(TestCase):
                                filter_shape=(5, 5, 3)),
             ReLU(),
             ConvolutionalLayer(filter_shape=(5, 5, 3)),
-            Activation(foo),
+            ActivationLayer(foo),
             FullyConnectedLayer(10),
             ReLU(),
             Softmax(),
@@ -79,8 +80,13 @@ class TestTrainingProcess(TestCase):
                     data_in.append([[[1. * i, 1. * j, 1. * k]]])
                     data_out.append([i ^ j ^ k])
         net.data_loader = DummyDataLoader(data_in, data_out)
+        net.verbosity = 0
         net.snapshot_interval = 0  # don't save snapshots
-        net.train(n_epochs=500, learning_rate=0.01, batch_size=1)
+        config = athenet.TrainConfig()
+        config.n_epochs = 500
+        config.batch_size = 1
+        config.learning_rate = 0.01
+        net.train(config)
 
         net.batch_size = 3
         correct = 0.
