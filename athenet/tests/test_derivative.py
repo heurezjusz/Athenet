@@ -10,8 +10,20 @@ from theano import function
 from athenet.sparsifying.utils.interval import Interval
 from athenet.sparsifying.derest.activation import *
 
-class ActivationEstimatingTest(unittest.TestCase):
+class FullyConnectedDerivativeTest(unittest.TestCase):
+    pass
 
-    def test_pool(self):
-        #TODO
-        pass
+class ConvolutionalDerivativeTest(unittest.TestCase):
+    pass
+
+class MaxPoolDerivativeTest(unittest.TestCase):
+    pass
+
+class SoftmaxDerivativeTest(unittest.TestCase):
+    pass
+
+class LRNDerivativeTest(unittest.TestCase):
+    pass
+
+class DropoutDerivativeTest(unittest.TestCase):
+    pass
