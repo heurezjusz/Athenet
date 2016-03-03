@@ -5,20 +5,21 @@ from theano.tensor.signal import downsample
 from athenet.layers import Layer
 
 
-class MaxPool(Layer):
-    """Max-pooling layer."""
-    def __init__(self, poolsize, stride=None):
-        """Create max-pooling layer.
+class PoolingLayer(Layer):
+    """Pooling layer."""
+    def __init__(self, poolsize, stride=None, mode='max'):
+        """Create pooling layer.
 
         :poolsize: Pooling factor in the format (height, width).
         :stride: Pair representing interval at which to apply the filters.
         """
-        super(MaxPool, self).__init__()
+        super(PoolingLayer, self).__init__()
         self.poolsize = poolsize
         if stride is None:
             self.stride = poolsize
         else:
             self.stride = stride
+        self.mode = mode
 
     @property
     def output_shape(self):
@@ -44,9 +45,27 @@ class MaxPool(Layer):
             stride = None
         else:
             stride = self.stride
+        if self.mode == 'avg':
+            mode = 'average_exc_pad'
+        else:
+            mode = self.mode
+
         return downsample.max_pool_2d(
             input=layer_input,
             ds=self.poolsize,
             ignore_border=True,
-            st=stride
+            st=stride,
+            mode=mode,
         )
+
+
+class MaxPool(PoolingLayer):
+    def __init__(self, poolsize, stride=None):
+        """Create max-pooling layer."""
+        super(MaxPool, self).__init__(poolsize, stride, 'max')
+
+
+class AvgPool(PoolingLayer):
+    def __init__(self, poolsize, stride=None):
+        """Create average-pooling layer."""
+        super(AvgPool, self).__init__(poolsize, stride, 'avg')
