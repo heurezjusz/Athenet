@@ -1,13 +1,5 @@
 """Data loader."""
 
-from enum import Enum
-
-
-class DataType(Enum):
-    training_data = 1
-    validation_data = 2
-    test_data = 3
-
 
 class DataLoader(object):
     """Provides input and output data for a network."""
@@ -49,11 +41,11 @@ class DataLoader(object):
         :data_type: Instance of DataType.
         :return: Number of batches.
         """
-        if data_type == DataType.training_data:
+        if data_type == 'training_data':
             return self.n_train_batches
-        elif data_type == DataType.validation_data:
+        elif data_type == 'validation_data':
             return self.n_val_batches
-        elif data_type == DataType.test_data:
+        elif data_type == 'test_data':
             return self.n_test_batches
         return None
 
@@ -64,11 +56,11 @@ class DataLoader(object):
         :data_type: Instance of DataType.
         :return: Input data.
         """
-        if data_type == DataType.training_data:
+        if data_type == 'training_data':
             return self.train_input(batch_index)
-        elif data_type == DataType.validation_data:
+        elif data_type == 'validation_data':
             return self.val_input(batch_index)
-        elif data_type == DataType.test_data:
+        elif data_type == 'test_data':
             return self.test_input(batch_index)
         return None
 
@@ -79,11 +71,11 @@ class DataLoader(object):
         :data_type: Instance of DataType.
         :return: Output data.
         """
-        if data_type == DataType.training_data:
+        if data_type == 'training_data':
             return self.train_output(batch_index)
-        elif data_type == DataType.validation_data:
+        elif data_type == 'validation_data':
             return self.val_output(batch_index)
-        elif data_type == DataType.test_data:
+        elif data_type == 'test_data':
             return self.test_output(batch_index)
         return None
 
@@ -93,11 +85,11 @@ class DataLoader(object):
         :batch_index: Minibatch index.
         :data_type: Instance of DataType.
         """
-        if data_type == DataType.training_data:
+        if data_type == 'training_data':
             self.load_train_data(batch_index)
-        elif data_type == DataType.validation_data:
+        elif data_type == 'validation_data':
             self.load_val_data(batch_index)
-        elif data_type == DataType.test_data:
+        elif data_type == 'test_data':
             self.load_test_data(batch_index)
 
     def train_input(self, batch_index):

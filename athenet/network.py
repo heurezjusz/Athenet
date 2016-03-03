@@ -8,13 +8,7 @@ import theano
 import theano.tensor as T
 
 from athenet.layers import WeightedLayer, ConvolutionalLayer
-from athenet.data_loader import DataType
 from athenet.utils import overwrite, save_data_to_pickle
-
-
-class ValUnits(Enum):
-    epochs = 1
-    batches = 2
 
 
 class TrainConfig(object):
@@ -28,7 +22,7 @@ class TrainConfig(object):
         self.weight_decay = 0.
 
         self.val_interval = 1
-        self.val_units = ValUnits.epochs
+        self.val_units = 'epochs'
 
         self.val_range = 4
         self.learning_rate_decay = 1.
@@ -126,7 +120,7 @@ class Network(object):
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
-        return self._get_accuracy(top_range, DataType.test_data)
+        return self._get_accuracy(top_range, 'test_data')
 
     def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
@@ -138,7 +132,7 @@ class Network(object):
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
-        return self._get_accuracy(top_range, DataType.validation_data)
+        return self._get_accuracy(top_range, 'validation_data')
 
     def _get_accuracy(self, top_range, data_type):
         return_list = isinstance(top_range, list)
@@ -244,7 +238,7 @@ class Network(object):
             self.batch_size = config.batch_size
 
         val_interval = config.val_interval
-        if config.val_units == ValUnits.epochs:
+        if config.val_units == 'epochs':
             val_interval *= self.data_loader.n_train_batches
 
         self.layers[-1].set_cost(self._correct_answers)
