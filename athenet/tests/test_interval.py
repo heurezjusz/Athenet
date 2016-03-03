@@ -166,6 +166,50 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(rsqu, thsqu)
 
     def test_ops3(self):
+        # __div__, __rdiv__
+        l1, l2, u1, u2 = T.vectors('l1', 'l2', 'u1', 'u2')
+        i1 = Interval(l1, u1)
+        i2 = Interval(l2, u2)
+        r1 = i1 / i2
+        v1l = np.array([3.0, -4.0, 3.0, -4.0, -4.0, -4.0])
+        v1u = np.array([4.0, -3.0, 4.0, -3.0, 3.0, 3.0])
+        v2l = np.array([5.0, 5.0, -6.0, -6.0, 5.0, -6.0])
+        v2u = np.array([6.0, 6.0, -5.0, -5.0, 6.0, -5.0])
+        d12 = {l1: v1l, l2: v2l, u1: v1u, u2: v2u}
+        res1 = r1.eval(d12)
+        ll = 3.0 / 5.0
+        lu = 3.0 / 6.0
+        ul = 4.0 / 5.0
+        uu = 4.0 / 6.0
+        ans1l = np.array([lu, -ul, -ul, lu, -ul, -ll])
+        ans1u = np.array([ul, -lu, -lu, ul, ll, ul])
+        vl = np.array([-4.0, -4.0, 3.0])
+        vu = np.array([-3.0, 3.0, 4.0])
+        v = 7.0
+        d1 = {l1: vl, u1: vu}
+        r2 = i1 / v
+        res2 = r2.eval(d1)
+        l = 3.0 / 7.0
+        u = 4.0 / 7.0
+        ans2l = np.array([-u, -u, l])
+        ans2u = np.array([-l, l, u])
+        vl = np.array([-4.0, 3.0])
+        vu = np.array([-3.0, 4.0])
+        d1 = {l1: vl, u1: vu}
+        r3 = v / i1
+        res3 = r3.eval(d1)
+        l = 7.0 / 3.0
+        u = 7.0 / 4.0
+        ans3l = np.array([-l, u])
+        ans3u = np.array([-u, l])
+        assert_array_almost_equal(res1[0], ans1l)
+        assert_array_almost_equal(res1[1], ans1u)
+        assert_array_almost_equal(res2[0], ans2l)
+        assert_array_almost_equal(res2[1], ans2u)
+        assert_array_almost_equal(res3[0], ans3l)
+        assert_array_almost_equal(res3[1], ans3u)
+
+    def test_ops4(self):
         # power
         x, y = T.vectors('x', 'y')
         i = Interval(x, y)

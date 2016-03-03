@@ -63,6 +63,7 @@ class Numlike(object):
         raise NotImplementedError
 
     def __div__(self, other):
+        """Returns quotient of self and other."""
         raise NotImplementedError
 
     def reciprocal(self):

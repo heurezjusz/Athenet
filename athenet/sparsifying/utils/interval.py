@@ -114,6 +114,53 @@ class Interval(Numlike):
 
     __rmul__ = __mul__
 
+    def __div__(self, other):
+        """Returns quotient of self and other.
+
+        other: Divisor.
+
+        Note: Divisor should not contain zero."""
+        lower = self.lower
+        upper = self.upper
+        if isinstance(other, Interval):
+            o_lower = other.lower
+            o_upper = other.upper
+            A = T.switch(T.gt(o_lower, 0.0), 1, 0)  # not(b_la), b_ua
+            B = T.switch(T.gt(lower, 0.0), 1, 0)
+            C = T.switch(T.gt(upper, 0.0), 1, 0)
+            b_lb = T.or_(T.and_(A, B),
+                         T.and_(1 - A, C))
+            b_ub = T.or_(1 - T.or_(A, B),
+                         T.and_(A, 1 - C))
+            la = T.switch(A, lower, upper)
+            ua = T.switch(A, upper, lower)
+            lb = T.switch(b_lb, o_upper, o_lower)
+            ub = T.switch(b_ub, o_upper, o_lower)
+            return Interval(la / lb, ua / ub)
+        else:
+            if other > 0:
+                return Interval(lower / other, upper / other)
+            else:
+                return Interval(upper / other, lower / other)
+
+    def __rdiv__(self, other):
+        """Returns quotient of other and self.
+
+        other: Divident.
+
+        Note: Divisor should not contain zero."""
+        if isinstance(other, Interval):
+            # Should never happen. __div__ should be used instead.
+            raise NotImplementedError
+        else:
+            lower = self.lower
+            upper = self.upper
+            l_o = (other > 0)
+            if l_o:
+                return Interval(other / upper, other / lower)
+            else:
+                return Interval(other / lower, other / upper)
+
     def _has_zero(self):
         """For any interval in Interval, returns whether is contains zero."""
         return T.and_(T.lt(self.lower, 0), T.gt(self.upper, 0))
@@ -219,4 +266,3 @@ class Interval(Numlike):
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
         return (rlower, rupper)
-
