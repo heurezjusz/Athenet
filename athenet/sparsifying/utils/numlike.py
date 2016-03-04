@@ -97,3 +97,7 @@ class Numlike(object):
     def dot(self, other):
         """Dot product of numlike vector and a number array (other)."""
         raise NotImplementedError
+
+    def max(self, other):
+        """Returns maximum of self and other."""
+        raise NotImplementedError

@@ -77,6 +77,10 @@ class NumlikeTest(unittest.TestCase):
         w = np.array([[1, 2], [3, 4]])
         res = Numlike().dot(w)
 
+    @raises(NotImplementedError)
+    def test_max(self):
+        res = Numlike().max(Numlike())
+
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
 

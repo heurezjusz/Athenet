@@ -248,6 +248,12 @@ class Interval(Numlike):
         # batches.
         raise NotImplementedError
 
+    def max(self, other):
+        """Returns interval such that for any (x, y) in (self, other),
+        max(x, y) is in result and no other."""
+        return Interval(T.maximum(self.lower, other.lower),
+                        T.maximum(self.upper, other.upper))
+
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method."""
         has_args = (len(eval_map) != 0)
