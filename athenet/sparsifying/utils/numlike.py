@@ -16,16 +16,18 @@ class Numlike(object):
         pass
 
     def __getitem__(self, at):
-        """Returns specified slice of numlike
+        """Returns specified slice of numlike.
 
-        at: Coordinates / slice to be taken."""
+        :at: Coordinates / slice to be taken.
+        """
         raise NotImplementedError
 
     def __setitem__(self, at, other):
         """Just like Theano set_subtensor function, but as a operator.
 
-        at: Coordinates / slice to be set.
-        other: Data to be put at 'at'"""
+        :at: Coordinates / slice to be set.
+        :other: Data to be put at 'at'.
+        """
         raise NotImplementedError
 
     def shape(self):
@@ -35,7 +37,8 @@ class Numlike(object):
     def __add__(self, other):
         """Returns sum of two numlikes.
 
-        other: numlike."""
+        :other: numlike.
+        """
         raise NotImplementedError
 
     def __radd__(self, other):
@@ -44,19 +47,22 @@ class Numlike(object):
     def __sub__(self, other):
         """Returns difference between two numlikes.
 
-        other: numlike to be subtracted."""
+        :other: numlike to be subtracted.
+        """
         raise NotImplementedError
 
     def __rsub__(self, other):
         """Returns diffeerence between number and numlike.
 
-        other: A number that self will be subtracted from."""
+        :other: A number that self will be subtracted from.
+        """
         raise NotImplementedError
 
     def __mul__(self, other):
         """Returns product of two numlikes.
 
-        other: numlike to be multiplied."""
+        :other: numlike to be multiplied.
+        """
         raise NotImplementedError
 
     def __rmul__(self, other):
@@ -71,7 +77,7 @@ class Numlike(object):
         raise NotImplementedError
 
     def neg(self):
-        """Returns (-1) * numlike"""
+        """Returns (-1) * numlike."""
         raise NotImplementedError
 
     def exp(self):
@@ -85,9 +91,9 @@ class Numlike(object):
     def power(self, exponent):
         """For numlike N, returns N^exponent.
 
-        exponent: Number to be passed as exponent to N^exponent."""
+        :exponent: Number to be passed as exponent to N^exponent."""
         raise NotImplementedError
 
     def dot(self, other):
-        """Dot product of numlike vector and a number array (other)"""
+        """Dot product of numlike vector and a number array (other)."""
         raise NotImplementedError
