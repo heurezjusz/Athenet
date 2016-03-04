@@ -15,8 +15,8 @@ class Interval(Numlike):
     def __init__(self, lower, upper):
         """Creates interval.
 
-        lower: lower bound of Interval to be set
-        upper: upper bound if Interval to be set
+        :lower: lower bound of Interval to be set
+        :upper: upper bound if Interval to be set
 
         Note: lower must be lower than upper. It is not being checked."""
         self.lower = lower
@@ -25,7 +25,7 @@ class Interval(Numlike):
     def __getitem__(self, at):
         """Returns specified slice of interval as a interval.
 
-        at: Coordinates / slice to be taken.
+        :at: Coordinates / slice to be taken.
 
         Does not copy data."""
         return Interval(self.lower[at], self.upper[at])
@@ -33,8 +33,8 @@ class Interval(Numlike):
     def __setitem__(self, at, other):
         """Just like Theano set_subtensor function, but as a operator.
 
-        at: Coordinates / slice to be set.
-        other: Data to be put at 'at'
+        :at: Coordinates / slice to be set.
+        :other: Data to be put at 'at'
 
         """
         self.lower = T.set_subtensor(self.lower[at], other.lower)
@@ -58,7 +58,7 @@ class Interval(Numlike):
     def __add__(self, other):
         """Returns sum of two intervals.
 
-        other: Interval to be added."""
+        :other: Interval to be added."""
         if isinstance(other, Interval):
             res_lower = self.lower + other.lower
             res_upper = self.upper + other.upper
@@ -72,7 +72,7 @@ class Interval(Numlike):
     def __sub__(self, other):
         """Returns difference between two intervals.
 
-        other: Interval to be subtracted."""
+        :other: Interval to be subtracted."""
         if isinstance(other, Interval):
             res_lower = self.lower - other.upper
             res_upper = self.upper - other.lower
@@ -84,7 +84,7 @@ class Interval(Numlike):
     def __rsub__(self, other):
         """Returns diffeerence between number and interval.
 
-        other: A number that self will be subtracted from."""
+        :other: A number that self will be subtracted from."""
         res_lower = other - self.upper
         res_upper = other - self.lower
         return Interval(res_lower, res_upper)
@@ -92,7 +92,7 @@ class Interval(Numlike):
     def __mul__(self, other):
         """Returns product of two intervals.
 
-        other: Interval to be multiplied."""
+        :other: Interval to be multiplied."""
         if isinstance(other, Interval):
             ll = self.lower * other.lower
             lu = self.lower * other.upper
@@ -117,7 +117,7 @@ class Interval(Numlike):
     def __div__(self, other):
         """Returns quotient of self and other.
 
-        other: Divisor.
+        :other: Divisor.
 
         Note: Divisor should not contain zero."""
         lower = self.lower
@@ -146,7 +146,7 @@ class Interval(Numlike):
     def __rdiv__(self, other):
         """Returns quotient of other and self.
 
-        other: Divident.
+        :other: Divident.
 
         Note: Divisor should not contain zero."""
         if isinstance(other, Interval):
@@ -203,7 +203,7 @@ class Interval(Numlike):
     def power(self, exponent):
         """For interval i, returns i^exponent.
 
-        exponent: Number to be passed as exponent to i^exponent.
+        :exponent: Number to be passed as exponent to i^exponent.
 
         Note: If interval contains some elements lower/equal to 0, exponent
         should be integer."""
