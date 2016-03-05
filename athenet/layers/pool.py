@@ -10,7 +10,7 @@ class MaxPool(Layer):
     def __init__(self, poolsize, stride=None):
         """Create max-pooling layer.
 
-        :poolsize: Pooling factor in the format (height, width).
+        :poolsize: Shape of pooling filter in the format (height, width).
         :stride: Pair representing interval at which to apply the filters.
         """
         super(MaxPool, self).__init__()
