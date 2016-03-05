@@ -1,4 +1,4 @@
-""" Tests for network """
+"""Tests for network."""
 
 import theano
 import theano.tensor as T

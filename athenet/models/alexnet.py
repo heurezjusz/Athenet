@@ -8,8 +8,7 @@ from athenet.utils import load_data, get_bin_path
 ALEXNET_FILENAME = 'alexnet_weights.pkl.gz'
 
 
-def alexnet(trained=True, weights_filename=ALEXNET_FILENAME,
-            weights_url=None):
+def alexnet(trained=True, weights_filename=ALEXNET_FILENAME, weights_url=None):
     if trained:
         weights = load_data(get_bin_path(weights_filename), weights_url)
         if weights is None:
