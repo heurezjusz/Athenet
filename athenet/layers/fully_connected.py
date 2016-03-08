@@ -10,13 +10,13 @@ from athenet.layers import WeightedLayer
 
 class FullyConnectedLayer(WeightedLayer):
     """Fully connected layer."""
-    def __init__(self, n_out, n_in=None):
+    def __init__(self, n_out, n_in=None, input_layer_name=None, name='fc'):
         """Create fully connected layer.
 
         :n_out: Number of output neurons.
         :n_in: Number of input neurons.
         """
-        super(FullyConnectedLayer, self).__init__()
+        super(FullyConnectedLayer, self).__init__(input_layer_name, name)
         self._n_in = None
         self.W_shared = None
 

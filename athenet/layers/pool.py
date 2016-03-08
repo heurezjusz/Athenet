@@ -7,13 +7,14 @@ from athenet.layers import Layer
 
 class PoolingLayer(Layer):
     """Pooling layer."""
-    def __init__(self, poolsize, stride=None, mode='max'):
+    def __init__(self, poolsize, stride=None, mode='max',
+                 input_layer_name=None, name='pool'):
         """Create pooling layer.
 
         :poolsize: Pooling factor in the format (height, width).
         :stride: Pair representing interval at which to apply the filters.
         """
-        super(PoolingLayer, self).__init__()
+        super(PoolingLayer, self).__init__(input_layer_name, name)
         self.poolsize = poolsize
         if stride is None:
             self.stride = poolsize
@@ -60,12 +61,16 @@ class PoolingLayer(Layer):
 
 
 class MaxPool(PoolingLayer):
-    def __init__(self, poolsize, stride=None):
+    def __init__(self, poolsize, stride=None, input_layer_name=None,
+                 name='max_pool'):
         """Create max-pooling layer."""
-        super(MaxPool, self).__init__(poolsize, stride, 'max')
+        super(MaxPool, self).__init__(poolsize, stride, 'max',
+                                      input_layer_name, name)
 
 
 class AvgPool(PoolingLayer):
-    def __init__(self, poolsize, stride=None):
+    def __init__(self, poolsize, stride=None, input_layer_name=None,
+                 name='avg_pool'):
         """Create average-pooling layer."""
-        super(AvgPool, self).__init__(poolsize, stride, 'avg')
+        super(AvgPool, self).__init__(poolsize, stride, 'avg',
+                                      input_layer_name, name)

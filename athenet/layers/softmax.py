@@ -8,6 +8,9 @@ from athenet.layers import Layer
 
 class Softmax(Layer):
     """Softmax layer."""
+    def __init__(self, input_layer_name=None, name='softmax'):
+        super(Softmax, self).__init__(input_layer_name, name)
+
     def _get_output(self, layer_input):
         return softmax(layer_input)
 

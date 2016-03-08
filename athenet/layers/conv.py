@@ -12,7 +12,8 @@ from athenet.utils import cudnn_available
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
     def __init__(self, filter_shape, image_shape=None, stride=(1, 1),
-                 padding=(0, 0), n_groups=1, batch_size=1):
+                 padding=(0, 0), n_groups=1, input_layer_name=None,
+                 name='conv'):
         """Create convolutional layer.
 
         :filter_shape: Filter shape in the format
@@ -25,17 +26,16 @@ class ConvolutionalLayer(WeightedLayer):
         :n_groups: Number of groups input and output channels will be split
                    into. Two channels are connected only if they belong to the
                    same group.
-        :batch_size: Minibatch size.
         """
-        super(ConvolutionalLayer, self).__init__()
+        super(ConvolutionalLayer, self).__init__(input_layer_name, name)
         self._image_shape = None
 
         self.filter_shape = filter_shape
         self.stride = stride
         self.padding = padding
         self.n_groups = n_groups
-        self.batch_size = batch_size
         self.image_shape = image_shape
+        self.batch_size = 1
 
     @property
     def image_shape(self):

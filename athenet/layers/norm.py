@@ -8,7 +8,8 @@ from athenet.layers import Layer
 
 class LRN(Layer):
     """Local Response Normalization layer."""
-    def __init__(self, local_range=5, k=1, alpha=0.0002, beta=0.75):
+    def __init__(self, local_range=5, k=1, alpha=0.0002, beta=0.75,
+                 input_layer_name=None, name='lrn'):
         """Create Local Response Normalization layer.
 
         :local_range: Local channel range. Should be odd,
@@ -17,7 +18,7 @@ class LRN(Layer):
         :alpha: The scaling parameter.
         :beta: The exponent.
         """
-        super(LRN, self).__init__()
+        super(LRN, self).__init__(input_layer_name, name)
         if local_range % 2 == 0:
             local_range += 1
         self.local_range = local_range

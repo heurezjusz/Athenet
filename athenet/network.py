@@ -71,6 +71,10 @@ class Network(object):
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
+        self.layers_dict = {}
+        for layer in self.layers:
+            if layer.name is not None:
+                self.layers_dict[layer.name] = layer
         self.batch_size = 1
 
     @property
@@ -100,8 +104,11 @@ class Network(object):
         for layer in self.convolutional_layers:
             layer.batch_size = self.batch_size
         self.layers[0].input = self._input
-        for i in xrange(1, len(self.layers)):
-            self.layers[i].input_layer = self.layers[i-1]
+        for layer, prev_layer in zip(self.layers[1:], self.layers[:-1]):
+            if layer.input_layer_name is not None:
+                layer.input_layer = self.layers_dict[layer.input_layer_name]
+            else:
+                layer.input_layer = prev_layer
 
         output = self.layers[-1].output
         self.answers = T.argsort(-output, axis=1)

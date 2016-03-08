@@ -7,15 +7,17 @@ import theano
 
 class Layer(object):
     """Network layer."""
-    def __init__(self):
+    def __init__(self, input_layer_name=None, name='layer'):
         self.output = None
         self.train_output = None
         self.cost = None
         self._input_shape = None
-
         self._input = None
         self._train_input = None
         self._input_layer = None
+
+        self.name = name
+        self.input_layer_name = input_layer_name
 
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for given layer.
@@ -90,9 +92,9 @@ class Layer(object):
 
 class WeightedLayer(Layer):
     """Layer with weights and biases."""
-    def __init__(self):
+    def __init__(self, input_layer_name=None, name='weight_layer'):
         """Create weighted layer."""
-        super(WeightedLayer, self).__init__()
+        super(WeightedLayer, self).__init__(input_layer_name, name)
         self.W_shared = None
         self.b_shared = None
         self.W_velocity = None
