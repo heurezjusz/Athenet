@@ -72,7 +72,10 @@ class TrainConfig(object):
 
 
 class Network(object):
-    """Neural network."""
+    """Neural network.
+
+    :verbosity: Level of network's verbosity. Integer value between 0 and 3. Default 1.
+    """
     def __init__(self, layers):
         """Create neural network.
 

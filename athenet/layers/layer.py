@@ -117,7 +117,13 @@ class WeightedLayer(Layer):
         self.b_shared.set_value(value)
 
     def alloc_velocity(self):
-        """Create velocity tensors for weights and biases."""
+        """Create velocity tensors for weights and biases.
+
+        Velocity tensors have the same size as corresponding weights and biases
+        tensors, so note that creating velocities results in doubling size of
+        the layer.
+        Velocity tensors should be freed after training to save device memory.
+        """
         self.W_velocity = theano.shared(
             np.zeros_like(self.W, dtype=theano.config.floatX),
             borrow=True)
