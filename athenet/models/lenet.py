@@ -4,6 +4,7 @@ from athenet import Network
 from athenet.layers import ReLU, Softmax, MaxPool, FullyConnectedLayer, \
     ConvolutionalLayer
 from athenet.utils import load_data, get_bin_path
+from athenet.utils.mnist_data_loader import MNISTDataLoader
 
 LENET_FILENAME = 'lenet_weights.pkl.gz'
 LENET_URL = 'http://students.mimuw.edu.pl/~wg346897/hosting/athenet/' \
@@ -38,4 +39,5 @@ def lenet(trained=True, weights_filename=LENET_FILENAME,
             lenet.set_params(weights)
         else:
             raise Exception("cannot load LeNet weights")
+        lenet.data_loader = MNISTDataLoader()
     return lenet
