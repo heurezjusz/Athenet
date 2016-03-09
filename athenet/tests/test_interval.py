@@ -72,7 +72,7 @@ class IntervalTest(unittest.TestCase):
         i1 = Interval(x, y)
         ex_x = np.array([[2, 3], [5, 6], [8, 9]])
         ex_y = 10 * ex_x
-        shp = i1.shape()
+        shp = i1.shape
         rshp = shp.eval({x: ex_x})
         assert_equal(len(rshp), 2)
         assert_equal(rshp[0], 3)

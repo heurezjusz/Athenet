@@ -89,6 +89,14 @@ class NumlikeTest(unittest.TestCase):
     def test_flatten(self):
         res = Numlike().flatten()
 
+    @raises(NotImplementedError)
+    def test_sum(self):
+        res = Numlike().sum(0)
+
+    @raises(NotImplementedError)
+    def test_T(self):
+        res = Numlike().T
+
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
 

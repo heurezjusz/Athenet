@@ -13,6 +13,8 @@ from athenet.sparsifying.derest.activation import *
 
 A = np.array
 
+theano.config.exception_verbosity = 'high'
+
 def prepare(self):
     self.v = np.arange(24) + 3.0
     self.at_v = 0
@@ -26,9 +28,11 @@ def s(self):
     return ret
 
 def make_arr(self, shp):
-    a = np.array(np.prod(shp))
-    a.resize(shp)
-    return a
+    sz = np.prod(shp)
+    a = np.ndarray(sz)
+    for i in range(sz):
+        a[i] = self.s()
+    return a.reshape(shp)
 
 class FullyConnectedActivationTest(unittest.TestCase):
 
@@ -38,44 +42,46 @@ class FullyConnectedActivationTest(unittest.TestCase):
 
     def test1DSimple(self):
         s, v, m = self.prepare()
-        #arae(fully_connected(1, 2, 0), A([2]))
+        res = fully_connected(A([1]), A([2]), A([0]))
+        arae(res, A([2]))
 
     def test2DSimpleUsed1DOfWeights(self):
         s, v, m = self.prepare()
-        inp, w, b = m(2), m(2), 1.0
-        #arae(fully_connected(inp, w, b), v[0] * v[2] + v[1] * v[3] + 1.0)
+        inp, w, b = m(2), m(2), A([1.0])
+        res = fully_connected(inp, w, b)
+        arae(res, A([v[0] * v[2] + v[1] * v[3] + 1.0]))
 
     def test2DSimpleUSed2DOfWeights(self):
         s, v, m = self.prepare()
-        inp = m(2)
+        inp = m(1)
         w = m((1, 2))
-        b = A([1.0])
-        #arae(fully_connected(inp, w, b), A([v[0] * v[1] + v[3],
-        #        v[0] * v[2] + v[4]])
+        b = m(2)
+        arae(fully_connected(inp, w, b), A([v[0] * v[1] + v[3],
+                v[0] * v[2] + v[4]]))
 
     def test2DSimple(self):
         s, v, m = self.prepare()
         inp = m(2)
         w = m((2, 2))
         b = m(2)
-        #arae(fully_connected(inp, w, b), A(v[0] * v[2] + v[1] * v[4] + v[6],
-        #        v[0] * v[3] + v[1] * v[5] + v[7])
+        arae(fully_connected(inp, w, b), A([v[0] * v[2] + v[1] * v[4] + v[6],
+                v[0] * v[3] + v[1] * v[5] + v[7]]))
 
-    def test3D(self):
+    def test2D2(self):
         s, v, m = self.prepare()
         inp = m(4)
-        w = m((2, 2, 2))
+        w = m((4, 2))
         b = m(2)
         rl = v[0] * v[4] + v[1] * v[6] + v[2] * v[8] + v[3] * v[10] + v[12]
         ru = v[0] * v[5] + v[1] * v[7] + v[2] * v[9] + v[3] * v[11] + v[13]
-        #arae(fully_connected(inp, w, b), A(rl, ru)
+        arae(fully_connected(inp, w, b), A([rl, ru]))
 
     def test3DUsingIntervals(self):
         s, v, m = self.prepare()
         inpl = m(4)
-        wl = m((2, 2, 2))
+        wl = m((4, 2))
         inpu = m(4)
-        wu = m((2, 2, 2))
+        wu = m((4, 2))
         bl = A([1, 3])
         bu = A([2, 4])
         crl = A([v[0] * v[4] + v[1] * v[6] + v[2] * v[8] + v[3] * v[10] + 1,
@@ -85,15 +91,15 @@ class FullyConnectedActivationTest(unittest.TestCase):
                 v[12] * v[17] + v[13] * v[19] + v[14] * v[21] + \
                 v[15] * v[23] + 4])
         tinpl, tinpu, tbl, tbu = T.dvectors('inpl', 'inpu', 'tbl', 'tbu')
-        wl, wu = T.tensor3s('wl', 'wu')
+        twl, twu = T.matrices('wl', 'wu')
         iinp = I(tinpl, tinpu)
         iw = I(twl, twu)
         ib = I(tbl, tbu)
         res = fully_connected(iinp, iw, ib)
         d = {tinpl: inpl, tinpu: inpu, tbl: bl, tbu: bu, twl: wl, twu: wu}
         (rl, ru) = res.eval(d)
-        #arae(rl, crl)
-        #arae(ru, cru)
+        arae(rl, crl)
+        arae(ru, cru)
 
 class ConvolutionalActivationTest(unittest.TestCase):
 

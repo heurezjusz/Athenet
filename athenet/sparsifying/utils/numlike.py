@@ -30,6 +30,7 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    @property
     def shape(self):
         """Returns shape of numlike."""
         raise NotImplementedError
@@ -108,4 +109,13 @@ class Numlike(object):
 
     def flatten(self, ndim=1):
         """Flattens numlike tensor like theano Tensor."""
+        raise NotImplementedError
+
+    def sum(self, *args):
+        """Vector operation like in numpy.ndarray."""
+        raise NotImplementedError
+
+    @property
+    def T(self):
+        """Vector operation like in numpy.ndarray"""
         raise NotImplementedError

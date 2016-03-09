@@ -48,6 +48,7 @@ class Interval(Numlike):
         """"Standard str method."""
         return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
 
+    @property
     def shape(self):
         """Returns shape of interval. Checks only 'lower' matrix.
 
@@ -241,11 +242,13 @@ class Interval(Numlike):
 
     def dot(self, other):
         """Dot product of Interval(self) vector and a number array (other)"""
-        # Requires project decision that could be better made after checking
-        # number of weights, edges and neurons in considered networks.
-        # TODO: Decide how to implement this. Decide whether not to consider
-        # batch in this implementation as it will be probably only used for
-        # batches.
+        # After first results, might be changed to save more memory / time
+        lower_dot = T.dot(self.lower, other)
+        upper_dot = T.dot(self.upper, other)
+        lower_res = T.minimum(lower_dot, upper_dot)
+        upper_res = T.maximum(lower_dot, upper_dot)
+        return Interval(lower_res, upper_res)
+
         raise NotImplementedError
 
     def max(self, other):
@@ -263,6 +266,17 @@ class Interval(Numlike):
         """Flattens interval tensor like theano Tensor."""
         return Interval(self.lower.flatten(ndim),
                         self.upper.flatten(ndim))
+
+    def sum(self, *args):
+        """Vector operation like in numpy.ndarray."""
+        return Interval(self.lower.sum(*args),
+                        self.upper.sum(*args))
+
+    @property
+    def T(self):
+        """Vector operation like in numpy.ndarray."""
+        return Interval(self.lower.T,
+                        self.upper.T)
 
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method."""
