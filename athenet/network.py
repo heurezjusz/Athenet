@@ -20,13 +20,14 @@ class TrainConfig(object):
     :learning_rate: Learning rate.
     :momentum: Momentum. Default 0.
     :weight_decay: Weight decay. Default 0.
-    :val_interval: Specifies number of iterations between each validation
-                   accuracy testing. Default 1.
+    :val_interval: Specifies number of ``val_interval_units`` between each
+                   validation accuracy testing. Default 1.
     :val_interval_units: 'epochs' or 'batches'. Default 'epochs'.
     :lr_decay: Learning rate decay.
     :lr_decay_interval: Learning rate decay interval. If not None, then
                         learning rate will be multiplied by ``lr_decay`` after
-                        each ''lr_decay_interval'' iterations.
+                        each ``lr_decay_interval`` training units of type
+                        ``lr_decay_interval_units``.
     :lr_decay_interval_units: 'epochs' or 'batches'. Default 'epochs'.
     :lr_decay_threshold: Threshold value for standard deviation of accuracy.
                          If None, then learning rate will be reduced when

@@ -12,6 +12,9 @@ class PoolingLayer(Layer):
 
         :poolsize: Shape of pooling filter in the format (height, width).
         :stride: Pair representing interval at which to apply the filters.
+                 If None, then stride of the size of the pooling filter will be
+                 used.
+        :mode: Pooling method: 'max' or 'avg'. Default 'max'.
         """
         super(PoolingLayer, self).__init__()
         self.poolsize = poolsize
