@@ -49,9 +49,10 @@ class Buffer(object):
             return self._data[key-self._offset]
 
     def __setitem__(self, key, value):
-        """Set buffer data.
+        """Set buffer data. Any previously stored data will be overwritten.
 
-        :key: Indices of minibatches to be stored.
+        :key: Indices of minibatches to be stored. Step must be equal 1, other
+              values of step may be implemented in the future.
         :value: Data to be stored in a buffer.
         """
         if isinstance(key, slice):

@@ -1,4 +1,4 @@
-""" Tests for all layers """
+"""Tests for all layers."""
 
 import theano
 import theano.tensor as T

@@ -2,7 +2,12 @@
 
 
 class DataLoader(object):
-    """Provides input and output data for a network."""
+    """Provides input and output data for a network.
+
+    Base class for providing training, validation and testing data.
+    Methods for loading and returning data should be implemented in all of its
+    subclasses.
+    """
     def __init__(self):
         self._batch_size = None
         self.n_train_batches = None

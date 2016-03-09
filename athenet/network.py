@@ -12,7 +12,29 @@ from athenet.utils import overwrite, save_data_to_pickle
 
 
 class TrainConfig(object):
-    """Class storing information about training process."""
+    """Training configuration.
+
+    :n_epochs: Number of epochs.
+    :batch_size: Number of minibatches (optional, can also be set in Network
+                 class instance).
+    :learning_rate: Learning rate.
+    :momentum: Momentum. Default 0.
+    :weight_decay: Weight decay. Default 0.
+    :val_interval: Specifies number of ``val_interval_units`` between each
+                   validation accuracy testing. Default 1.
+    :val_interval_units: 'epochs' or 'batches'. Default 'epochs'.
+    :lr_decay: Learning rate decay.
+    :lr_decay_interval: Learning rate decay interval. If not None, then
+                        learning rate will be multiplied by ``lr_decay`` after
+                        each ``lr_decay_interval`` training units of type
+                        ``lr_decay_interval_units``.
+    :lr_decay_interval_units: 'epochs' or 'batches'. Default 'epochs'.
+    :lr_decay_threshold: Threshold value for standard deviation of accuracy.
+                         If None, then learning rate will be reduced when
+                         standard deviation of accuracy is below threshold.
+    :lr_decay_val_range: Number of previous iterations' accuracies to include
+                         in standard deviation. Default 4.
+    """
     def __init__(self):
         self.n_epochs = None
         self.batch_size = None
@@ -22,11 +44,14 @@ class TrainConfig(object):
         self.weight_decay = 0.
 
         self.val_interval = 1
-        self.val_units = 'epochs'
+        self.val_interval_units = 'epochs'
 
-        self.val_range = 4
-        self.learning_rate_decay = 1.
-        self.learning_rate_threshold = 1.
+        self.lr_decay = None
+        self.lr_decay_interval = None
+        self.lr_decay_interval_units = 'epochs'
+
+        self.lr_decay_threshold = None
+        self.lr_decay_val_range = 4
 
     def __str__(self):
         output = '{} epochs, minibatch size = {}, learning rate = {}'\
@@ -35,21 +60,27 @@ class TrainConfig(object):
             output += ', momentum = {}'.format(self.momentum)
         if self.weight_decay:
             output += ', weight_decay = {}'.format(self.weight_decay)
-        if self.learning_rate_decay != 1.:
-            output += '\nLearning rate decay = {}: threshold = {}, '\
-                      'validation range = {}'\
-                      .format(self.learning_rate_decay,
-                              self.learning_rate_threshold,
-                              self.val_range)
+        if self.lr_decay_interval is not None or \
+                self.lr_decay_threshold is not None:
+            output += '\nLearning rate decay = {}: '.format(self.lr_decay)
+            if self.lr_decay_interval is not None:
+                output += ', interval = {} {}'.format(
+                    self.lr_decay_interval, self.lr_decay_interval_units)
+            if self.lr_decay_threshold is not None:
+                output += ', threshold = {}, validation range = {}'.format(
+                    self.lr_decay_threshold, self.lr_decay_val_range)
         return output
 
 
 class Network(object):
-    """Neural network."""
+    """Neural network.
+
+    :verbosity: Level of network's verbosity. Integer value between 0 and 3. Default 1.
+    """
     def __init__(self, layers):
         """Create neural network.
 
-        layers: List of network's layers.
+        :layers: List of network's layers.
         """
         self._batch_size = None
         self._data_loader = None
@@ -79,7 +110,7 @@ class Network(object):
 
     @property
     def data_loader(self):
-        """Instance of class athenet.utils.DataLoader."""
+        """Instance of :class:`athenet.data_loader.DataLoader`."""
         return self._data_loader
 
     @data_loader.setter
@@ -232,6 +263,18 @@ class Network(object):
         net_input = np.resize(net_input, (1, n_channels, height, width))
         return self.get_output(net_input)
 
+    def _convert_to_batches(self, interval, units):
+        if interval is None:
+            return None
+        if units == 'epochs':
+            return int(interval * self.data_loader.n_train_batches)
+        return interval
+
+    def _decrease_learning_rate(self, lr, lr_decay):
+        new_lr = np.float32(lr.get_value() * lr_decay)
+        lr.set_value(new_lr)
+        return new_lr
+
     def train(self, config):
         """Train the network.
 
@@ -244,13 +287,15 @@ class Network(object):
         if config.batch_size is not None:
             self.batch_size = config.batch_size
 
-        val_interval = config.val_interval
-        if config.val_units == 'epochs':
-            val_interval *= self.data_loader.n_train_batches
+        val_interval = self._convert_to_batches(config.val_interval,
+                                                config.val_interval_units)
+        lr_decay_interval = self._convert_to_batches(
+            config.lr_decay_interval,
+            config.lr_decay_interval_units)
 
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
-        learning_rate = theano.shared(np.array(config.learning_rate,
+        lr = theano.shared(np.array(config.learning_rate,
                                                dtype=theano.config.floatX))
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
@@ -266,10 +311,9 @@ class Network(object):
             biases_vel = [layer.b_velocity for layer in self.weighted_layers]
 
             weights_vel_updates = [
-                (v, momentum*v - config.weight_decay*learning_rate*w -
-                    learning_rate*der)
+                (v, momentum*v - config.weight_decay*lr*w - lr*der)
                 for w, v, der in zip(weights, weights_vel, weights_grad)]
-            biases_vel_updates = [(v, momentum*v - learning_rate*der)
+            biases_vel_updates = [(v, momentum*v - lr*der)
                                   for v, der in zip(biases_vel, biases_grad)]
 
             weights_updates = [(w, w + v)
@@ -280,10 +324,9 @@ class Network(object):
                 biases_vel_updates + biases_updates
         else:
             weights_updates = [
-                (w, (1. - config.weight_decay*learning_rate)*w -
-                    learning_rate*der)
+                (w, (1. - config.weight_decay*lr)*w - lr*der)
                 for w, der in zip(weights, weights_grad)]
-            biases_updates = [(b, b - learning_rate*der)
+            biases_updates = [(b, b - lr*der)
                               for b, der in zip(biases, biases_grad)]
             updates = weights_updates + biases_updates
 
@@ -299,10 +342,11 @@ class Network(object):
             },
         )
 
-        prev_accuracies = np.zeros(config.val_range)
-        pos = 0
-        cycle_finished = False
         iteration = 0
+        if config.lr_decay_threshold is not None:
+            prev_accuracies = np.zeros(config.val_range)
+            pos = 0
+            cycle_finished = False
         if self.verbosity >= 1:
             print 'Training:'
             print config
@@ -321,31 +365,36 @@ class Network(object):
                         iteration % self.snapshot_interval == 0:
                     self.save_to_file('{}_iteration_{}.pkl.gz'
                                       .format(self.snapshot_name, iteration))
-                if self.data_loader.val_data_available:
-                    if iteration % val_interval == 0:
-                        accuracy = self.val_accuracy()
-                        if self.verbosity >= 1:
-                            print '\tAccuracy on validation data: {:.2f}%'\
-                                  .format(100*accuracy)
-                        if config.learning_rate_decay != 1.:
-                            prev_accuracies[pos] = 100*accuracy
-                            pos = (pos + 1) % config.val_range
-                            if cycle_finished:
-                                lr = learning_rate.get_value()
-                                std = prev_accuracies.std() / lr
-                                if self.verbosity >= 2:
-                                    print '\tstd = {}'.format(std)
-                                if std < config.learning_rate_threshold:
-                                    new_lr = lr * config.learning_rate_decay
-                                    learning_rate.set_value(np.float32(new_lr))
-                                    pos = 0
-                                    cycle_finished = False
-                                    if self.verbosity >= 1:
-                                        print '\tDecrease learning rate'
-                                        print '\tLearning rate: {}'.format(
-                                            learning_rate.get_value())
-                            elif pos == config.val_range - 1:
-                                cycle_finished = True
+                if lr_decay_interval is not None and \
+                        iteration % lr_decay_interval == 0:
+                    new_lr = self._decrease_learning_rate(lr, config.lr_decay)
+                    if self.verbosity >= 1:
+                        print '\tLearning rate = {:.2f}'.format(new_lr)
+
+                if not self.data_loader.val_data_available or \
+                        iteration % val_interval != 0:
+                    continue  # do not check validation accuracy
+                accuracy = self.val_accuracy()
+                if self.verbosity >= 1:
+                    print '\tAccuracy on validation data: {:.2f}%'\
+                          .format(100*accuracy)
+                if config.lr_decay_threshold is not None:
+                    prev_accuracies[pos] = 100*accuracy
+                    pos = (pos + 1) % config.val_range
+                    if cycle_finished:
+                        lr_val = lr.get_value()
+                        std = prev_accuracies.std() / lr_val
+                        if self.verbosity >= 2:
+                            print '\tstandard deviation = {}'.format(std)
+                        if std < config.lr_decay_threshold:
+                            new_lr = self._decrease_learning_rate(
+                                lr, config.lr_decay)
+                            if self.verbosity >= 1:
+                                print '\tLearning rate = {:.2f}'.format(new_lr)
+                            pos = 0
+                            cycle_finished = False
+                    elif pos == config.val_range - 1:
+                        cycle_finished = True
             if self.verbosity >= 1:
                 epoch_end_time = timeit.default_timer()
                 print '\tTime: {:.1f}s'.format(
