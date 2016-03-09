@@ -34,6 +34,7 @@ class ImageNetDataLoader(DataLoader):
         """
         super(ImageNetDataLoader, self).__init__()
         self.buffer_size = buffer_size
+        self.shuffle_train_data = True
 
         base_name = self.name_prefix + str(year)
         self.train_name = base_name + self.train_suffix
@@ -42,17 +43,19 @@ class ImageNetDataLoader(DataLoader):
         if train_data:
             index = 0
             answers = []
-            self.train_files = []
+            train_files = []
             train_dirs = os.listdir(get_bin_path(self.train_name))
             for d in train_dirs:
                 path = os.path.join(self.train_name, d)
                 files = os.listdir(get_bin_path(path))
-                self.train_files += [os.path.join(d, f) for f in files]
+                train_files += [os.path.join(d, f) for f in files]
                 answers += [index for i in range(len(files))]
                 index += 1
+            self.train_files = np.asarray(train_files)
+            self.train_answers = np.asarray(answers)
 
             self._train_in = Buffer(self)
-            self._train_out = theano.shared(np.asarray(answers), borrow=True)
+            self._train_out = theano.shared(self.train_answers, borrow=True)
             self.train_data_available = True
             self.train_set_size = len(answers)
 
@@ -107,8 +110,7 @@ class ImageNetDataLoader(DataLoader):
         if self._val_in.contains(batch_index):
             return
 
-        files = self._get_subset(self.val_files, batch_index,
-                                 self.buffer_size)
+        files = self._get_subset(self.val_files, batch_index, self.buffer_size)
         imgs = self._load_imgs(self.val_name, files)
         self._set_subset(self._val_in, imgs, batch_index, self.buffer_size)
 
@@ -121,6 +123,13 @@ class ImageNetDataLoader(DataLoader):
     def load_train_data(self, batch_index):
         if self._train_in.contains(batch_index):
             return
+
+        # Shuffle images when starting new epoch
+        if batch_index == 0 and self.shuffle_train_data:
+            ind = np.random.permutation(self.train_set_size)
+            self.train_files = self.train_files[ind]
+            self.train_answers = self.train_answers[ind]
+            self._train_out.set_value(self.train_answers, borrow=True)
 
         files = self._get_subset(self.train_files, batch_index,
                                  self.buffer_size)

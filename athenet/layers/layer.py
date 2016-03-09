@@ -1,5 +1,9 @@
 """Layer and WeightedLayer."""
 
+import numpy as np
+
+import theano
+
 
 class Layer(object):
     """Network layer."""
@@ -91,7 +95,8 @@ class WeightedLayer(Layer):
         super(WeightedLayer, self).__init__()
         self.W_shared = None
         self.b_shared = None
-        self.params = None
+        self.W_velocity = None
+        self.b_velocity = None
 
     @property
     def W(self):
@@ -110,3 +115,23 @@ class WeightedLayer(Layer):
     @b.setter
     def b(self, value):
         self.b_shared.set_value(value)
+
+    def alloc_velocity(self):
+        """Create velocity tensors for weights and biases.
+
+        Velocity tensors have the same size as corresponding weights and biases
+        tensors, so note that creating velocities results in doubling size of
+        the layer.
+        Velocity tensors should be freed after training to save device memory.
+        """
+        self.W_velocity = theano.shared(
+            np.zeros_like(self.W, dtype=theano.config.floatX),
+            borrow=True)
+        self.b_velocity = theano.shared(
+            np.zeros_like(self.b, dtype=theano.config.floatX),
+            borrow=True)
+
+    def free_velocity(self):
+        """Remove velocity tensors."""
+        self.W_velocity = None
+        self.b_velocity = None

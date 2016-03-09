@@ -1,5 +1,6 @@
 """Normalization layer."""
 
+import theano
 import theano.tensor as T
 
 from athenet.layers import Layer
@@ -37,7 +38,7 @@ class LRN(Layer):
         extra_channels = T.alloc(0., bs, n_channels + 2*half, h, w)
         sq = T.set_subtensor(extra_channels[:, half:half+n_channels, :, :], sq)
 
-        local_sums = 0
+        local_sums = T.zeros_like(layer_input, dtype=theano.config.floatX)
         for i in xrange(self.local_range):
             local_sums += sq[:, i:i+n_channels, :, :]
 
