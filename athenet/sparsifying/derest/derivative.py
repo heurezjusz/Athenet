@@ -4,29 +4,36 @@ to this neuron. We do it from the end to the beginning of the network. """
 import numpy as np
 import theano
 import theano.tensor as T
+from athenet.sparsifying.derest.utils import *
     
 # TODO: All functions below will be implemented.
 
-def conv():
+def conv(layer_output):
     """Returns estimated impact of convolutional layer on output of network."""
+    assert_numlike(layer_output)
     pass
 
-def dropout():
+def dropout(layer_output):
     """Returns estimated impact of dropout layer on output of network."""
+    assert_numlike(layer_output)
     pass
 
-def fully_connected():
+def fully_connected(layer_output):
     """Returns estimated impact of fully connected layer on output of network."""
+    assert_numlike(layer_output)
     pass
 
-def norm():
+def norm(layer_output):
     """Returns estimated impact of LRN layer on output of network."""
+    assert_numlike(layer_output)
     pass
 
-def pool():
+def pool(layer_output):
     """Returns estimated impact of max pool layer on output of network."""
+    assert_numlike(layer_output)
     pass
 
-def softmax():
+def softmax(layer_output):
     """Returns estimated impact of softmax layer on output of network."""
+    assert_numlike(layer_output)
     pass
