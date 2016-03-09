@@ -101,3 +101,11 @@ class Numlike(object):
     def max(self, other):
         """Returns maximum of self and other."""
         raise NotImplementedError
+
+    def reshape(self, shape, ndim=None):
+        """Reshapes numlike tensor like theano Tensor."""
+        raise NotImplementedError
+
+    def flatten(self, ndim=1):
+        """Flattens numlike tensor like theano Tensor."""
+        raise NotImplementedError

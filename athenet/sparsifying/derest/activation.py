@@ -13,8 +13,8 @@ from athenet.sparsifying.derest.utils import *
 def conv(layer_input, weights, stride=(1, 1), padding=(0, 0), n_groups=1, batch_size=1):
     """Returns estimated activation of convolutional layer."""
     assert_numlike(value)
-    try:
-    except:
+    #try:
+    #except:
 
 def dropout(layer_input, p_dropout):
     """Returns estimated activation of dropout layer."""
@@ -27,23 +27,30 @@ def dropout(layer_input, p_dropout):
 def fully_connected(layer_input, weights, biases):
     """Returns estimated activation of fully connected layer."""
     assert_numlike(value)
-    try:
-    except:
+    #try:
+#
+#    except:
 
 def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
     """Returns estimated activation of LRN layer."""
     assert_numlike(value)
-    try:
-    except:
+#    try:
+#    except:
 
-def pool(layer_input, poolsize, stride=None):
+def avg_pool(layer_input, poolsize, stride=None):
+    """Returns estimated activation of avg pool layer."""
+    assert_numlike(value)
+#    try:
+#    except:
+
+def max_pool(layer_input, poolsize, stride=None):
     """Returns estimated activation of max pool layer."""
     assert_numlike(value)
-    try:
-    except:
+#    try:
+#    except:
 
 def softmax(layer_input):
     """Returns estimated activation of softmax layer."""
     assert_numlike(value)
-    try:
-    except:
+#    try:
+#    except:

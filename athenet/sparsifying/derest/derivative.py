@@ -28,7 +28,12 @@ def norm(layer_output):
     assert_numlike(layer_output)
     pass
 
-def pool(layer_output):
+def avg_pool(layer_output):
+    """Returns estimated impact of avg pool layer on output of network."""
+    assert_numlike(layer_output)
+    pass
+
+def max_pool(layer_output):
     """Returns estimated impact of max pool layer on output of network."""
     assert_numlike(layer_output)
     pass

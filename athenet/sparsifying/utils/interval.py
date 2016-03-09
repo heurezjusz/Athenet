@@ -254,6 +254,16 @@ class Interval(Numlike):
         return Interval(T.maximum(self.lower, other.lower),
                         T.maximum(self.upper, other.upper))
 
+    def reshape(self, shape, ndim=None):
+        """Reshapes interval tensor like theano Tensor."""
+        return Interval(self.lower.reshape(shape, ndim),
+                        self.upper.reshape(shape, ndim))
+
+    def flatten(self, ndim=1):
+        """Flattens interval tensor like theano Tensor."""
+        return Interval(self.lower.flatten(ndim),
+                        self.upper.flatten(ndim))
+
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method."""
         has_args = (len(eval_map) != 0)
