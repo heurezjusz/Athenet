@@ -1,5 +1,6 @@
 from layer import *
 from activation import *
+from concat import *
 from conv import *
 from dropout import *
 from fully_connected import *

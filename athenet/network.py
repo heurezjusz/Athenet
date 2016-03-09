@@ -2,7 +2,6 @@
 
 import timeit
 import numpy as np
-from enum import Enum
 
 import theano
 import theano.tensor as T
@@ -75,7 +74,8 @@ class TrainConfig(object):
 class Network(object):
     """Neural network.
 
-    :verbosity: Level of network's verbosity. Integer value between 0 and 3. Default 1.
+    :verbosity: Level of network's verbosity. Integer value between 0 and 3.
+                Default 1.
     """
     def __init__(self, layers):
         """Create neural network.
@@ -132,14 +132,18 @@ class Network(object):
         if self.data_loader:
             self.data_loader.batch_size = value
 
-        for layer in self.convolutional_layers:
+        for layer in self.layers:
             layer.batch_size = self.batch_size
         self.layers[0].input = self._input
         for layer, prev_layer in zip(self.layers[1:], self.layers[:-1]):
-            if layer.input_layer_name is not None:
-                layer.input_layer = self.layers_dict[layer.input_layer_name]
-            else:
+            if layer.input_layer_name is None:
                 layer.input_layer = prev_layer
+            elif isinstance(layer.input_layer_name, list):
+                layer.input_layers = [
+                    self.layers_dict[layer_name]
+                    for layer_name in layer.input_layer_names]
+            else:
+                layer.input_layer = self.layers_dict[layer.input_layer_name]
 
         output = self.layers[-1].output
         self.answers = T.argsort(-output, axis=1)
@@ -278,7 +282,7 @@ class Network(object):
     def train(self, config):
         """Train the network.
 
-        :config: Instance of TrainConfig.
+        :config: Instance of :class:`TrainConfig`.
         """
         if self.data_loader is None:
             raise Exception('data loader is not set')
@@ -296,7 +300,7 @@ class Network(object):
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
         lr = theano.shared(np.array(config.learning_rate,
-                                               dtype=theano.config.floatX))
+                           dtype=theano.config.floatX))
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
         weights_grad = T.grad(cost, weights)
