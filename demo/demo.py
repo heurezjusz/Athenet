@@ -7,8 +7,11 @@ from athenet.utils import MNISTDataLoader
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-a", "--algorithm",
-                   help="algorithm which result be demonstrated",
-                   choices=["sender", "sender2"],
+                   help="algorithm which result be demonstrated. Shortcuts: "
+                   "sender: simple_neuron_deleter, "
+                   "sender2: simple_neuron_deleter2, "
+                   "rat: sparsify_smallest_on_network",
+                   choices=["sender", "sender2", "rat"],
                    default="sender")
 parser.add_argument("-n", "--network",
                    help="neural network given to run the algorithm on",
@@ -21,7 +24,8 @@ parser.add_argument("-d", "--dataset", type=int,
                     help="Number of dataset. Datasets are numbered from 0."
                     " (default value). Amount of datasets depends on algorithm"
                     "(sender: 2,"
-                    " sender2: 2)",
+                    " sender2: 2,"
+                    " rat: 3)",
                     default=0)
 
 args = parser.parse_args()

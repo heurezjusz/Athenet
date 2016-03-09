@@ -1,3 +1,4 @@
+from athenet.sparsifying import sparsify_smallest_on_network
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
 from athenet.models import lenet
 from athenet.utils import MNISTDataLoader
@@ -17,13 +18,17 @@ datasets = {
                 (0.22, 1.0), (0.24, 1.0), (0.26, 1.0), (0.28, 1.0), (0.3, 1.0),
                 (0.325, 1.0), (0.35, 1.0), (0.375, 1.0), (0.4, 1.0),
                 (0.45, 1.0), (0.5, 1.0), (0.55, 1.0), (0.6, 1.0), (0.7, 1.0),
-                (0.8, 1.0), (0.9, 1.0)]]
+                (0.8, 1.0), (0.9, 1.0)]],
+    "rat":    [[50],
+               [10, 20, 30, 40, 50, 60, 70, 80, 90],
+               [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]]
     }
 
 
 algorithms = {
     "sender": simple_neuron_deleter,
-    "sender2": simple_neuron_deleter2
+    "sender2": simple_neuron_deleter2,
+    "rat": sparsify_smallest_on_network
     }
 
 
