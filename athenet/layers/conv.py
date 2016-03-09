@@ -35,7 +35,6 @@ class ConvolutionalLayer(WeightedLayer):
         self.padding = padding
         self.n_groups = n_groups
         self.image_shape = image_shape
-        self.batch_size = 1
 
     @property
     def image_shape(self):
@@ -93,18 +92,19 @@ class ConvolutionalLayer(WeightedLayer):
                                                image height, image width) or
                           compatible.
         """
-        h, w, n_channels = self.image_shape
-        conv_image_shape = (self.batch_size, n_channels, h, w)
-        reshaped_input = raw_layer_input.reshape(conv_image_shape)
+        if self.padding == (0, 0):
+            return raw_layer_input
 
+        h, w, n_channels = self.image_shape
         pad_h, pad_w = self.padding
         h_in = h + 2*pad_h
         w_in = w + 2*pad_w
 
-        extra_pixels = T.alloc(np.array(0., dtype=theano.config.floatX),
-                               self.batch_size, n_channels, h_in, w_in)
+        extra_pixels = T.alloc(
+            np.array(0., dtype=theano.config.floatX),
+            raw_layer_input.shape[0], n_channels, h_in, w_in)
         extra_pixels = T.set_subtensor(
-            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
+            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], raw_layer_input)
         return extra_pixels
 
     def _get_output(self, layer_input):
@@ -127,8 +127,11 @@ class ConvolutionalLayer(WeightedLayer):
         else:  # let Theano decide which implementation to use
             h, w = self.image_shape[0:2]
             pad_h, pad_w = self.padding
-            group_image_shape = (self.batch_size, n_group_channels,
-                                 h + 2*pad_h, w + 2*pad_w)
+            if self.batch_size is not None:
+                group_image_shape = (self.batch_size, n_group_channels,
+                                     h + 2*pad_h, w + 2*pad_w)
+            else:
+                group_image_shape = None
             h, w = self.filter_shape[0:2]
             group_filter_shape = (n_group_filters, n_group_channels, h, w)
 

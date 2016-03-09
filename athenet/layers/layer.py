@@ -8,6 +8,14 @@ import theano
 class Layer(object):
     """Network layer."""
     def __init__(self, input_layer_name=None, name='layer'):
+        """Create layer.
+
+        :input_layer_name: Optional name of input layer. If None, then
+                           :class:`Network` will set preceding layer as input
+                           layer.
+        :name: Optional name of layer. If set, it can later be used as
+               `input_layer_name` for another layer.
+        """
         self.output = None
         self.train_output = None
         self.cost = None
@@ -15,6 +23,7 @@ class Layer(object):
         self._input = None
         self._train_input = None
         self._input_layer = None
+        self.batch_size = None
 
         self.name = name
         self.input_layer_name = input_layer_name

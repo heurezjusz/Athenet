@@ -69,6 +69,3 @@ class FullyConnectedLayer(WeightedLayer):
 
     def _get_output(self, layer_input):
         return T.dot(self.input, self.W_shared) + self.b_shared
-
-    def get_output_shape(self, input_shape):
-        return input_shape
