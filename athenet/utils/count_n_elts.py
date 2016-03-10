@@ -66,14 +66,22 @@ def count_statistics(network):
 
 
 if __name__ == "__main__":
-    """Example for AlexNet"""
-    network = lenet(trained=False)
-    edges, weights, neurons = count_statistics(network)
-    for l, edge, weight, neuron in zip(network.layers, edges, weights, neurons):
+    """Example for LeNet"""
+    lenet_network = lenet(trained=False)
+    edges, weights, neurons = count_statistics(lenet_network)
+    for l, edge, weight, neuron in zip(lenet_network.layers, edges, weights, neurons):
         print type(l), l.output_shape
         print 'edges:', edge, 'weights:', weight, 'neurons:', neuron
     print 'sum of edges:', sum(edges)
     print 'sum of weigths:', sum(weights)
     print 'sum of neurons:', sum(neurons)
     
-
+    """Example for AlexNet"""
+    alexnet_network = alexnet(trained=False)
+    edges, weights, neurons = count_statistics(alexnet_network)
+    for l, edge, weight, neuron in zip(alexnet_network.layers, edges, weights, neurons):
+        print type(l), l.output_shape
+        print 'edges:', edge, 'weights:', weight, 'neurons:', neuron
+    print 'sum of edges:', sum(edges)
+    print 'sum of weigths:', sum(weights)
+    print 'sum of neurons:', sum(neurons)
