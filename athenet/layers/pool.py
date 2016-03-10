@@ -7,7 +7,7 @@ from athenet.layers import Layer
 
 class PoolingLayer(Layer):
     """Pooling layer."""
-    def __init__(self, poolsize, stride=None, mode='max',
+    def __init__(self, poolsize, stride=None, mode='max', padding=(0, 0),
                  input_layer_name=None, name='pool'):
         """Create pooling layer.
 
@@ -15,6 +15,8 @@ class PoolingLayer(Layer):
         :stride: Pair representing interval at which to apply the filters.
                  If None, then stride of the size of the pooling filter will be
                  used.
+        :padding: Pair representing number of zero-valued pixels to add on
+                  each side of the input.
         :mode: Pooling method: 'max' or 'avg'. Default 'max'.
         """
         super(PoolingLayer, self).__init__(input_layer_name, name)
@@ -23,6 +25,7 @@ class PoolingLayer(Layer):
             self.stride = poolsize
         else:
             self.stride = stride
+        self.padding = padding
         self.mode = mode
 
     @property
@@ -59,6 +62,7 @@ class PoolingLayer(Layer):
             ds=self.poolsize,
             ignore_border=True,
             st=stride,
+            padding=self.padding
             mode=mode,
         )
 
