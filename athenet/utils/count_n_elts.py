@@ -51,7 +51,7 @@ def count_statistics(network):
             n_edges += [_conv_ed(x, y, fx, fy, sx, sy, n_in, n_out, g)]
         if isinstance(layer, FullyConnectedLayer):
             n_edges += [layer.n_in * layer.n_out]
-        if isinstance(layer, (Activation, Dropout, Softmax)):
+        if isinstance(layer, (ActivationLayer, Dropout, Softmax)):
             n_edges += [np.prod(layer.input_shape)]
         if isinstance(layer, MaxPool):
             fx, fy = layer.poolsize
@@ -66,7 +66,8 @@ def count_statistics(network):
 
 
 if __name__ == "__main__":
-    """Example for LeNet"""
+    """Count number of edges, weights and neurons in LeNet and AlexNet"""
+    print """LeNet"""
     lenet_network = lenet(trained=False)
     edges, weights, neurons = count_statistics(lenet_network)
     for l, edge, weight, neuron in zip(lenet_network.layers, edges, weights, neurons):
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     print 'sum of weigths:', sum(weights)
     print 'sum of neurons:', sum(neurons)
     
-    """Example for AlexNet"""
+    print """AlexNet"""
     alexnet_network = alexnet(trained=False)
     edges, weights, neurons = count_statistics(alexnet_network)
     for l, edge, weight, neuron in zip(alexnet_network.layers, edges, weights, neurons):
