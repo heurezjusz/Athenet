@@ -29,7 +29,7 @@ class LRN(Layer):
         """Return layer's output.
 
         :layer_input: Input in the format (batch size, number of channels,
-                                          image height, image width).
+                                           image height, image width).
         :return: Layer output.
         """
         half = self.local_range / 2

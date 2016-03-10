@@ -41,7 +41,7 @@ class PoolingLayer(Layer):
         """Return layer's output.
 
         :layer_input: Input in the format (batch size, number of channels,
-                                          image height, image width).
+                                           image height, image width).
         :return: Layer output.
         """
         if self.stride == self.poolsize:
