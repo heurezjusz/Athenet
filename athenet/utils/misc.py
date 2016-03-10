@@ -7,6 +7,8 @@ import gzip
 import urllib
 import numpy
 
+import theano
+
 from athenet.utils import BIN_DIR, DATA_DIR
 
 
@@ -46,18 +48,25 @@ def load_data(filename, url=None):
     if not os.path.isfile(filename):
         if not url:
             return None
-        else:
-            directory = os.path.dirname(filename)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-            print 'Downloading ' + os.path.basename(filename) + '...',
-            sys.stdout.flush()
-            urllib.urlretrieve(url, filename)
-            print 'Done'
+        download_file(filename, url)
 
     data = load_data_from_pickle(filename)
     return data
+
+
+def download_file(filename, url):
+    """Download file from given url.
+
+    :filename: Name of a file to be downloaded.
+    :url: Url for downloading file.
+    """
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    print 'Downloading ' + os.path.basename(filename) + '...',
+    sys.stdout.flush()
+    urllib.urlretrieve(url, filename)
+    print 'Done'
 
 
 def get_data_path(name):
@@ -94,3 +103,35 @@ def zero_fraction(network):
         n_non_zero += numpy.count_nonzero(param)
     n_zero = n_fields - n_non_zero
     return (1.0 * n_zero) / (1.0 * n_fields)
+
+
+len_prev = 0
+
+
+def overwrite(text='', length=None):
+    """Write text in a current line, overwriting previously written text.
+
+    Previously written text also needs to be written using this function for
+    it to work properly. Otherwise optional argument length can be given to
+    specify length of a previous text.
+
+    :text: Text to be written.
+    :length: Length of a previous text.
+    """
+    global len_prev
+    if length is None:
+        length = len_prev
+    print '\r' + ' '*length,
+    print '\r' + text,
+    len_prev = len(text)
+
+
+def cudnn_available():
+    """Check if cuDNN is available.
+
+    :return: True, if cuDNN is available, False otherwise.
+    """
+    try:
+        return theano.sandbox.cuda.dnn_available()
+    except:
+        return False
