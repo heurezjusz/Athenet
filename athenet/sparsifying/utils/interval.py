@@ -241,15 +241,13 @@ class Interval(Numlike):
         return Interval(l, u)
 
     def dot(self, other):
-        """Dot product of Interval(self) vector and a number array (other)"""
+        """Dot product of Interval(self) vector and a number array (other)."""
         # After first results, might be changed to save more memory / time
-        lower_dot = T.dot(self.lower, other)
-        upper_dot = T.dot(self.upper, other)
+        lower_dot = self.lower * other.T
+        upper_dot = self.upper * other.T
         lower_res = T.minimum(lower_dot, upper_dot)
         upper_res = T.maximum(lower_dot, upper_dot)
-        return Interval(lower_res, upper_res)
-
-        raise NotImplementedError
+        return Interval(lower_res.sum(1), upper_res.sum(1))
 
     def max(self, other):
         """Returns interval such that for any (x, y) in (self, other),

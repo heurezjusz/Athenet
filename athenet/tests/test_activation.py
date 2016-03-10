@@ -22,7 +22,7 @@ def prepare(self):
 
 def s(self):
     if self.at_v >= len(self.v):
-        raise TypeError
+        raise ValueError
     ret = self.v[self.at_v]
     self.at_v += 1
     return ret
@@ -100,6 +100,15 @@ class FullyConnectedActivationTest(unittest.TestCase):
         (rl, ru) = res.eval(d)
         arae(rl, crl)
         arae(ru, cru)
+
+    def testNegative(self):
+        s, v, m = self.prepare()
+        inp = A([1, -1])
+        w = A([[1, 1], [1, -1]])
+        b = A([0, 0])
+        res = fully_connected(inp, w, b)
+        c = A([0, 2])
+        arae(res, c)
 
 class ConvolutionalActivationTest(unittest.TestCase):
 
