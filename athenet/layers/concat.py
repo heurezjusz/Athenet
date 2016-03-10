@@ -9,11 +9,10 @@ from athenet.layers import Layer
 
 class Concatenation(Layer):
     """Concatenation layer."""
-    def __init__(self, input_layer_names, name='concat'):
+    def __init__(self, input_layer_names=None, name='concat'):
         """Create concatenation layer.
 
         :input_layer_names: List of input layers' names.
-        :name: Optional name of layer.
         """
         super(Concatenation, self).__init__(input_layer_names, name)
         self.input_shapes = None
