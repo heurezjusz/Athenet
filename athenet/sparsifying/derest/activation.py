@@ -12,6 +12,8 @@ from athenet.sparsifying.derest.utils import *
 
 def conv(layer_input, input_shp, weights, weights_shape, stride=(1, 1),
         padding=(0, 0), n_groups=1):
+    # TODO: Check if the kernel should be flipped!
+    # TODO: Norm _get_output typo, 31
     """Returns estimated activation of convolutional layer.
 
     :layer_input: Input tensor
@@ -34,26 +36,53 @@ def conv(layer_input, input_shp, weights, weights_shape, stride=(1, 1),
         group_in = n_in / n_groups
         group_out = n_out / n_groups
         pad_h, pad_w = padding
-        #group_image
+        #TODO: Decide what is the order of strides in tuple
+        stride_h, stride_w = stride
+
+        #TODO
+        group_image_shape = (n_group_channels,
+                             h + 2*pad_h, w + 2*pad_w)
+        group_filter_shape = (n_group_filters, n_group_channels, fh, fw)
 
 
-    #TODO
-    h, w = self.image_shape[0:2]
-    pad_h, pad_w = self.padding
-    group_image_shape = (self.batch_size, n_group_channels,
-                         h + 2*pad_h, w + 2*pad_w)
-    h, w = self.filter_shape[0:2]
-    group_filter_shape = (n_group_filters, n_group_channels, h, w)
+        i_y = h
+        i_x = w
+        
+        for at_g_out in range(0, group_out):
+            for at_g_in in range(0, group_in):
+                for at_h in range(0, group_image_shape[0], stride_h):
+                    for at_w in range(0, group_image_shape[1], stride_w):
+                        
+        for at_g in range(0, n_groups):
+            for at_h in range(0, group_image_shape[0], stride_h):
+                for at_w in range(0, group_image_shape[1], stride_w):
+                    g_in_from = at_g * group_in
+                    g_in_to = g_in_from + group_in
+                    g_out_from = at_g * group_out
+                    g_out_to = g_out_from + group_out
+                    in_slice = layer_input[at_h:(at_h + fh),
+                                           at_w:(at_w + fw),
+                                           group_in_from:group_in_to]
+                    weights_slice = weights[:, :, g_out_from:g_out_to]
+                    in_slice.dot
 
-    conv_outputs = [theano.tensor.nnet.conv.conv2d(
-        input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
-                         :, :],
-        filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
-                              :, :, :],
-        filter_shape=group_filter_shape,
-        image_shape=group_image_shape,
-        subsample=self.stride
-    ) for i in xrange(self.n_groups)]
+
+
+        conv outputs = [
+            
+        for i in xrange(self.n_groups)]
+
+        conv_outputs = [theano.tensor.nnet.conv.conv2d(
+            input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
+                             :, :],
+            filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
+                                  :, :, :],
+            filter_shape=group_filter_shape,
+            image_shape=group_image_shape,
+            subsample=self.stride
+        ) for i in xrange(self.n_groups)]
+        conv_output = T.concatnate(conv_outputs, axis=1)
+        
 
 
     except:
