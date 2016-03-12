@@ -104,10 +104,7 @@ def check_params(net, p, layer_limit):
         neurons = layer.W.shape[0]
         deleted = 0
         for r in xrange(layer.W.shape[0]):
-            for c in xrange(layer.W.shape[1]):
-                if layer.W[r][c] != 0:
-                    break
-            else:
+            if not layer.W[r].any():
                 deleted += 1
 
         all_neurons += neurons
