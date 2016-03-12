@@ -5,7 +5,8 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athenet.utils import DataLoader, load_data, get_bin_path
+from athenet.utils import load_data, get_bin_path
+from athenet.data_loader import DataLoader
 
 
 class MNISTDataLoader(DataLoader):

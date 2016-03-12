@@ -46,9 +46,6 @@ def load_data(filename, url=None):
     if not os.path.isfile(filename):
         if not url:
             return None
-        directory = os.path.dirname(filename)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
         download_file(filename, url)
 
     data = load_data_from_pickle(filename)
@@ -61,6 +58,9 @@ def download_file(filename, url):
     :filename: Name of a file to be downloaded.
     :url: Url for downloading file.
     """
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     print 'Downloading ' + os.path.basename(filename) + '...',
     sys.stdout.flush()
     urllib.urlretrieve(url, filename)

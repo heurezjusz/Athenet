@@ -2,9 +2,11 @@
 
 
 class DataLoader(object):
-    """Data loader.
+    """Provides input and output data for a network.
 
-    Provides input and output data for network.
+    Base class for providing training, validation and testing data.
+    Methods for loading and returning data should be implemented in all of its
+    subclasses.
     """
     def __init__(self):
         self._batch_size = None
@@ -32,14 +34,16 @@ class DataLoader(object):
         self.n_val_batches = self.val_set_size / self.batch_size
         self.n_test_batches = self.test_set_size / self.batch_size
 
+    def _set_subset(self, data, value, index, size=1):
+        data[index*self.batch_size:(index+size)*self.batch_size] = value
+
     def _get_subset(self, data, index, size=1):
-        return data[index*self.batch_size:
-                    (index+size)*self.batch_size]
+        return data[index*self.batch_size:(index+size)*self.batch_size]
 
     def train_input(self, batch_index):
         """Return minibatch of training data input.
 
-        :batch_index: Minibatch index.
+        :batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of training data input.
         """
         raise NotImplementedError()
@@ -47,7 +51,7 @@ class DataLoader(object):
     def train_output(self, batch_index):
         """Return minibatch of training data output.
 
-        :batch_index: Minibatch index.
+        :batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of training data output.
         """
         raise NotImplementedError()
@@ -55,7 +59,7 @@ class DataLoader(object):
     def val_input(self, batch_index):
         """Return minibatch of validation data input.
 
-        :batch_index: Minibatch index.
+        :batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of validation data input.
         """
         raise NotImplementedError()
@@ -63,7 +67,7 @@ class DataLoader(object):
     def val_output(self, batch_index):
         """Return minibatch of validation data output.
 
-        :batch_index: Minibatch index.
+        :batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of validation data output.
         """
         raise NotImplementedError()
@@ -71,7 +75,7 @@ class DataLoader(object):
     def test_input(self, batch_index):
         """Return minibatch of testing data input.
 
-        :batch_index: Minibatch index.
+        :batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of testing data input.
         """
         raise NotImplementedError()
@@ -79,7 +83,7 @@ class DataLoader(object):
     def test_output(self, batch_index):
         """Return minibatch of testing data output.
 
-        :batch_index: Minibatch index.
+        :batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of testing data output.
         """
         raise NotImplementedError()
