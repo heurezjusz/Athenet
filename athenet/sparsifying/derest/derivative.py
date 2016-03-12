@@ -4,7 +4,7 @@ to this neuron. We do it from the end to the beginning of the network. """
 import numpy as np
 import theano
 import theano.tensor as T
-    
+
 # TODO: All functions below will be implemented.
 
 def conv():
