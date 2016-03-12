@@ -7,7 +7,6 @@ from copy import deepcopy
 from athenet import Network
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
     ReLU, MaxPool
-from athenet.utils import DataLoader
 
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
 from athenet.algorithm.utils import list_of_percentage_rows_table, delete_row,\
