@@ -11,7 +11,7 @@ class Interval(Numlike):
 
     Behaves like limited numpy.ndarray with dtype=SomeInterval. There is no
     such thing like 'singular interval'. It only occurs in arrays.
-    
+
     .. note:: Should be treated as interval type with bounds as Theano nodes.
              Opetations on Interval create nodes in Theano graph. In order to
              read result of given operations, use eval method.
@@ -250,7 +250,7 @@ class Interval(Numlike):
 
     def dot(self, other):
         """Dot product of Interval(self) vector and a number array (other).
-        
+
         :param other: Number array to be multiplied.
         :type other: numpy.ndarray.
         """
@@ -265,7 +265,7 @@ class Interval(Numlike):
         """Returns interval such that for any numbers (x, y) in a pair of
         corresponding intervals in (self, other) arrays, max(x, y) is in result
         and no other.
-        
+
         :param other: Interval to be compared.
         :type other: Interval.
         """
@@ -274,8 +274,9 @@ class Interval(Numlike):
 
     def reshape(self, shape, ndim=None):
         """Reshapes interval tensor like theano Tensor.
-        
-        :param shape: Something that can be converted to a symbolic vector of integers. 
+
+        :param shape: Something that can be converted to a symbolic vector of
+                      integers.
         :param ndim: The length of the shape. Passing None here means for
                      Theano to try and guess the length of shape.
         """
@@ -284,7 +285,7 @@ class Interval(Numlike):
 
     def flatten(self, ndim=1):
         """Flattens interval tensor like theano Tensor.
-        
+
         :param ndim: The number of dimensions in the returned variable.
         :return: Variable with same dtype as x and outdim dimensions.
         :rtype: Variable with the same shape as x in the leading outdim-1
