@@ -9,12 +9,11 @@ from theano.ifelse import ifelse
 class Interval(Numlike):
     """Theano interval matrix class
 
-    Behaves like limited numpy.ndarray with dtype=SomeInterval. There is no
-    such thing like 'singular interval'. It only occurs in arrays.
+    represents matrix of interval. Behaves like limited numpy.ndarray.
 
     .. note:: Should be treated as interval type with bounds as Theano nodes.
-             Opetations on Interval create nodes in Theano graph. In order to
-             read result of given operations, use eval method.
+              Opetations on Interval create nodes in Theano graph. In order to
+              read result of given operations, use eval method.
     """
 
     def __init__(self, lower, upper):
@@ -154,10 +153,10 @@ class Interval(Numlike):
     def __rdiv__(self, other):
         """Returns quotient of other and self.
 
-        :param other: Divisor.
+        :param other: Dividend.
         :type other: Interval or numpy.ndarray
 
-        .. warning:: Divisor should not contain zero."""
+        .. warning:: Divisor (self) should not contain zero."""
         if isinstance(other, Interval):
             # Should never happen. __div__ should be used instead.
             raise NotImplementedError
