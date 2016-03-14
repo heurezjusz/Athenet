@@ -19,8 +19,10 @@ class Interval(Numlike):
     def __init__(self, lower, upper):
         """Creates interval.
 
-        :lower: lower bound of Interval to be set
-        :upper: upper bound of Interval to be set
+        :param lower: lower bound of Interval to be set
+        :param upper: upper bound of Interval to be set
+        :type lower: numpy.ndarray or theano variable
+        :type upper: numpy.ndarray or theano variable
 
         .. note:: lower must be lower than upper. It is not being checked.
         """
@@ -30,18 +32,19 @@ class Interval(Numlike):
     def __getitem__(self, at):
         """Returns specified slice of interval as a interval.
 
-        :at: Coordinates / slice to be taken.
+        :param at: coordinates / slice to be taken
+        :rtype: Interval
 
-        Does not copy data.
+        .. note:: Does not copy data.
         """
         return Interval(self.lower[at], self.upper[at])
 
     def __setitem__(self, at, other):
         """Just like Theano set_subtensor function, but as a operator.
 
-        :at: Coordinates / slice to be set.
-        :other: Data to be put at 'at'
-
+        :param at: coordinates / slice to be set
+        :param other: data to be put at 'at'
+        :type other: Interval
         """
         self.lower = T.set_subtensor(self.lower[at], other.lower)
         self.upper = T.set_subtensor(self.upper[at], other.upper)
@@ -57,14 +60,20 @@ class Interval(Numlike):
     def shape(self):
         """Returns shape of interval. Checks only 'lower' matrix.
 
-        Note: does not require self.upper for computations. Therefore it is not
-        safe, but faster."""
+        :rtype: tuple of integers
+
+        .. note:: does not require self.upper for computations. Therefore it is
+        not safe, but faster.
+        """
         return self.lower.shape
 
     def __add__(self, other):
         """Returns sum of two intervals.
 
-        :other: Interval or numpy.ndarray to be added."""
+        :param other: matrix to be added
+        :type other: Interval or numpy.ndarray
+        :rtype: Interval
+        """
         if isinstance(other, Interval):
             res_lower = self.lower + other.lower
             res_upper = self.upper + other.upper
@@ -78,7 +87,10 @@ class Interval(Numlike):
     def __sub__(self, other):
         """Returns difference between two intervals.
 
-        :other: Interval or numpy.ndarray to be subtracted."""
+        :param other: matrix to be subtracted
+        :type other: Interval or numpy.ndarray
+        :rtype: Interval
+        """
         if isinstance(other, Interval):
             res_lower = self.lower - other.upper
             res_upper = self.upper - other.lower
@@ -90,7 +102,10 @@ class Interval(Numlike):
     def __rsub__(self, other):
         """Returns diffeerence between number and interval.
 
-        :other: A number that self will be subtracted from."""
+        :param other: A number matrix that self will be subtracted from.
+        :type other: numpy.ndarray
+        :rtype: Interval
+        """
         res_lower = other - self.upper
         res_upper = other - self.lower
         return Interval(res_lower, res_upper)
@@ -98,7 +113,10 @@ class Interval(Numlike):
     def __mul__(self, other):
         """Returns product of two intervals.
 
-        :other: Interval or numpy.ndarray to be multiplied."""
+        :param other: matrix to be multiplied
+        :type other: Interval or numpy.ndarray
+        :rtype: Interval
+        """
         if isinstance(other, Interval):
             ll = self.lower * other.lower
             lu = self.lower * other.upper
@@ -123,10 +141,12 @@ class Interval(Numlike):
     def __div__(self, other):
         """Returns quotient of self and other.
 
-        :param other: Divisor.
+        :param other: divisor
         :type other: Interval or numpy.ndarray
+        :rtype: Interval
 
-        .. warning:: Divisor should not contain zero."""
+        .. warning:: Divisor should not contain zero.
+        """
         lower = self.lower
         upper = self.upper
         if isinstance(other, Interval):
@@ -153,8 +173,9 @@ class Interval(Numlike):
     def __rdiv__(self, other):
         """Returns quotient of other and self.
 
-        :param other: Dividend.
+        :param other: dividend
         :type other: Interval or numpy.ndarray
+        :rtype: Interval
 
         .. warning:: Divisor (self) should not contain zero."""
         if isinstance(other, Interval):
@@ -170,14 +191,20 @@ class Interval(Numlike):
                 return Interval(other / lower, other / upper)
 
     def _has_zero(self):
-        """For any interval in Interval, returns whether is contains zero."""
+        """For any interval in Interval, returns whether is contains zero.
+
+        :rtype: Boolean
+        """
         return T.and_(T.lt(self.lower, 0), T.gt(self.upper, 0))
 
     def reciprocal(self):
         """Returns reciprocal of the interval.
 
         It is a partial reciprocal function. Does not allow 0 to be within
-        interval. Should not be treated as general reciprocal function."""
+        interval. Should not be treated as general reciprocal function.
+
+        :rtype: Interval
+        """
         # Note: Could be concidered whether not to use input check.
         # If 0 is within interval, returns 1/0 that, we hope, will throw
         # some exception on the device. Be careful with this.
@@ -200,8 +227,20 @@ class Interval(Numlike):
     def square(self):
         """For interval I, returns I' such that for any x in I, I' contains
         x*x and no other.
+        :rtype: Interval
 
-        e.g [-1, 1].square() == [0, 1]"""
+        :Example:
+
+        >>> from athenet.sparsifying.utils import Interval
+        >>> import numpy
+        >>> a = numpy.array([-1])
+        >>> b = numpy.array([1])
+        >>> i = Interval(-1, 1)
+        >>> s = i.square()
+        >>> s.eval()
+        (array([0]), array([1]))
+
+        """
         lsq = self.lower * self.lower
         usq = self.upper * self.upper
         u = T.maximum(lsq, usq)
@@ -211,10 +250,12 @@ class Interval(Numlike):
     def power(self, exponent):
         """For interval i, returns i^exponent.
 
-        :exponent: Number to be passed as exponent to i^exponent.
+        :param exponent: Number to be passed as exponent to i^exponent.
+        :type exponent: integer or float
+        :rtype: Interval
 
-        Note: If interval contains some elements lower/equal to 0, exponent
-        should be integer."""
+        .. note:: If interval contains some elements lower/equal to 0, exponent
+                  should be integer."""
         # If You want to understand what is happening here, make plot of
         # f(x, y) = x^y domain. 'if's divide this domain with respect to
         # monocity.
@@ -248,10 +289,12 @@ class Interval(Numlike):
         return Interval(l, u)
 
     def dot(self, other):
-        """Dot product of Interval(self) vector and a number array (other).
+        """Returns dot product of Interval(self) vector and a number array
+        (other).
 
-        :param other: Number array to be multiplied.
-        :type other: numpy.ndarray.
+        :param other: number array to be multiplied
+        :type other: numpy.ndarray
+        :rtype: Interval
         """
         # Requires project decision that could be better made after checking
         # number of weights, edges and neurons in considered networks.
@@ -265,8 +308,9 @@ class Interval(Numlike):
         corresponding intervals in (self, other) arrays, max(x, y) is in result
         and no other.
 
-        :param other: Interval to be compared.
-        :type other: Interval.
+        :param other: Interval to be compared
+        :type other: Interval
+        :rtype: Interval
         """
         return Interval(T.maximum(self.lower, other.lower),
                         T.maximum(self.upper, other.upper))
@@ -298,8 +342,10 @@ class Interval(Numlike):
         """Evaluates interval in terms of theano TensorType eval method.
 
         :*eval_map: map of Theano variables to be set, just like in
-                    theano.tensor.dtensorX.eval method.
-        Returns pair (lower, upper) of """
+                    theano.tensor.dtensorX.eval method
+
+        :rtype: (lower, upper) pair of numpy.ndarrays
+        """
         has_args = (len(eval_map) != 0)
         if has_args:
             eval_map = eval_map[0]
