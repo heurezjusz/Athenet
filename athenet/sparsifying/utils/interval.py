@@ -7,18 +7,24 @@ from theano.ifelse import ifelse
 
 
 class Interval(Numlike):
-    """Theano interval class
+    """Theano interval matrix class
 
-    Note: Should be treated as interval type with bounds as Theano nodes.
-    Opetations on Interval create nodes in Theano graph."""
+    Behaves like limited numpy.ndarray with dtype=SomeInterval. There is no
+    such thing like 'singular interval'. It only occurs in arrays.
+    
+    .. note:: Should be treated as interval type with bounds as Theano nodes.
+             Opetations on Interval create nodes in Theano graph. In order to
+             read result of given operations, use eval method.
+    """
 
     def __init__(self, lower, upper):
         """Creates interval.
 
         :lower: lower bound of Interval to be set
-        :upper: upper bound if Interval to be set
+        :upper: upper bound of Interval to be set
 
-        Note: lower must be lower than upper. It is not being checked."""
+        .. note:: lower must be lower than upper. It is not being checked.
+        """
         self.lower = lower
         self.upper = upper
 
@@ -27,7 +33,8 @@ class Interval(Numlike):
 
         :at: Coordinates / slice to be taken.
 
-        Does not copy data."""
+        Does not copy data.
+        """
         return Interval(self.lower[at], self.upper[at])
 
     def __setitem__(self, at, other):
@@ -58,7 +65,7 @@ class Interval(Numlike):
     def __add__(self, other):
         """Returns sum of two intervals.
 
-        :other: Interval to be added."""
+        :other: Interval or numpy.ndarray to be added."""
         if isinstance(other, Interval):
             res_lower = self.lower + other.lower
             res_upper = self.upper + other.upper
@@ -72,7 +79,7 @@ class Interval(Numlike):
     def __sub__(self, other):
         """Returns difference between two intervals.
 
-        :other: Interval to be subtracted."""
+        :other: Interval or numpy.ndarray to be subtracted."""
         if isinstance(other, Interval):
             res_lower = self.lower - other.upper
             res_upper = self.upper - other.lower
@@ -92,7 +99,7 @@ class Interval(Numlike):
     def __mul__(self, other):
         """Returns product of two intervals.
 
-        :other: Interval to be multiplied."""
+        :other: Interval or numpy.ndarray to be multiplied."""
         if isinstance(other, Interval):
             ll = self.lower * other.lower
             lu = self.lower * other.upper
@@ -117,9 +124,10 @@ class Interval(Numlike):
     def __div__(self, other):
         """Returns quotient of self and other.
 
-        :other: Divisor.
+        :param other: Divisor.
+        :type other: Interval or numpy.ndarray
 
-        Note: Divisor should not contain zero."""
+        .. warning:: Divisor should not contain zero."""
         lower = self.lower
         upper = self.upper
         if isinstance(other, Interval):
@@ -146,9 +154,10 @@ class Interval(Numlike):
     def __rdiv__(self, other):
         """Returns quotient of other and self.
 
-        :other: Divident.
+        :param other: Divisor.
+        :type other: Interval or numpy.ndarray
 
-        Note: Divisor should not contain zero."""
+        .. warning:: Divisor should not contain zero."""
         if isinstance(other, Interval):
             # Should never happen. __div__ should be used instead.
             raise NotImplementedError
@@ -240,7 +249,11 @@ class Interval(Numlike):
         return Interval(l, u)
 
     def dot(self, other):
-        """Dot product of Interval(self) vector and a number array (other)"""
+        """Dot product of Interval(self) vector and a number array (other).
+        
+        :param other: Number array to be multiplied.
+        :type other: numpy.ndarray.
+        """
         # Requires project decision that could be better made after checking
         # number of weights, edges and neurons in considered networks.
         # TODO: Decide how to implement this. Decide whether not to consider
@@ -249,23 +262,44 @@ class Interval(Numlike):
         raise NotImplementedError
 
     def max(self, other):
-        """Returns interval such that for any (x, y) in (self, other),
-        max(x, y) is in result and no other."""
+        """Returns interval such that for any numbers (x, y) in a pair of
+        corresponding intervals in (self, other) arrays, max(x, y) is in result
+        and no other.
+        
+        :param other: Interval to be compared.
+        :type other: Interval.
+        """
         return Interval(T.maximum(self.lower, other.lower),
                         T.maximum(self.upper, other.upper))
 
     def reshape(self, shape, ndim=None):
-        """Reshapes interval tensor like theano Tensor."""
+        """Reshapes interval tensor like theano Tensor.
+        
+        :param shape: Something that can be converted to a symbolic vector of integers. 
+        :param ndim: The length of the shape. Passing None here means for
+                     Theano to try and guess the length of shape.
+        """
         return Interval(self.lower.reshape(shape, ndim),
                         self.upper.reshape(shape, ndim))
 
     def flatten(self, ndim=1):
-        """Flattens interval tensor like theano Tensor."""
+        """Flattens interval tensor like theano Tensor.
+        
+        :param ndim: The number of dimensions in the returned variable.
+        :return: Variable with same dtype as x and outdim dimensions.
+        :rtype: Variable with the same shape as x in the leading outdim-1
+                dimensions, but with all remaining dimensions of x collapsed
+                into the last dimension.
+        """
         return Interval(self.lower.flatten(ndim),
                         self.upper.flatten(ndim))
 
     def eval(self, *eval_map):
-        """Evaluates interval in terms of theano TensorType eval method."""
+        """Evaluates interval in terms of theano TensorType eval method.
+
+        :*eval_map: map of Theano variables to be set, just like in
+                    theano.tensor.dtensorX.eval method.
+        Returns pair (lower, upper) of """
         has_args = (len(eval_map) != 0)
         if has_args:
             eval_map = eval_map[0]
