@@ -378,5 +378,6 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(v1, u3)
         assert_array_equal(v1, u4)
 
+
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
