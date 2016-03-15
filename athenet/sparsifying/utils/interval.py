@@ -10,6 +10,10 @@ from theano import shared
 from theano.ifelse import ifelse
 import numpy
 
+NEUTRAL_INTERVAL_LOWER = 0.0
+NEUTRAL_INTERVAL_UPPER = 255.0
+NEUTRAL_INTERVAL_VALUES = (NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER)
+
 DEFAULT_INTERVAL_LOWER = 0.0
 DEFAULT_INTERVAL_UPPER = 255.0
 DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
@@ -324,6 +328,21 @@ class Interval(Numlike):
         return Interval(T.maximum(self.lower, other.lower),
                         T.maximum(self.upper, other.upper))
 
+    def amax(self, axis=None, keepdims=False):
+        """Returns maximum of a Numlike along an axis.
+
+        Works like theano.tensor.max.
+        :param axis: axis or axes along which to compute the maximum
+        :param keepdims: If this is set to True, the axes which are reduced are
+                         left in the result as dimensions with size one. With
+                         this option, the result will broadcast correctly
+                         against the original tensor.
+        :type keepdims: boolean
+        """
+        lower = self.lower.max(axis=axis, keepdims=keepdims)
+        upper = self.upper.max(axis=axis, keepdims=keepdims)
+        return Interval(lower, upper)
+
     def reshape(self, shape, ndim=None):
         """Reshapes interval tensor like theano Tensor.
 
@@ -347,10 +366,10 @@ class Interval(Numlike):
         return Interval(self.lower.flatten(ndim),
                         self.upper.flatten(ndim))
 
-    def sum(self, *args):
+    def sum(self, axis=None, dtype=None, keepdims=False, acc_dtype=None):
         """Vector operation like in numpy.ndarray."""
-        return Interval(self.lower.sum(*args),
-                        self.upper.sum(*args))
+        return Interval(self.lower.sum(axis, dtype, keepdims, acc_dtype),
+                        self.upper.sum(axis, dtype, keepdims, acc_dtype))
 
     @property
     def T(self):
@@ -384,7 +403,7 @@ class Interval(Numlike):
         return (rlower, rupper)
 
     @staticmethod
-    def from_shape(shp, lower_val=DEFAULT_INTERVAL_LOWER,
+    def from_shape(shp, neutral=True, lower_val=DEFAULT_INTERVAL_LOWER,
                       upper_val=DEFAULT_INTERVAL_UPPER):
         """Returns Interval of shape shp with given lower and upper values.
         

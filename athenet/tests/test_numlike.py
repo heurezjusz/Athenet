@@ -98,8 +98,16 @@ class NumlikeTest(unittest.TestCase):
         res = Numlike().T
 
     @raises(NotImplementedError)
-    def test_from_shape(self):
+    def test_from_shape1(self):
         res = Numlike.from_shape((3, 4))
+
+    @raises(NotImplementedError)
+    def test_from_shape2(self):
+        res = Numlike.from_shape((3, 4), neutral=True)
+
+    @raises(NotImplementedError)
+    def test_from_shape3(self):
+        res = Numlike.from_shape((3, 4), neutral=False)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

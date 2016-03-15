@@ -3,7 +3,7 @@
 
 import unittest
 from nose.tools import assert_true, assert_is, assert_equal
-from athenet.sparsifying.utils.interval import Interval
+from athenet.sparsifying.utils.interval import *
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import theano.tensor as T
@@ -377,6 +377,24 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(v1, u2)
         assert_array_equal(v1, u3)
         assert_array_equal(v1, u4)
+
+    def test_from_shape(self):
+        shp = (3, 4)
+        np_shp = np.array([3, 4])
+        i = Interval.from_shape(shp)
+        assert_array_equal(i.shape.eval(), np_shp)
+        assert_array_equal(i.lower.shape.eval(), np_shp)
+        assert_array_equal(i.upper.shape.eval(), np_shp)
+        l, u = i.eval()
+        assert_array_almost_equal(l, np.ones(shp) * NEUTRAL_INTERVAL_LOWER)
+        assert_array_almost_equal(u, np.ones(shp) * NEUTRAL_INTERVAL_UPPER)
+        i = Interval.from_shape(shp, neutral=False)
+        assert_array_equal(i.shape.eval(), np_shp)
+        assert_array_equal(i.lower.shape.eval(), np_shp)
+        assert_array_equal(i.upper.shape.eval(), np_shp)
+        l, u = i.eval()
+        assert_array_almost_equal(l, np.ones(shp) * DEFAULT_INTERVAL_LOWER)
+        assert_array_almost_equal(u, np.ones(shp) * DEFAULT_INTERVAL_UPPER)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

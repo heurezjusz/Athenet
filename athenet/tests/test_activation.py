@@ -116,7 +116,16 @@ class ConvolutionalActivationTest(unittest.TestCase):
     s = s
     make_arr = make_arr
 
+    def testSimplest(self):
+        s, v, m = self.prepare()
+
 class MaxPoolActivationTest(unittest.TestCase):
+
+    prepare = prepare
+    s = s
+    make_arr = make_arr
+
+class AvgPoolActivationTest(unittest.TestCase):
 
     prepare = prepare
     s = s

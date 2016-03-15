@@ -103,6 +103,13 @@ class Numlike(object):
         """Returns maximum of self and other."""
         raise NotImplementedError
 
+    def amax(self, axis=None, keepdims=False):
+        """Returns maximum of a Numlike along an axis.
+
+        Works like theano.tensor.max.
+        """
+        raise NotImplementedError
+
     def reshape(self, shape, ndim=None):
         """Reshapes numlike tensor like theano Tensor."""
         raise NotImplementedError
@@ -121,6 +128,11 @@ class Numlike(object):
         raise NotImplementedError
 
     @staticmethod
-    def from_shape(shp):
-        """Returns Numlike of given shape."""
+    def from_shape(shp, neutral=True):
+        """Returns Numlike of given shape.
+        
+        :param neutral: Tells whether created Numlike should have neutral
+                        values or significant values.
+        :type neutral: Boolean
+        """
         raise NotImplementedError

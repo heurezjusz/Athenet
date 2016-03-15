@@ -15,7 +15,7 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
     # TODO: unit tests
     """Returns estimated activation of convolutional layer.
 
-    :param layer_input: input Interval
+    :param layer_input: input Numlike
     :param input_shp: Shape of input in the format
                 (number of input channels, image height, image width)
     :param weights: weights tensor in format (number of output channels,
@@ -29,14 +29,14 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
     :param n_groups: Number of groups input and output channels will be split
                      into. Two channels are connected only if they belong to the
                      same group.
-    :type layer_input: Interval or numpy.ndarray or theano tensor
+    :type layer_input: Numlike or numpy.ndarray or theano tensor
     :type input_shp: integer tuple
     :type weights: numpy.ndarray or theano tensor
     :type filter_shp: integer tuple
     :type stride: integer pair
     :type padding: integer pair
     :type n_groups: integer
-    :rtype: Interval
+    :rtype: Numlike
     """
     assert_numlike(layer_input)
     # h, w, n_in - image height, image width, number of input channels
@@ -78,19 +78,23 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
                 # position at_w
                 at_out_w = at_w / stride_w
                 # input slice that impacts on (at_out_h, at_out_w) in output
-                input_slice = layer_input[at_in_from:at_in_to,
+                input_slice = padded_input[at_in_from:at_in_to,
                                        at_h:(at_h + fh),
                                        at_w:(at_w + fw)]
                 # weights slice that impacts on (at_out_h, at_out_w) in output
                 weights_slice = flipped_weights[at_out_from:at_out_to, :, :, :]
                 conv_sum = input_slice * weight_slice
-                conv_sum = conv_sum.sum(axis=1).sum(axis=1).sum(axis=1)
-                conv_sum = conv_sum.reshape((g_out, 1, 1))
+                conv_sum = conv_sum.sum(axis=(1, 2, 3), keepdims=True)
                 result[at_out_from:at_out_to, at_out_h, at_out_w] = conv_sum
     return result
 
 def dropout(layer_input, p_dropout):
-    """Returns estimated activation of dropout layer."""
+    """Returns estimated activation of dropout layer.
+    
+    :param p_drouput: probability of dropping in dropout
+    :type p_dropout: float
+    :rtype: Numlike
+    """
     assert_numlike(layer_input)
     try:
         return layer_input.op_dropout(p_dropout)
@@ -115,14 +119,39 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
 def avg_pool(layer_input, poolsize, stride=None):
     """Returns estimated activation of avg pool layer."""
     assert_numlike(input_layer)
+    if stride is None:
+        stride = poolsize
 #    try:
 #    except:
 
-def max_pool(layer_input, poolsize, stride=None):
+def pool(layer_input, poolsize, stride=None, mode="max"):
     """Returns estimated activation of max pool layer."""
+    # TODO: mode 'avg'
     assert_numlike(input_layer)
-#    try:
-#    except:
+    if stride is None:
+        stride = poolsize
+    if mode not in ['max', 'avg']:
+        raise ValueError("mode not in ['max', 'avg']")
+    # h, w, n_in - image height, image width, number of input channels
+    h, w, n_in = input_shape
+    stride_h, stride_w = stride
+    pool_h, pool_w = poolsize
+    output_h = (h - pool_h) / stride_h + 1
+    output_w = (w - pool_w) / stride_w + 1
+    output_shp = (n_out, output_h, output_w)
+    result = input_type.from_shape(output_shp)
+    for at_h in range(0, h, stride_h):
+        at_out_h = at_h / stride_h
+        at_h_from = at_h
+        at_h_to = at_h + stride_h
+        for at_w in range(0, w, stride_w):
+            at_w_from = at_w
+            at_w_to = at_w + stride_w
+            at_out_w = at_w / stride_w
+            input_slice = layer_input[:, at_h_from:at_h_to, at_w_from:at_w_to]
+            pool_res = input_slice.amax(axis=(1, 2), keepdims=True)
+            result[:, at_out_h, at_out_w] = pool_res
+    return result
 
 def softmax(layer_input):
     """Returns estimated activation of softmax layer."""
