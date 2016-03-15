@@ -10,61 +10,65 @@ from athenet.sparsifying.derest.utils import *
 
 # TODO: All functions below will be implemented.
 
-def conv(layer_input, input_shp, weights, weights_shape, stride=(1, 1),
+def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
         padding=(0, 0), n_groups=1):
     # TODO: Check if the kernel should be flipped!
     # TODO: Norm _get_output typo, 31
     """Returns estimated activation of convolutional layer.
 
-    :layer_input: Input tensor
-    :input_shp: Shape of input in the format
-                (image height, image width, number of input channels)
-    :weights: weights tensor
-    :weights_shp: Weights shape in the format
-                  (filter height, filter width, number of output channels)
-    :stride: Pair representing interval at which to apply the filters.
-    :padding: Pair representing number of zero-valued pixels to add on each
-              side of the input.
-    :n_groups: Number of groups input and output channels will be split
-               into. Two channels are connected only if they belong to the
-               same group.
+    :param layer_input: input Interval
+    :param input_shp: Shape of input in the format
+                (number of input channels, image height, image width)
+    :param weights: weights tensor in format (number of output channels,
+                                              number of input channels,
+                                              filter height, filter width)
+    :param filter_shp: Filter shape in the format (number of output channels,
+                                                   filter height, filter width)
+    :param stride: Pair representing interval at which to apply the filters.
+    :param padding: Pair representing number of zero-valued pixels to add on each
+                    side of the input.
+    :param n_groups: Number of groups input and output channels will be split
+                     into. Two channels are connected only if they belong to the
+                     same group.
+    :type layer_input: Interval or numpy.ndarray or theano tensor
+    :type input_shp: integer tuple
+    :type weights: numpy.ndarray or theano tensor
+    :type filter_shp: integer tuple
+    :type stride: integer pair
+    :type padding: integer pair
+    :type n_groups: integer
+    :rtype: Interval
     """
     assert_numlike(layer_input)
     try:
         h, w, n_in = input_shape
-        fh, fw, n_out = weights_shape
-        group_in = n_in / n_groups
-        group_out = n_out / n_groups
+        fh, fw, n_out = filter_shp
+        g_in = n_in / n_groups
+        g_out = n_out / n_groups
         pad_h, pad_w = padding
-        #TODO: Decide what is the order of strides in tuple
         stride_h, stride_w = stride
+        group_image_shape = (g_in, h + 2 * pad_h, w + 2 * pad_w)
+        group_filter_shape = (g_out, g_in, fh, fw)
+        flipped_weights = weights[:, :, ::-1, ::-1]
+        output_h = (h + 2 * pad_h - fh) / stride_h + 1
+        output_w = (w + 2 * pad_w - fw) / stride_w + 1
+        output_shp = (n_out, output_h, output_w)
 
-        #TODO
-        group_image_shape = (n_group_channels,
-                             h + 2*pad_h, w + 2*pad_w)
-        group_filter_shape = (n_group_filters, n_group_channels, fh, fw)
-
-
-        i_y = h
-        i_x = w
-        
-        for at_g_out in range(0, group_out):
-            for at_g_in in range(0, group_in):
-                for at_h in range(0, group_image_shape[0], stride_h):
-                    for at_w in range(0, group_image_shape[1], stride_w):
-                        
         for at_g in range(0, n_groups):
-            for at_h in range(0, group_image_shape[0], stride_h):
-                for at_w in range(0, group_image_shape[1], stride_w):
-                    g_in_from = at_g * group_in
-                    g_in_to = g_in_from + group_in
-                    g_out_from = at_g * group_out
-                    g_out_to = g_out_from + group_out
-                    in_slice = layer_input[at_h:(at_h + fh),
-                                           at_w:(at_w + fw),
-                                           group_in_from:group_in_to]
-                    weights_slice = weights[:, :, g_out_from:g_out_to]
-                    in_slice.dot
+            at_in_from = at_g * g_in
+            at_in_to = at_in_from + g_in
+            at_out_from = at_g * g_out
+            at_out_to = at_out_from + g_out
+            for at_h in range(0, group_image_shape[1], stride_h):
+                row = []
+                for at_w in range(0, group_image_shape[2], stride_w):
+                    in_slice = layer_input[at_in_from:at_in_to,
+                                           at_h:(at_h + fh),
+                                           at_w:(at_w + fw)]
+                    weights_slice = weights[at_out_from:at_out_to, :, :, :]
+                    conv_sum = in_slice * weight_slice
+                    conv_sum = conv_sum.sum(axis=1).sum(axis=1).sum(axis=1)
+                    row += conv_sum
 
 
 
