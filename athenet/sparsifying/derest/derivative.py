@@ -5,7 +5,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 from athenet.sparsifying.derest.utils import *
-    
+
 # TODO: All functions below will be implemented.
 
 def conv(layer_output):

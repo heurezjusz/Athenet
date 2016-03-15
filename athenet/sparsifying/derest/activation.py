@@ -40,56 +40,35 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
     :rtype: Interval
     """
     assert_numlike(layer_input)
-    try:
-        h, w, n_in = input_shape
-        fh, fw, n_out = filter_shp
-        g_in = n_in / n_groups
-        g_out = n_out / n_groups
-        pad_h, pad_w = padding
-        stride_h, stride_w = stride
-        group_image_shape = (g_in, h + 2 * pad_h, w + 2 * pad_w)
-        group_filter_shape = (g_out, g_in, fh, fw)
-        flipped_weights = weights[:, :, ::-1, ::-1]
-        output_h = (h + 2 * pad_h - fh) / stride_h + 1
-        output_w = (w + 2 * pad_w - fw) / stride_w + 1
-        output_shp = (n_out, output_h, output_w)
-
-        for at_g in range(0, n_groups):
-            at_in_from = at_g * g_in
-            at_in_to = at_in_from + g_in
-            at_out_from = at_g * g_out
-            at_out_to = at_out_from + g_out
-            for at_h in range(0, group_image_shape[1], stride_h):
-                row = []
-                for at_w in range(0, group_image_shape[2], stride_w):
-                    in_slice = layer_input[at_in_from:at_in_to,
-                                           at_h:(at_h + fh),
-                                           at_w:(at_w + fw)]
-                    weights_slice = weights[at_out_from:at_out_to, :, :, :]
-                    conv_sum = in_slice * weight_slice
-                    conv_sum = conv_sum.sum(axis=1).sum(axis=1).sum(axis=1)
-                    row += conv_sum
-
-
-
-        conv outputs = [
-            
-        for i in xrange(self.n_groups)]
-
-        conv_outputs = [theano.tensor.nnet.conv.conv2d(
-            input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
-                             :, :],
-            filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
-                                  :, :, :],
-            filter_shape=group_filter_shape,
-            image_shape=group_image_shape,
-            subsample=self.stride
-        ) for i in xrange(self.n_groups)]
-        conv_output = T.concatnate(conv_outputs, axis=1)
-        
-
-
-    except:
+    h, w, n_in = input_shape
+    fh, fw, n_out = filter_shp
+    g_in = n_in / n_groups
+    g_out = n_out / n_groups
+    pad_h, pad_w = padding
+    stride_h, stride_w = stride
+    group_image_shape = (g_in, h + 2 * pad_h, w + 2 * pad_w)
+    group_filter_shape = (g_out, g_in, fh, fw)
+    flipped_weights = weights[:, :, ::-1, ::-1]
+    output_h = (h + 2 * pad_h - fh) / stride_h + 1
+    output_w = (w + 2 * pad_w - fw) / stride_w + 1
+    output_shp = (n_out, output_h, output_w)
+    input_type = type(layer_input)
+    
+    for at_g in range(0, n_groups):
+        at_in_from = at_g * g_in
+        at_in_to = at_in_from + g_in
+        at_out_from = at_g * g_out
+        at_out_to = at_out_from + g_out
+        for at_h in range(0, group_image_shape[1], stride_h):
+            row = []
+            for at_w in range(0, group_image_shape[2], stride_w):
+                in_slice = layer_input[at_in_from:at_in_to,
+                                       at_h:(at_h + fh),
+                                       at_w:(at_w + fw)]
+                weights_slice = weights[at_out_from:at_out_to, :, :, :]
+                conv_sum = in_slice * weight_slice
+                conv_sum = conv_sum.sum(axis=1).sum(axis=1).sum(axis=1)
+                row += conv_sum
 
 def dropout(layer_input, p_dropout):
     """Returns estimated activation of dropout layer."""
