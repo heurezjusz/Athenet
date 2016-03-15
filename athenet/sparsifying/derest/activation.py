@@ -12,8 +12,7 @@ from athenet.sparsifying.derest.utils import *
 
 def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
         padding=(0, 0), n_groups=1):
-    # TODO: Check if the kernel should be flipped!
-    # TODO: Norm _get_output typo, 31
+    # TODO: unit tests
     """Returns estimated activation of convolutional layer.
 
     :param layer_input: input Interval
@@ -40,35 +39,55 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
     :rtype: Interval
     """
     assert_numlike(layer_input)
+    # h, w, n_in - image height, image width, number of input channels
     h, w, n_in = input_shape
+    # fh, fw, n_out - filter height, filter width, number of output channels
     fh, fw, n_out = filter_shp
+    # g_in - number of input channels per group
     g_in = n_in / n_groups
+    # g_out - number of output channels per group
     g_out = n_out / n_groups
     pad_h, pad_w = padding
     stride_h, stride_w = stride
-    group_image_shape = (g_in, h + 2 * pad_h, w + 2 * pad_w)
-    group_filter_shape = (g_out, g_in, fh, fw)
+    # see: flipping kernel
     flipped_weights = weights[:, :, ::-1, ::-1]
-    output_h = (h + 2 * pad_h - fh) / stride_h + 1
-    output_w = (w + 2 * pad_w - fw) / stride_w + 1
-    output_shp = (n_out, output_h, output_w)
     input_type = type(layer_input)
-    
+    padded_input_shape = (h + 2 * pad_h, w + 2 * pad_w, n_in)
+    padded_input = input_type.from_shape(padded_input_shape)
+    padded_input[pad_h:(pad_h + h), pad_w:(pad_w + w), n_in] = \
+            layer_input
+    # setting new h, w, n_in for padded input, you can forget about padding
+    h, w, n_in = padded_input_shape
+    output_h = (h - fh) / stride_h + 1
+    output_w = (w - fw) / stride_w + 1
+    output_shp = (n_out, output_h, output_w)
+    result = input_type.from_shape(output_shp)
     for at_g in range(0, n_groups):
+        # beginning and end of at_g'th group of input channel in input
         at_in_from = at_g * g_in
         at_in_to = at_in_from + g_in
+        # beginning and end of at_g'th group of output channel in weights
         at_out_from = at_g * g_out
         at_out_to = at_out_from + g_out
-        for at_h in range(0, group_image_shape[1], stride_h):
-            row = []
-            for at_w in range(0, group_image_shape[2], stride_w):
-                in_slice = layer_input[at_in_from:at_in_to,
+        for at_h in range(0, h, stride_h):
+            # at_out_h - height of output corresponding to filter at
+            # position at_h
+            at_out_h = at_h / stride_h
+            for at_w in range(0, w, stride_w):
+                # at_out_w - height of output corresponding to filter at
+                # position at_w
+                at_out_w = at_w / stride_w
+                # input slice that impacts on (at_out_h, at_out_w) in output
+                input_slice = layer_input[at_in_from:at_in_to,
                                        at_h:(at_h + fh),
                                        at_w:(at_w + fw)]
-                weights_slice = weights[at_out_from:at_out_to, :, :, :]
-                conv_sum = in_slice * weight_slice
+                # weights slice that impacts on (at_out_h, at_out_w) in output
+                weights_slice = flipped_weights[at_out_from:at_out_to, :, :, :]
+                conv_sum = input_slice * weight_slice
                 conv_sum = conv_sum.sum(axis=1).sum(axis=1).sum(axis=1)
-                row += conv_sum
+                conv_sum = conv_sum.reshape((g_out, 1, 1))
+                result[at_out_from:at_out_to, at_out_h, at_out_w] = conv_sum
+    return result
 
 def dropout(layer_input, p_dropout):
     """Returns estimated activation of dropout layer."""

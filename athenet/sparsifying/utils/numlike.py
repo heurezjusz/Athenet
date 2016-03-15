@@ -119,3 +119,8 @@ class Numlike(object):
     def T(self):
         """Vector operation like in numpy.ndarray"""
         raise NotImplementedError
+
+    @staticmethod
+    def from_shape(shp):
+        """Returns Numlike of given shape."""
+        raise NotImplementedError

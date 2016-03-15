@@ -1,10 +1,18 @@
-"""Intervals in Theano including special functions for sparsifying."""
+"""Intervals in Theano including special functions for sparsifying.
+
+This module contains Interval class and auxiliary objects.
+"""
 
 from athenet.sparsifying.utils.numlike import Numlike
 from theano import function
 from theano import tensor as T
+from theano import shared
 from theano.ifelse import ifelse
+import numpy
 
+DEFAULT_INTERVAL_LOWER = 0.0
+DEFAULT_INTERVAL_UPPER = 255.0
+DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
 
 class Interval(Numlike):
     """Theano interval matrix class
@@ -374,3 +382,27 @@ class Interval(Numlike):
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
         return (rlower, rupper)
+
+    @staticmethod
+    def from_shape(shp, lower_val=DEFAULT_INTERVAL_LOWER,
+                      upper_val=DEFAULT_INTERVAL_UPPER):
+        """Returns Interval of shape shp with given lower and upper values.
+        
+        :param shp: shape of created Interval
+        :param lower_val: value of lower bound
+        :param upper_val: value of upper bound
+        :type shp: tuple of integers
+        :type lower_val: float
+        :type upper_val: float
+        :rtype: Interval
+        """
+        if lower_val > upper_val:
+            raise ValueError("lower_val > upper_val in newly created Interval")
+        lower_value, upper_value = DEFAULT_INTERVAL_VALUES
+        lower_array = numpy.ndarray(shp)
+        upper_array = numpy.ndarray(shp)
+        lower_array.fill(lower_val)
+        upper_array.fill(upper_val)
+        lower = shared(lower_array)
+        upper = shared(upper_array)
+        return Interval(lower, upper)
