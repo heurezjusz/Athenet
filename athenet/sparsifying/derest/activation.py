@@ -10,7 +10,7 @@ from athenet.sparsifying.derest.utils import *
 
 # TODO: All functions below will be implemented.
 
-def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
+def conv(layer_input, weights, biases, stride=(1, 1),
         padding=(0, 0), n_groups=1):
     # TODO: unit tests
     """Returns estimated activation of convolutional layer.
@@ -39,10 +39,10 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
     :rtype: Numlike
     """
     assert_numlike(layer_input)
-    # h, w, n_in - image height, image width, number of input channels
-    h, w, n_in = input_shape
-    # fh, fw, n_out - filter height, filter width, number of output channels
-    fh, fw, n_out = filter_shp
+    # n_in, h, w - number of input channels, image height, image width
+    n_in, h, w = layer_input.shape
+    n_out, w_g_in, fh, fw = weights.shape
+    b_in
     # g_in - number of input channels per group
     g_in = n_in / n_groups
     # g_out - number of output channels per group
@@ -86,11 +86,12 @@ def conv(layer_input, input_shp, weights, filter_shp, stride=(1, 1),
                 conv_sum = input_slice * weight_slice
                 conv_sum = conv_sum.sum(axis=(1, 2, 3), keepdims=True)
                 result[at_out_from:at_out_to, at_out_h, at_out_w] = conv_sum
+    result = result + bias
     return result
 
 def dropout(layer_input, p_dropout):
     """Returns estimated activation of dropout layer.
-    
+
     :param p_drouput: probability of dropping in dropout
     :type p_dropout: float
     :rtype: Numlike
@@ -116,14 +117,6 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
 #    try:
 #    except:
 
-def avg_pool(layer_input, poolsize, stride=None):
-    """Returns estimated activation of avg pool layer."""
-    assert_numlike(input_layer)
-    if stride is None:
-        stride = poolsize
-#    try:
-#    except:
-
 def pool(layer_input, poolsize, stride=None, mode="max"):
     """Returns estimated activation of max pool layer."""
     # TODO: mode 'avg'
@@ -132,6 +125,7 @@ def pool(layer_input, poolsize, stride=None, mode="max"):
         stride = poolsize
     if mode not in ['max', 'avg']:
         raise ValueError("mode not in ['max', 'avg']")
+    is_max = mode == 'max'
     # h, w, n_in - image height, image width, number of input channels
     h, w, n_in = input_shape
     stride_h, stride_w = stride
@@ -149,7 +143,11 @@ def pool(layer_input, poolsize, stride=None, mode="max"):
             at_w_to = at_w + stride_w
             at_out_w = at_w / stride_w
             input_slice = layer_input[:, at_h_from:at_h_to, at_w_from:at_w_to]
-            pool_res = input_slice.amax(axis=(1, 2), keepdims=True)
+            if is_max:
+                pool_res = input_slice.amax(axis=(1, 2), keepdims=True)
+            else:
+                # TODO
+                pass
             result[:, at_out_h, at_out_w] = pool_res
     return result
 

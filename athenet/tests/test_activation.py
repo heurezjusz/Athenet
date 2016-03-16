@@ -116,8 +116,13 @@ class ConvolutionalActivationTest(unittest.TestCase):
     s = s
     make_arr = make_arr
 
-    def testSimplest(self):
+    def testTrivial(self):
         s, v, m = self.prepare()
+        inp = A([[[1]]])
+        w = A([[[[2]]]])
+        b = A([3])
+        output = conv(inp, inp.shape, weights
+
 
 class MaxPoolActivationTest(unittest.TestCase):
 
