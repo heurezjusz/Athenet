@@ -45,4 +45,4 @@ class Concatenation(Layer):
         return (x, y, n_channels)
 
     def _get_output(self, layer_inputs):
-        return T.concatenate(layer_inputs, axis=3)
+        return T.concatenate(layer_inputs, axis=1)

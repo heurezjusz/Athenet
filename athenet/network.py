@@ -135,6 +135,7 @@ class Network(object):
         for layer in self.layers:
             layer.batch_size = self.batch_size
         self.layers[0].input = self._input
+        self.layers[0].train_input = self._input
         for layer, prev_layer in zip(self.layers[1:], self.layers[:-1]):
             if layer.input_layer_name is None:
                 layer.input_layer = prev_layer

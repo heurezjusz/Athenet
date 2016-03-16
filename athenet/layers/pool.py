@@ -31,6 +31,9 @@ class PoolingLayer(Layer):
     @property
     def output_shape(self):
         image_h, image_w, n_channels = self.input_shape
+        pad_h, pad_w = self.padding
+        image_h += 2*pad_h
+        image_w += 2*pad_w
         pool_h, pool_w = self.poolsize
         if self.stride is not None:
             stride_h, stride_w = self.stride
@@ -62,22 +65,22 @@ class PoolingLayer(Layer):
             ds=self.poolsize,
             ignore_border=True,
             st=stride,
-            padding=self.padding
+            padding=self.padding,
             mode=mode,
         )
 
 
 class MaxPool(PoolingLayer):
-    def __init__(self, poolsize, stride=None, input_layer_name=None,
-                 name='max_pool'):
+    def __init__(self, poolsize, stride=None, padding=(0, 0),
+                 input_layer_name=None, name='max_pool'):
         """Create max-pooling layer."""
-        super(MaxPool, self).__init__(poolsize, stride, 'max',
+        super(MaxPool, self).__init__(poolsize, stride, 'max', padding,
                                       input_layer_name, name)
 
 
 class AvgPool(PoolingLayer):
-    def __init__(self, poolsize, stride=None, input_layer_name=None,
-                 name='avg_pool'):
+    def __init__(self, poolsize, stride=None, padding=(0, 0),
+                 input_layer_name=None, name='avg_pool'):
         """Create average-pooling layer."""
-        super(AvgPool, self).__init__(poolsize, stride, 'avg',
+        super(AvgPool, self).__init__(poolsize, stride, 'avg', padding,
                                       input_layer_name, name)

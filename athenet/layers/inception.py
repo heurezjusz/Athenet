@@ -8,7 +8,7 @@ from athenet.layers import Layer, ConvolutionalLayer, ReLU, MaxPool, \
     Concatenation
 
 
-class InceptionLayer(object):
+class InceptionLayer(Layer):
     def __init__(self, n_filters, input_layer_name=None, name='inception'):
         """Create inception layer.
 
@@ -18,36 +18,31 @@ class InceptionLayer(object):
         super(InceptionLayer, self).__init__(input_layer_name, name)
 
         layer_list1 = [
-            ConvolutionalLayer(filter_shape=(n_filters[0], 1, 1)),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[0])),
             ReLU(),
         ]
         layer_list2 = [
-            ConvolutionalLayer(filter_shape=(n_filters[1], 1, 1)),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[1])),
             ReLU(),
-            ConvolutionalLayer(filter_shape=(n_filters[2], 3, 3),
+            ConvolutionalLayer(filter_shape=(3, 3, n_filters[2]),
                                padding=(1, 1)),
             ReLU(),
         ]
         layer_list3 = [
-            ConvolutionalLayer(filter_shape=(n_filters[3], 1, 1)),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[3])),
             ReLU(),
-            ConvolutionalLayer(filter_shape=(n_filters[4], 5, 5),
+            ConvolutionalLayer(filter_shape=(5, 5, n_filters[4]),
                                padding=(2, 2)),
             ReLU(),
         ]
         layer_list4 = [
-            MaxPool(poolsize=(3, 3),
-                    stride=(1, 1),
-                    padding=(1, 1)),
-            ConvolutionalLayer(filter_shape=(n_filters[5], 1, 1)),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[5])),
             ReLU(),
         ]
         self.layer_lists = [layer_list1, layer_list2, layer_list3, layer_list4]
         self.bottom_layers = [layer_list[0] for layer_list in self.layer_lists]
         self.top_layers = [layer_list[-1] for layer_list in self.layer_lists]
-
         self.concat = Concatenation()
-        self.concat.input_layers = top_layers
 
     @property
     def output_shape(self):
@@ -64,4 +59,11 @@ class InceptionLayer(object):
 
         for bottom_layer in self.bottom_layers:
             bottom_layer.input_layer = input_layer
-        # TODO: connect layers and set self.output
+
+        for layers in self.layer_lists:
+            for layer, prev_layer in zip(layers[1:], layers[:-1]):
+                layer.input_layer = prev_layer
+        self.concat.input_layers = self.top_layers
+
+        self.output = self.concat.output
+        self.train_output = self.concat.train_output
