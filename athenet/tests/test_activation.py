@@ -121,8 +121,9 @@ class ConvolutionalActivationTest(unittest.TestCase):
         inp = A([[[1]]])
         w = A([[[[2]]]])
         b = A([3])
-        output = conv(inp, inp.shape, weights
-
+        f_shp = (w.shape[0], w.shape[1], w.shape[3])
+        res = conv(inp, inp.shape, w, f_shp, b)
+        arae(res, A([[[5]]]))
 
 class MaxPoolActivationTest(unittest.TestCase):
 

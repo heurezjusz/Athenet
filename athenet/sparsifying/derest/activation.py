@@ -10,19 +10,20 @@ from athenet.sparsifying.derest.utils import *
 
 # TODO: All functions below will be implemented.
 
-def conv(layer_input, weights, biases, stride=(1, 1),
+def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
         padding=(0, 0), n_groups=1):
     # TODO: unit tests
     """Returns estimated activation of convolutional layer.
 
-    :param layer_input: input Numlike
+    :param layer_input: Input Numlike
     :param input_shp: Shape of input in the format
                 (number of input channels, image height, image width)
-    :param weights: weights tensor in format (number of output channels,
+    :param weights: Weights tensor in format (number of output channels,
                                               number of input channels,
                                               filter height, filter width)
     :param filter_shp: Filter shape in the format (number of output channels,
                                                    filter height, filter width)
+    :param biases: Biases in convolution
     :param stride: Pair representing interval at which to apply the filters.
     :param padding: Pair representing number of zero-valued pixels to add on each
                     side of the input.
@@ -33,16 +34,17 @@ def conv(layer_input, weights, biases, stride=(1, 1),
     :type input_shp: integer tuple
     :type weights: numpy.ndarray or theano tensor
     :type filter_shp: integer tuple
+    :type biases: 1D np.array or theano.tensor
     :type stride: integer pair
     :type padding: integer pair
     :type n_groups: integer
     :rtype: Numlike
     """
     assert_numlike(layer_input)
-    # n_in, h, w - number of input channels, image height, image width
-    n_in, h, w = layer_input.shape
-    n_out, w_g_in, fh, fw = weights.shape
-    b_in
+    # h, w, n_in - image height, image width, number of input channels
+    h, w, n_in = input_shp
+    # fw, fh, n_out - filter height, filter width, number of output channels
+    fh, fw, n_out = filter_shp
     # g_in - number of input channels per group
     g_in = n_in / n_groups
     # g_out - number of output channels per group
