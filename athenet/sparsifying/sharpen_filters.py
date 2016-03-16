@@ -9,7 +9,7 @@ def get_noise_indicators(filter, bilateral_filter_args):
     Returns possibility of being a noise .
 
     This function, for 2D filter with values in (-1, 1),
-    computes possibility of being a noise,
+    computes possibility of being a noise for every value in filters,
     which is computed using bilateral filtering with given arguments
 
     :param numpy.ndarray filter: 2D filter
@@ -36,8 +36,9 @@ def sharpen_filter(filter, min_noise_indicator, max_value,
 
     :param numpy.ndarray filter: 3D filter
     :param float min_noise_indicator: minimal value of noise indicator
-        enablind deleting the weight
-    :param float max_value: maximal value enabling deleting the weight
+        enabling deleting the weight
+    :param float max_value: values larger than max_value will be not deleted,
+        regardless of the noise_indicator
     :param bilateral_filter_args: args for bilateral filtering
     """
     for filter_2d in filter:
@@ -58,7 +59,7 @@ def sharpen_filters_in_layer(layer, (min_noise_indicator,
 
     :param numpy.ndarray filter: 3D filter
     :param float min_noise_indicator: minimal value of noise indicator
-        enablind deleting the weight
+        enabling deleting the weight
     :param float max_value: maximal value enabling deleting the weight
     :param bilateral_filter_args: args for bilateral filtering
     """
@@ -80,7 +81,7 @@ def sharpen_filters_in_network(network, (min_noise_indicator, max_value,
 
     :param numpy.ndarray filter: 3D filter
     :param float min_noise_indicator: minimal value of noise indicator
-        enablind deleting the weight
+        enabling deleting the weight
     :param float max_value: maximal value enabling deleting the weight
     :param bilateral_filter_args: args for bilateral filtering
     """

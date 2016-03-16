@@ -38,5 +38,5 @@ def lenet(trained=True, weights_filename=LENET_FILENAME,
         Softmax(),
     ])
     if trained:
-       lenet.set_params(weights)
+        lenet.set_params(weights)
     return lenet
