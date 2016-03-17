@@ -110,11 +110,11 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def reshape(self, shape, ndim=None):
+    def reshape(self, shape):
         """Reshapes numlike tensor like theano Tensor."""
         raise NotImplementedError
 
-    def flatten(self, ndim=1):
+    def flatten(self):
         """Flattens numlike tensor like theano Tensor."""
         raise NotImplementedError
 

@@ -42,9 +42,9 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
     """
     assert_numlike(layer_input)
     # h, w, n_in - image height, image width, number of input channels
-    h, w, n_in = input_shp
+    n_in, h, w = input_shp
     # fw, fh, n_out - filter height, filter width, number of output channels
-    fh, fw, n_out = filter_shp
+    n_out, fh, fw = filter_shp
     # g_in - number of input channels per group
     g_in = n_in / n_groups
     # g_out - number of output channels per group
@@ -54,12 +54,12 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
     # see: flipping kernel
     flipped_weights = weights[:, :, ::-1, ::-1]
     input_type = type(layer_input)
-    padded_input_shape = (h + 2 * pad_h, w + 2 * pad_w, n_in)
+    padded_input_shape = (n_in, h + 2 * pad_h, w + 2 * pad_w)
     padded_input = input_type.from_shape(padded_input_shape)
-    padded_input[pad_h:(pad_h + h), pad_w:(pad_w + w), n_in] = \
+    padded_input[n_in, pad_h:(pad_h + h), pad_w:(pad_w + w)] = \
             layer_input
     # setting new h, w, n_in for padded input, you can forget about padding
-    h, w, n_in = padded_input_shape
+    n_in, h, w = padded_input_shape
     output_h = (h - fh) / stride_h + 1
     output_w = (w - fw) / stride_w + 1
     output_shp = (n_out, output_h, output_w)

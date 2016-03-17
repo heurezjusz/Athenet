@@ -82,6 +82,10 @@ class NumlikeTest(unittest.TestCase):
         res = Numlike().max(Numlike())
 
     @raises(NotImplementedError)
+    def test_amax(self):
+        res = Numlike().amax()
+
+    @raises(NotImplementedError)
     def test_reshape(self):
         res = Numlike().reshape((1, 2, 3))
 
@@ -111,4 +115,3 @@ class NumlikeTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
-

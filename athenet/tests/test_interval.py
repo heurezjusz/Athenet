@@ -301,6 +301,21 @@ class IntervalTest(unittest.TestCase):
         assert_array_almost_equal(rl, ansl)
         assert_array_almost_equal(ru, ansu)
 
+    def test_amax(self):
+        al = np.array([[1, 2], [3, 4]])
+        au = np.array([[2, 2], [4, 7]])
+        alt, aut = T.dmatrices('alt', 'aut')
+        ai = Interval(alt, aut)
+        ci = ai.amax(axis=1, keepdims=True)
+        d = {alt: al, aut: au}
+        res = ci.eval(d)
+        rl = res[0]
+        ru = res[1]
+        ansl = np.array([[2], [4]])
+        ansu = np.array([[2], [7]])
+        assert_array_almost_equal(rl, ansl)
+        assert_array_almost_equal(ru, ansu)
+
     def test_eval(self):
         txl, txu, tyl, tyu = T.dmatrices('xl', 'xu', 'yl', 'yu')
         xl = np.array([[1, 2], [3, 4]])

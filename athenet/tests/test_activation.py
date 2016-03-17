@@ -40,18 +40,18 @@ class FullyConnectedActivationTest(unittest.TestCase):
     s = s
     make_arr = make_arr
 
-    def test1DSimple(self):
+    def test_1D_simple(self):
         s, v, m = self.prepare()
         res = fully_connected(A([1]), A([2]), A([0]))
         arae(res, A([2]))
 
-    def test2DSimpleUsed1DOfWeights(self):
+    def test_2D_simple_used_1D_of_weights(self):
         s, v, m = self.prepare()
         inp, w, b = m(2), m(2), A([1.0])
         res = fully_connected(inp, w, b)
         arae(res, A([v[0] * v[2] + v[1] * v[3] + 1.0]))
 
-    def test2DSimpleUSed2DOfWeights(self):
+    def test_2D_simple_used_2D_of_weights(self):
         s, v, m = self.prepare()
         inp = m(1)
         w = m((1, 2))
@@ -59,7 +59,7 @@ class FullyConnectedActivationTest(unittest.TestCase):
         arae(fully_connected(inp, w, b), A([v[0] * v[1] + v[3],
                 v[0] * v[2] + v[4]]))
 
-    def test2DSimple(self):
+    def test_2D_simple(self):
         s, v, m = self.prepare()
         inp = m(2)
         w = m((2, 2))
@@ -67,7 +67,7 @@ class FullyConnectedActivationTest(unittest.TestCase):
         arae(fully_connected(inp, w, b), A([v[0] * v[2] + v[1] * v[4] + v[6],
                 v[0] * v[3] + v[1] * v[5] + v[7]]))
 
-    def test2D2(self):
+    def test_2D_2(self):
         s, v, m = self.prepare()
         inp = m(4)
         w = m((4, 2))
@@ -76,7 +76,7 @@ class FullyConnectedActivationTest(unittest.TestCase):
         ru = v[0] * v[5] + v[1] * v[7] + v[2] * v[9] + v[3] * v[11] + v[13]
         arae(fully_connected(inp, w, b), A([rl, ru]))
 
-    def test3DUsingIntervals(self):
+    def test_3D_using_intervals(self):
         s, v, m = self.prepare()
         inpl = m(4)
         wl = m((4, 2))
@@ -101,7 +101,7 @@ class FullyConnectedActivationTest(unittest.TestCase):
         arae(rl, crl)
         arae(ru, cru)
 
-    def testNegative(self):
+    def test_negative(self):
         s, v, m = self.prepare()
         inp = A([1, -1])
         w = A([[1, 1], [1, -1]])
@@ -116,7 +116,7 @@ class ConvolutionalActivationTest(unittest.TestCase):
     s = s
     make_arr = make_arr
 
-    def testTrivial(self):
+    def test_trivial(self):
         s, v, m = self.prepare()
         inp = A([[[1]]])
         w = A([[[[2]]]])
@@ -124,6 +124,10 @@ class ConvolutionalActivationTest(unittest.TestCase):
         f_shp = (w.shape[0], w.shape[1], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
         arae(res, A([[[5]]]))
+
+    def test_1_channel_input1_conv_feature(self):
+        inp = A([[[0, 0], [2, 3]]])
+        weights
 
 class MaxPoolActivationTest(unittest.TestCase):
 
@@ -155,13 +159,13 @@ class DropoutActivationTest(unittest.TestCase):
     s = s
     make_arr = make_arr
 
-    def test2x2Matrix(self):
+    def test_2x2_matrix(self):
         s, v, m = self.prepare()
         a = A([[s(), s()], [s(), s()]])
         res = dropout(a, 0.8)
         arae(res, 0.2 * a)
 
-    def test2x2MatrixInterval(self):
+    def test_2x2_matrix_interval(self):
         s, v, m = self.prepare()
         l = A([[s(), s()], [s(), s()]])
         u = A([[s(), s()], [s(), s()]])

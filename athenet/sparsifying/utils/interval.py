@@ -325,8 +325,12 @@ class Interval(Numlike):
         :type other: Interval
         :rtype: Interval
         """
-        return Interval(T.maximum(self.lower, other.lower),
-                        T.maximum(self.upper, other.upper))
+        if isinstance(other, Interval):
+            return Interval(T.maximum(self.lower, other.lower),
+                            T.maximum(self.upper, other.upper))
+        else:
+            return Interval(T.maximum(self.lower, other),
+                            T.maximum(self.upper, other))
 
     def amax(self, axis=None, keepdims=False):
         """Returns maximum of a Numlike along an axis.
@@ -343,33 +347,32 @@ class Interval(Numlike):
         upper = self.upper.max(axis=axis, keepdims=keepdims)
         return Interval(lower, upper)
 
-    def reshape(self, shape, ndim=None):
+    def reshape(self, shape):
         """Reshapes interval tensor like theano Tensor.
 
         :param shape: Something that can be converted to a symbolic vector of
                       integers.
-        :param ndim: The length of the shape. Passing None here means for
-                     Theano to try and guess the length of shape.
         """
-        return Interval(self.lower.reshape(shape, ndim),
-                        self.upper.reshape(shape, ndim))
+        return Interval(self.lower.reshape(shape),
+                        self.upper.reshape(shape))
 
-    def flatten(self, ndim=1):
+    def flatten(self):
         """Flattens interval tensor like theano Tensor.
 
-        :param ndim: The number of dimensions in the returned variable.
         :return: Variable with same dtype as x and outdim dimensions.
         :rtype: Variable with the same shape as x in the leading outdim-1
                 dimensions, but with all remaining dimensions of x collapsed
                 into the last dimension.
         """
-        return Interval(self.lower.flatten(ndim),
-                        self.upper.flatten(ndim))
+        return Interval(self.lower.flatten(ndim=1),
+                        self.upper.flatten(ndim=1))
 
-    def sum(self, axis=None, dtype=None, keepdims=False, acc_dtype=None):
+    def sum(self, axis=None, dtype=None, keepdims=False):
         """Vector operation like in numpy.ndarray."""
-        return Interval(self.lower.sum(axis, dtype, keepdims, acc_dtype),
-                        self.upper.sum(axis, dtype, keepdims, acc_dtype))
+        return Interval(self.lower.sum(axis=axis, dtype=dtype,
+                                       keepdims=keepdims),
+                        self.upper.sum(axis=axis, dtype=dtype,
+                                       keepdims=keepdims))
 
     @property
     def T(self):
