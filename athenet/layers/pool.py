@@ -1,6 +1,6 @@
 """Pooling layer."""
 
-from theano.tensor.signal import downsample
+from theano.tensor.signal.pool import pool_2d
 
 from athenet.layers import Layer
 
@@ -60,7 +60,7 @@ class PoolingLayer(Layer):
         else:
             mode = self.mode
 
-        return downsample.max_pool_2d(
+        return pool_2d(
             input=layer_input,
             ds=self.poolsize,
             ignore_border=True,
