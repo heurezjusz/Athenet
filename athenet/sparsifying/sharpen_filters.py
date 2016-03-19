@@ -57,7 +57,7 @@ def sharpen_filters_in_layer(layer, (min_noise_indicator,
     sets to zero filters' weights which are smaller than max_value
     and which possibility of being a noise is greater than min_noise_value,
 
-    :param numpy.ndarray filter: 3D filter
+    :param numpy.ndarray layer: convolutional layer in network
     :param float min_noise_indicator: minimal value of noise indicator
         enabling deleting the weight
     :param float max_value: maximal value enabling deleting the weight
