@@ -127,6 +127,13 @@ class WeightedLayer(Layer):
     def b(self, value):
         self.b_shared.set_value(value)
 
+    def set_params(self, params):
+        """Set layer's weights and biases.
+
+        :param params: Weights and biases. Exact format depends on layer type.
+        """
+        pass
+
     def alloc_velocity(self):
         """Create velocity tensors for weights and biases.
 

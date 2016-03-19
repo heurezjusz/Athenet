@@ -147,3 +147,7 @@ class ConvolutionalLayer(WeightedLayer):
 
         conv_output = T.concatenate(conv_outputs, axis=1)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
+
+    def set_params(self, params):
+        self.W = params[0]
+        self.b = params[1]

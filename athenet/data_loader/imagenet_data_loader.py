@@ -102,8 +102,8 @@ class ImageNetDataLoader(DataLoader):
             r -= self.mean_rgb[0]
             g -= self.mean_rgb[1]
             b -= self.mean_rgb[2]
-            img = np.concatenate([b, g, r], axis=1)
-            img = img[:, :, :, :]
+            img = np.concatenate([r, g, b], axis=1)
+            img = img[:, ::-1, :, :]
             imgs += [img]
         return np.asarray(np.concatenate(imgs, axis=0),
                           dtype=theano.config.floatX)

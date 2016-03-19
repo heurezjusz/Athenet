@@ -69,3 +69,7 @@ class FullyConnectedLayer(WeightedLayer):
 
     def _get_output(self, layer_input):
         return T.dot(self.input, self.W_shared) + self.b_shared
+
+    def set_params(self, params):
+        self.W = params[0]
+        self.b = params[1]

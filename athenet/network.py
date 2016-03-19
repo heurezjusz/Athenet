@@ -6,7 +6,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athenet.layers import WeightedLayer, ConvolutionalLayer
+from athenet.layers import WeightedLayer, ConvolutionalLayer, InceptionLayer
 from athenet.utils import overwrite, save_data_to_pickle
 
 
@@ -98,7 +98,8 @@ class Network(object):
         self.layers = layers
 
         self.weighted_layers = [layer for layer in self.layers
-                                if isinstance(layer, WeightedLayer)]
+                                if isinstance(layer, WeightedLayer) or
+                                isinstance(layer, InceptionLayer)]
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
@@ -240,9 +241,8 @@ class Network(object):
 
         :params: List of pairs (W, b).
         """
-        for p, layer in zip(params, self.weighted_layers):
-            layer.W = p[0]
-            layer.b = p[1]
+        for layer, p in zip(self.weighted_layers, params):
+            layer.set_params(p)
 
     def save_to_file(self, filename):
         """Save network's weights to file.
