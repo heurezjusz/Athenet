@@ -20,11 +20,12 @@ class ImageNetDataLoader(DataLoader):
     mean_rgb = [123, 117, 104]
     verbosity = 0
 
-    def __init__(self, year, buffer_size=1, train_data=True, val_data=True,
+    def __init__(self, year, image_shape, buffer_size=1, train_data=True, val_data=True,
                  val_size=None):
         """Create ImageNet data loader.
 
         :year: Specifies which year's data should be loaded.
+        :image_shape: Image shape in format (height, width).
         :buffer_size: Number of batches to be stored in memory.
         :train_data: Specifies whether to load training data.
         :val_data: Specifies whether to load validation data.
@@ -35,6 +36,7 @@ class ImageNetDataLoader(DataLoader):
         super(ImageNetDataLoader, self).__init__()
         self.buffer_size = buffer_size
         self.shuffle_train_data = True
+        self._height, self._width = image_shape
 
         base_name = self.name_prefix + str(year)
         self.train_name = base_name + self.train_suffix
@@ -89,7 +91,7 @@ class ImageNetDataLoader(DataLoader):
     def _get_img(self, filename):
         img = misc.imread(get_bin_path(filename))
         img = np.rollaxis(img, 2)
-        img = img.reshape((1, 3, 227, 227))
+        img = img.reshape((1, 3, self._height, self._width))
         return np.asarray(img, dtype=theano.config.floatX)
 
     def _load_imgs(self, dir_name, files):
