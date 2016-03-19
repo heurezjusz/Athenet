@@ -18,28 +18,37 @@ class InceptionLayer(Layer):
         super(InceptionLayer, self).__init__(input_layer_name, name)
 
         layer_list1 = [
-            ConvolutionalLayer(filter_shape=(1, 1, n_filters[0])),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[0]),
+                               name=name+'/1x1_conv1'),
             ReLU(),
         ]
         layer_list2 = [
-            ConvolutionalLayer(filter_shape=(1, 1, n_filters[1])),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[1]),
+                               name=name+'/1x1_conv2'),
             ReLU(),
             ConvolutionalLayer(filter_shape=(3, 3, n_filters[2]),
-                               padding=(1, 1)),
+                               padding=(1, 1),
+                               name=name+'/3x3_conv'),
             ReLU(),
         ]
         layer_list3 = [
-            ConvolutionalLayer(filter_shape=(1, 1, n_filters[3])),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[3]),
+                               name=name+'/1x1_conv3'),
             ReLU(),
             ConvolutionalLayer(filter_shape=(5, 5, n_filters[4]),
-                               padding=(2, 2)),
+                               padding=(2, 2),
+                               name=name+'/5x5_conv'),
             ReLU(),
         ]
         layer_list4 = [
-            ConvolutionalLayer(filter_shape=(1, 1, n_filters[5])),
+            ConvolutionalLayer(filter_shape=(1, 1, n_filters[5]),
+                               name=name+'/1x1_conv4'),
             ReLU(),
         ]
         self.layer_lists = [layer_list1, layer_list2, layer_list3, layer_list4]
+        layers = np.concatenate(self.layer_lists)
+        self.convolutional_layers = [layer for layer in layers
+                                     if isinstance(layer, ConvolutionalLayer)]
         self.bottom_layers = [layer_list[0] for layer_list in self.layer_lists]
         self.top_layers = [layer_list[-1] for layer_list in self.layer_lists]
         self.concat = Concatenation()
@@ -67,3 +76,7 @@ class InceptionLayer(Layer):
 
         self.output = self.concat.output
         self.train_output = self.concat.train_output
+
+    def set_params(self, params):
+        for layer, p in zip(self.convolutional_layers, params):
+            layer.set_params(p)
