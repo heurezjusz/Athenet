@@ -2,7 +2,6 @@
 
 import timeit
 import numpy as np
-from enum import Enum
 
 import theano
 import theano.tensor as T
