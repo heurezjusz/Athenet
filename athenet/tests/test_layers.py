@@ -1,4 +1,4 @@
-""" Tests for all layers """
+"""Tests for all layers."""
 
 import theano
 import theano.tensor as T
@@ -6,7 +6,7 @@ import numpy as np
 from unittest import TestCase, main
 
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
-    ReLU, Activation, LRN, MaxPool, Dropout
+    ReLU, ActivationLayer, LRN, MaxPool, Dropout
 
 
 def eval_tensor_on_layer(layer, tensor):
@@ -47,7 +47,7 @@ class TestLayers(TestCase):
         def foo(x):
             return x ** 2 / 16. - x
 
-        layer = Activation(foo)
+        layer = ActivationLayer(foo)
         out = eval_tensor_on_layer(layer, in_data)
 
         for i in xrange(in_data.shape[1]):

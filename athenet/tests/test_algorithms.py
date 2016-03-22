@@ -7,7 +7,6 @@ from copy import deepcopy
 from athenet import Network
 from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
     ReLU, MaxPool
-from athenet.utils import DataLoader
 
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
 from athenet.algorithm.utils import list_of_percentage_rows_table, delete_row,\
@@ -105,10 +104,7 @@ def check_params(net, p, layer_limit):
         neurons = layer.W.shape[0]
         deleted = 0
         for r in xrange(layer.W.shape[0]):
-            for c in xrange(layer.W.shape[1]):
-                if layer.W[r][c] != 0:
-                    break
-            else:
+            if not layer.W[r].any():
                 deleted += 1
 
         all_neurons += neurons

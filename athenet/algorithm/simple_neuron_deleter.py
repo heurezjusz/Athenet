@@ -24,8 +24,8 @@ def simple_neuron_deleter(network, config):
         If [layer_limit] < [p] then at most [layer_limit] neurons will be
         deleted.
 
-        Deletion of neuron is simulated by setting all weights outgoing
-        form to it to 0. In athenet.network they are reprezented as rows
+        Deletion of neuron is simulated by replacing all weights outgoing
+        form to it by 0. In athenet.network they are reprezented as rows
         of next layer's weights matrix.
     """
     p, layer_limit = config
