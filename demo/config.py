@@ -4,7 +4,12 @@ from athenet.models import lenet
 from athenet.data_loader import MNISTDataLoader
 
 
-
+"""
+    Dataset - set (list) of configs given to algorithm as an input.
+    "datasets" is a dictionary from algorithm shortcut to list of available
+    datasets.
+    Do not forget to update help message after changing!
+"""
 datasets = {
     "sender": [[(0.3, 0.75)],
                [(0.02, 1.0), (0.04, 1.0), (0.06, 1.0), (0.08, 1.0), (0.1, 1.0),
@@ -26,6 +31,9 @@ datasets = {
     }
 
 
+"""
+    dictionary form algorithm shortcut to function to be called
+"""
 algorithms = {
     "sender": simple_neuron_deleter,
     "sender2": simple_neuron_deleter2,
@@ -34,6 +42,10 @@ algorithms = {
 
 
 def get_network(network_type):
+    """
+        Returns a athenet.network of given type.
+        :network_type: is a name of the type given as a string.
+    """
     if network_type == "lenet":
         net = lenet()
         net.data_loader = MNISTDataLoader()
@@ -42,4 +54,7 @@ def get_network(network_type):
 
 
 def ok():
+    """
+        prints a good looking "OK" on the stdout.
+    """
     print "[ \033[32mOK\033[39m ]"
