@@ -1,32 +1,44 @@
 import argparse
+from argparse import RawTextHelpFormatter
 from copy import deepcopy
 from consts import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
-from athenet.utils import MNISTDataLoader
 
-parser = argparse.ArgumentParser()
+
+parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
 
 parser.add_argument("-a", "--algorithm",
-                   help="algorithm which result be demonstrated. Shortcuts: "
-                   "sender: simple_neuron_deleter, "
-                   "sender2: simple_neuron_deleter2, "
-                   "rat: sparsify_smallest_on_network",
-                   choices=["sender", "sender2", "rat"],
-                   default="sender")
+                    help="Chooses algorithm of which result will be "
+                         "demonstrated. Meaning of shortcuts "
+                         "(shortcut: algorithm):\n"
+                         " * sender: simple_neuron_deleter (default)\n"
+                         " * sender2: simple_neuron_deleter2\n"
+                         " * rat: sparsify_smallest_on_network",
+                    choices=["sender", "sender2", "rat"],
+                    default="sender")
+
 parser.add_argument("-n", "--network",
-                   help="neural network given to run the algorithm on",
-                   choices=["lenet"],
-                   default="lenet")
+                    help="Algorithm will be ran on chosen kind of network. "
+                         "Default option is \"lenet\".",
+                    choices=["lenet"],
+                    default="lenet")
+
 parser.add_argument("-p", "--plot",
-                   help="Displeys results on the plot.",
-                   action="store_true")
+                    help="When this option is added results will be displayed"
+                         " on the plot.",
+                    action="store_true")
+
 parser.add_argument("-d", "--dataset", type=int,
-                    help="Number of dataset. Datasets are numbered from 0."
-                    " (default value). Amount of datasets depends on algorithm"
-                    "(sender: 2,"
-                    " sender2: 2,"
-                    " rat: 3)",
+                    help="Number of dataset. Dataset is a set of configs."
+                         " Algorithm will run on every config from chosen "
+                         "dataset. Datasets are numered from 0. "
+                         "Default dataset is 0.\n"
+                         "Amount of datasets depends on algorithm:\n"
+                         " * simple_neuron_deleter (sender): 2\n"
+                         " * simple_neuron_deleter2 (sender2): 2\n"
+                         " * sparsify_smallest_on_network (rat): 3\n",
                     default=0)
+
 
 args = parser.parse_args()
 
@@ -46,4 +58,3 @@ for config in dataset:
 
 if args.plot:
     plot_2d_results(results)
-
