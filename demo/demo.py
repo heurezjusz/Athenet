@@ -1,7 +1,7 @@
 import argparse
 from argparse import RawTextHelpFormatter
 from copy import deepcopy
-from consts import datasets, algorithms, get_network, ok
+from config import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
 
 
