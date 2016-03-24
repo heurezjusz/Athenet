@@ -1,6 +1,5 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from copy import deepcopy
 from config import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
 
@@ -42,8 +41,17 @@ parser.add_argument("-d", "--dataset", type=int,
 
 args = parser.parse_args()
 
+
+print "parsing arguments..."
+datasets_available = len(datasets[args.algorithm])
+if args.dataset >= datasets_available or args.dataset < 0:
+    print "Invalid choise of dataset. Please choose the numer between 0 and "\
+        + str(datasets_available)
+    quit()
 dataset = datasets[args.algorithm][args.dataset]
 algorithm = algorithms[args.algorithm]
+ok()
+
 print "loading network..."
 network = get_network(args.network)
 ok()
@@ -51,6 +59,7 @@ ok()
 print "generating results..."
 results = run_algorithm(network, algorithm, dataset)
 ok()
+
 for config in dataset:
     print "for config", config
     print "zeroed_fraction:", results[config][0]
