@@ -108,7 +108,7 @@ class ImageNetDataLoader(DataLoader):
     def _load_imgs(self, dir_name, files):
         imgs = []
         for filename, reverse in files:
-            img = self._get_img(os.path.join(dir_name, filename, reverse))
+            img = self._get_img(os.path.join(dir_name, filename), reverse)
             r, g, b = np.split(img, 3, axis=1)
             r -= self.mean_rgb[0]
             g -= self.mean_rgb[1]
