@@ -21,7 +21,7 @@ class ImageNetDataLoader(DataLoader):
     verbosity = 0
 
     def __init__(self, year, buffer_size=1, train_data=True, val_data=True,
-                 val_size=None):
+                 val_size=None, reverse=True):
         """Create ImageNet data loader.
 
         :year: Specifies which year's data should be loaded.
@@ -31,6 +31,8 @@ class ImageNetDataLoader(DataLoader):
         :val_size: Maximal size of validation data. If None, then all
                    validation data will be used. Otherwise, val_size images
                    will be chosen randomly from the whole set.
+        :reverse: When set on True, reversed copies of images will be
+                  attached to train and validaton data
         """
         super(ImageNetDataLoader, self).__init__()
         self.buffer_size = buffer_size
@@ -48,8 +50,11 @@ class ImageNetDataLoader(DataLoader):
             for d in train_dirs:
                 path = os.path.join(self.train_name, d)
                 files = os.listdir(get_bin_path(path))
-                train_files += [os.path.join(d, f) for f in files]
+                train_files += [(os.path.join(d, f), False) for f in files]
                 answers += [index for i in range(len(files))]
+                if reverse:
+                    train_files += [(os.path.join(d, f), True) for f in files]
+                    answers += [index for i in range(len(files))]
                 index += 1
             self.train_files = np.asarray(train_files)
             self.train_answers = np.asarray(answers)
@@ -69,8 +74,13 @@ class ImageNetDataLoader(DataLoader):
                         break
                     filename, answer = line.rsplit(' ', 1)
                     answers[filename] = int(answer)
-            self.val_files = np.asarray(answers.keys())
-            val_answers = np.asarray(answers.values())
+            val_files = [(filename, False) for filename in answers.keys()]
+            val_answers = answers.values()
+            if reverse:
+                val_files = [(filename, True) for filename in answers.keys()]
+                val_answers *= 2
+            val_answers = np.asarray(val_answers)
+            self.val_files = np.asarray(val_files)
             self.val_set_size = len(self.val_files)
 
             # Reduce amount of validation data, if necessary
@@ -86,16 +96,19 @@ class ImageNetDataLoader(DataLoader):
 
         self.batch_size = 1
 
-    def _get_img(self, filename):
+    def _get_img(self, filename, reverse):
         img = misc.imread(get_bin_path(filename))
         img = np.rollaxis(img, 2)
         img = img.reshape((1, 3, 227, 227))
-        return np.asarray(img, dtype=theano.config.floatX)
+        result = np.asarray(img, dtype=theano.config.floatX)
+        if reverse:
+            return result[...,::-1]
+        return result
 
     def _load_imgs(self, dir_name, files):
         imgs = []
-        for filename in files:
-            img = self._get_img(os.path.join(dir_name, filename))
+        for filename, reverse in files:
+            img = self._get_img(os.path.join(dir_name, filename, reverse))
             r, g, b = np.split(img, 3, axis=1)
             r -= self.mean_rgb[0]
             g -= self.mean_rgb[1]
@@ -141,3 +154,6 @@ class ImageNetDataLoader(DataLoader):
 
     def train_output(self, batch_index):
         return self._get_subset(self._train_out, batch_index)
+
+#a = np.asarray([[[1, 0, 0],[1,0,0],[1,0,0]],[[0,0,2],[0,0,2],[0,0,2]]])
+#>>> 
