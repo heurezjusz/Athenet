@@ -113,5 +113,9 @@ class NumlikeTest(unittest.TestCase):
     def test_from_shape3(self):
         res = Numlike.from_shape((3, 4), neutral=False)
 
+    @raises(NotImplementedError)
+    def test_eval(self):
+        res = Numlike().eval()
+
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

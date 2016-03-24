@@ -7,13 +7,14 @@ import numpy
 class Nplike(Numlike):
 
     def __init__(self, value):
+        super(Nplike, self).__init__()
         self.value = value
 
     def __getitem__(self, at):
         return Nplike(self.value[at])
 
     def __setitem__(self, at, other):
-        self.value[at] = other.value[at]
+        self.value[at] = other.value
 
     def __repr__(self):
         """Standard repr method."""
@@ -73,7 +74,9 @@ class Nplike(Numlike):
         return Nplike(numpy.power(self.value, exponent))
 
     def dot(self, other):
-        """other must be numpy array."""
+        """Dot product of self and other.
+
+        :param numpy.ndarray other: second argument of product"""
         return Nplike(numpy.dot(self.value, other))
 
     def max(self, other):
@@ -92,7 +95,9 @@ class Nplike(Numlike):
         return Nplike(self.value.flatten())
 
     def sum(self, axis=None, dtype=None, keepdims=False):
-        """Vector operation like in numpy.ndarray."""
+        """Vector operation like in numpy.array.
+
+        :param axis: """
         s = self.value.sum(axis=axis, dtype=dtype, keepdims=keepdims)
         if isinstance(s, numpy.ndarray):
             return Nplike(s)

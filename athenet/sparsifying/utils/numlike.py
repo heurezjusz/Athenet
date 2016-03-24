@@ -92,26 +92,39 @@ class Numlike(object):
     def power(self, exponent):
         """For numlike N, returns N^exponent.
 
-        :exponent: Number to be passed as exponent to N^exponent."""
+        :param float exponent: Number to be passed as exponent to N^exponent.
+        """
         raise NotImplementedError
 
     def dot(self, other):
-        """Dot product of numlike vector and a number array (other)."""
+        """Dot product of numlike vector and a other.
+
+        :param unspecified other: second dot param, type to be specified
+        """
         raise NotImplementedError
 
     def max(self, other):
-        """Returns maximum of self and other."""
+        """Returns maximum of self and other.
+
+        :param unspecified other: second masx param, type to be specified
+        """
         raise NotImplementedError
 
     def amax(self, axis=None, keepdims=False):
         """Returns maximum of a Numlike along an axis.
 
-        Works like theano.tensor.max.
+        Works like theano.tensor.max
+
+        :param axis: axis along which max is evaluated
+        :param Boolean keepdims: whether flattened dimensions should remain
         """
         raise NotImplementedError
 
     def reshape(self, shape):
-        """Reshapes numlike tensor like theano Tensor."""
+        """Reshapes numlike tensor like theano Tensor.
+
+        :param integer tuple shape: shape to be set
+        """
         raise NotImplementedError
 
     def flatten(self):
@@ -130,9 +143,13 @@ class Numlike(object):
     @staticmethod
     def from_shape(shp, neutral=True):
         """Returns Numlike of given shape.
-        
-        :param neutral: Tells whether created Numlike should have neutral
+
+        :param integer tuple shp: shape to be set
+        :param Boolean neutral: whether created Numlike should have neutral
                         values or significant values.
-        :type neutral: Boolean
         """
+        raise NotImplementedError
+
+    def eval(self):
+        """Returns some readable form of stored value."""
         raise NotImplementedError
