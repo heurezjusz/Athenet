@@ -16,50 +16,39 @@ class Nplike(Numlike):
     def __setitem__(self, at, other):
         self.value[at] = other.value
 
-    def __repr__(self):
-        """Standard repr method."""
-        return repr(self.value)
-
-    def __str__(self):
-        """"Standard str method."""
-        return str(self.value)
-
     @property
     def shape(self):
         return self.value.shape
 
     def __add__(self, other):
-        """Note: __radd__ is not being invoked if :other: is numpy array."""
         if isinstance(other, Nplike):
             return Nplike(self.value + other.value)
         else:
             return Nplike(self.value + other)
 
-    __radd__ = __add__
-
     def __sub__(self, other):
-        return Nplike(self.value - other.value)
-
-    def __rsub__(self, other):
-        return Nplike(other.value - self.value)
+        if isinstance(other, Nplike):
+            return Nplike(self.value - other.value)
+        else:
+            return Nplike(self.value - other)
 
     def __mul__(self, other):
-        """Note: __radd__ is not being invoked if :other: is numpy array."""
         if isinstance(other, Nplike):
             return Nplike(self.value * other.value)
         else:
             return Nplike(self.value * other)
 
-    __rmul__ = __mul__
-
     def __div__(self, other):
         if isinstance(other, Nplike):
-            return Nplike(self.value * other.value)
+            return Nplike(self.value / other.value)
         else:
             return Nplike(self.value / other)
 
     def __rdiv__(self, other):
-        return Nplike(other.value / self.value)
+        if isinstance(other, Nplike):
+            return Nplike(other.value / self.value)
+        else:
+            return Nplike(other / self.value)
 
     def reciprocal(self):
         return Nplike(numpy.reciprocal(self.value))
@@ -112,6 +101,10 @@ class Nplike(Numlike):
         else:
             return Nplike(numpy.array([s]))
 
+    def abs(self):
+        """Returns absolute value of Nplike."""
+        return Nplike(numpy.absolute(self.value))
+
     @property
     def T(self):
         """Vector operation like in numpy.ndarray."""
@@ -126,3 +119,11 @@ class Nplike(Numlike):
 
     def eval(self):
         return self.value
+
+    def __repr__(self):
+        """Standard repr method."""
+        return repr(self.value)
+
+    def __str__(self):
+        """"Standard str method."""
+        return str(self.value)

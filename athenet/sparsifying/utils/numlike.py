@@ -42,20 +42,10 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def __radd__(self, other):
-        raise NotImplementedError
-
     def __sub__(self, other):
         """Returns difference between two numlikes.
 
         :other: numlike to be subtracted.
-        """
-        raise NotImplementedError
-
-    def __rsub__(self, other):
-        """Returns diffeerence between number and numlike.
-
-        :other: A number that self will be subtracted from.
         """
         raise NotImplementedError
 
@@ -66,11 +56,18 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def __rmul__(self, other):
-        raise NotImplementedError
-
     def __div__(self, other):
         """Returns quotient of self and other."""
+        raise NotImplementedError
+
+    def __rdiv__(self, other):
+        """Returns quotient of other and self.
+
+        :param other: dividend
+        :type other: float
+        :rtype: Nplike
+        .. warning:: divisor (self) should not contain zero, other must be float
+        """
         raise NotImplementedError
 
     def reciprocal(self):
@@ -141,6 +138,10 @@ class Numlike(object):
         :type axis: integer, tuple of integers or None
 
         """
+        raise NotImplementedError
+
+    def abs(self):
+        """Returns absolute value of Numlike."""
         raise NotImplementedError
 
     @property

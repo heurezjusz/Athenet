@@ -179,3 +179,12 @@ def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
 def softmax(layer_input):
     """Returns estimated activation of softmax layer."""
     assert_numlike(layer_input)
+
+def relu(layer_input):
+    """Returns estimated activation of relu layer."""
+    assert_numlike(layer_input)
+    try:
+        res = layer_input.op_relu()
+    except:
+        res = (layer_input + layer_input.abs()) * 0.5
+    return res

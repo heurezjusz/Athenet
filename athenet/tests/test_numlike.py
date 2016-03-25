@@ -29,28 +29,20 @@ class NumlikeTest(unittest.TestCase):
         res = Numlike() + Numlike()
 
     @raises(NotImplementedError)
-    def test_radd(self):
-        res = 1.0 + Numlike()
-
-    @raises(NotImplementedError)
     def test_sub(self):
         res = Numlike() - 1.0
-
-    @raises(NotImplementedError)
-    def test_rsub(self):
-        res = 1.0 - Numlike()
 
     @raises(NotImplementedError)
     def test_mul(self):
         res = Numlike() * 3.0
 
     @raises(NotImplementedError)
-    def test_rmul(self):
-        res = 3.0 * Numlike()
-
-    @raises(NotImplementedError)
     def test_div(self):
         res = Numlike() / 5.0
+
+    @raises(NotImplementedError)
+    def test_rdiv(self):
+        res = 5.0 / Numlike()
 
     @raises(NotImplementedError)
     def test_reciprocal(self):
@@ -96,6 +88,10 @@ class NumlikeTest(unittest.TestCase):
     @raises(NotImplementedError)
     def test_sum(self):
         res = Numlike().sum(0)
+
+    @raises(NotImplementedError)
+    def test_abs(self):
+        res = Numlike().abs()
 
     @raises(NotImplementedError)
     def test_T(self):
