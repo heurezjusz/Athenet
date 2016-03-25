@@ -318,6 +318,25 @@ class PoolActivationTest(ActivationTest):
         arae(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]],
                                [[4.0, 5.0], [7.0, 5.75]]]))
 
+    def test_3D_interval(self):
+        inpl = A([[[-1, 2, 3], [4, 5, 6], [7, -3, 0]],
+                        [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
+        inpu = A([[[1, 3, 4], [7, 5, 6], [7, 9, 9]],
+                         [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        resmax = pool(iinp, (2, 3, 3), (2, 2), mode="max")
+        resavg = pool(iinp, (2, 3, 3), (2, 2), mode="avg")
+        d = {tinpl: inpl, tinpu: inpu}
+        rlmax, rumax = resmax.eval(d)
+        rlavg, ruavg = resavg.eval(d)
+        arae(rlmax, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]], dtype=float))
+        arae(rumax, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]], dtype=float))
+        arae(rlavg, A([[[10, 16], [13, 8]], [[16, 20], [28, 23]]],
+                      dtype=float) / 4.0)
+        arae(ruavg, A([[[16, 18], [28, 29]], [[16, 20], [28, 23]]],
+                      dtype=float) / 4.0)
+
 
 class SoftmaxActivationTest(ActivationTest):
 
