@@ -218,7 +218,7 @@ class Interval(Numlike):
 
         :rtype: Interval
         """
-        # Note: Could be concidered whether not to use input check.
+        # Note: Could be considered whether not to use input check.
         # If 0 is within interval, returns 1/0 that, we hope, will throw
         # some exception on the device. Be careful with this.
 

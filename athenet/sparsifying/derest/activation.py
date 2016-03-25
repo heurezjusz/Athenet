@@ -18,16 +18,18 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
                 (number of input channels, image height, image width)
     :param weights: Weights tensor in format (number of output channels,
                                               number of input channels,
-                                              filter height, filter width)
+                                              filter height,
+                                              filter width)
     :param filter_shp: Filter shape in the format (number of output channels,
-                                                   filter height, filter width)
+                                                   filter height,
+                                                   filter width)
     :param biases: Biases in convolution
     :param stride: Pair representing interval at which to apply the filters.
     :param padding: Pair representing number of zero-valued pixels to add on
                     each side of the input.
     :param n_groups: Number of groups input and output channels will be split
-                     into. Two channels are connected only if they belong to the
-                     same group.
+                     into. Two channels are connected only if they belong to
+                     the same group.
     :type layer_input: Numlike or numpy.ndarray or theano tensor
     :type input_shp: integer tuple
     :type weights: numpy.ndarray or theano tensor
@@ -112,7 +114,7 @@ def fully_connected(layer_input, weights, biases):
                                                   layer
     """
     assert_numlike(layer_input)
-    flat_input = layer_input.flatten()
+    flat_input = layer_input.flatten(2)
     try:
         return flat_input.dot(weights) + biases
     except NotImplementedError:
@@ -123,7 +125,8 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
     """Returns estimated activation of LRN layer.
 
     :param Numlike input_layer: Numlike input
-    :param integer local_range: size of local range in local range normalization
+    :param integer local_range: size of local range in local range
+                                normalization
     :param integer k: local range normalization k argument
     :param integer alpha: local range normalization alpha argument
     :param integer beta: local range normalization beta argument
@@ -133,45 +136,46 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
 #    except:
 
 
-def pool(layer_input, poolsize, stride=None, mode="max"):
-    """Returns estimated activation of max pool layer.
-
-    :param Numlike layer_input: Numlike input
-    :param integer pair poolsize: pool of max pool
-    :param integer pair stride: stride of max pool
-    :param 'max' or 'avg' mode: specifies whether it is max pool or average pool
-    """
-    # TODO: mode 'avg'
-    assert_numlike(layer_input)
-    if stride is None:
-        stride = poolsize
-    if mode not in ['max', 'avg']:
-        raise ValueError("mode not in ['max', 'avg']")
-    is_max = mode == 'max'
-    # h, w, n_in - image height, image width, number of input channels
-    h, w, n_in = input_shape
-    stride_h, stride_w = stride
-    pool_h, pool_w = poolsize
-    output_h = (h - pool_h) / stride_h + 1
-    output_w = (w - pool_w) / stride_w + 1
-    output_shp = (n_out, output_h, output_w)
-    result = input_type.from_shape(output_shp)
-    for at_h in range(0, h, stride_h):
-        at_out_h = at_h / stride_h
-        at_h_from = at_h
-        at_h_to = at_h + stride_h
-        for at_w in range(0, w, stride_w):
-            at_w_from = at_w
-            at_w_to = at_w + stride_w
-            at_out_w = at_w / stride_w
-            input_slice = layer_input[:, at_h_from:at_h_to, at_w_from:at_w_to]
-            if is_max:
-                pool_res = input_slice.amax(axis=(1, 2), keepdims=True)
-            else:
-                # TODO
-                pass
-            result[:, at_out_h, at_out_w] = pool_res
-    return result
+# def pool(layer_input, poolsize, stride=None, mode="max"):
+#     """Returns estimated activation of max pool layer.
+#
+#     :param Numlike layer_input: Numlike input
+#     :param integer pair poolsize: pool of max pool
+#     :param integer pair stride: stride of max pool
+#     :param 'max' or 'avg' mode: specifies whether it is max pool or average
+#                                 pool
+#     """
+#     # TODO: mode 'avg'
+#     assert_numlike(layer_input)
+#     if stride is None:
+#         stride = poolsize
+#     if mode not in ['max', 'avg']:
+#         raise ValueError("mode not in ['max', 'avg']")
+#     is_max = mode == 'max'
+#     # h, w, n_in - image height, image width, number of input channels
+#     h, w, n_in = input_shape
+#     stride_h, stride_w = stride
+#     pool_h, pool_w = poolsize
+#     output_h = (h - pool_h) / stride_h + 1
+#     output_w = (w - pool_w) / stride_w + 1
+#     output_shp = (n_out, output_h, output_w)
+#     result = input_type.from_shape(output_shp)
+#     for at_h in range(0, h, stride_h):
+#         at_out_h = at_h / stride_h
+#         at_h_from = at_h
+#         at_h_to = at_h + stride_h
+#         for at_w in range(0, w, stride_w):
+#             at_w_from = at_w
+#             at_w_to = at_w + stride_w
+#             at_out_w = at_w / stride_w
+#             input_slice = layer_input[:, at_h_from:at_h_to, at_w_from:at_w_to]
+#             if is_max:
+#                 pool_res = input_slice.amax(axis=(1, 2), keepdims=True)
+#             else:
+#                 # TODO
+#                 pass
+#             result[:, at_out_h, at_out_w] = pool_res
+#    return result
 
 
 def softmax(layer_input):
