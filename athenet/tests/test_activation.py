@@ -320,9 +320,9 @@ class PoolActivationTest(ActivationTest):
 
     def test_3D_interval(self):
         inpl = A([[[-1, 2, 3], [4, 5, 6], [7, -3, 0]],
-                        [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
+                  [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
         inpu = A([[[1, 3, 4], [7, 5, 6], [7, 9, 9]],
-                         [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
+                  [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
         iinp = Itv(tinpl, tinpu)
         resmax = pool(iinp, (2, 3, 3), (2, 2), mode="max")
@@ -367,6 +367,38 @@ class DropoutActivationTest(ActivationTest):
         (rl, ru) = drp.eval(d)
         arae(rl, 0.2 * l)
         arae(ru, 0.2 * u)
+
+class ReluActivationTest(ActivationTest):
+
+    def test_simple(self):
+        inp = A([[[-3, -1, 1]]])
+        arae(relu(inp).eval(), A([[[0, 0, 1]]]))
+
+    def test_interval_simple(self):
+        inpl = A([[[-3, -1, 1]]])
+        inpu = A([[[-2, 3, 2]]])
+        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        res = relu(iinp)
+        d = {tinpl: inpl, tinpu: inpu}
+        rl, ru = res.eval(d)
+        arae(rl, A([[[0, 0, 1]]]))
+        arae(ru, A([[[0, 3, 2]]]))
+
+    def test_interval_3D(self):
+        inpl = A([[[-1, 2, -1], [0, 3, 5], [1, 2, 3]],
+                  [[2, 3, 4], [-2, -3, -4], [-4, 0, 4]]])
+        inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
+                  [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
+        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        res = relu(iinp)
+        d = {tinpl: inpl, tinpu: inpu}
+        rl, ru = res.eval(d)
+        arae(rl, A([[[0, 0, 1], [0, 3, 5], [1, 2, 3]],
+                    [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
+        arae(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
+                    [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
