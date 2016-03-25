@@ -11,7 +11,7 @@ from theano.ifelse import ifelse
 import numpy
 
 NEUTRAL_INTERVAL_LOWER = 0.0
-NEUTRAL_INTERVAL_UPPER = 255.0
+NEUTRAL_INTERVAL_UPPER = 0.0
 NEUTRAL_INTERVAL_VALUES = (NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER)
 
 DEFAULT_INTERVAL_LOWER = 0.0
@@ -412,17 +412,25 @@ class Interval(Numlike):
         return rlower, rupper
 
     @staticmethod
-    def from_shape(shp, neutral=True, lower_val=DEFAULT_INTERVAL_LOWER,
-                   upper_val=DEFAULT_INTERVAL_UPPER):
+    def from_shape(shp, neutral=True, lower_val=None,
+                   upper_val=None):
         """Returns Interval of shape shp with given lower and upper values.
         
         :param tuple of integers shp: shape of created Interval
-        :param Boolean neutral: - has no impact on results in Interval
+        :param Boolean neutral: if True sets (lower_val, upper_val) to
+                                NEUTRAL_INTERVAL_VALUES, otherwise to
+                                DEFAULT_INTERVAL_VALUES, works only if pair is
+                                not set by passing arguments.
         :param float lower_val: value of lower bound
         :param float upper_val: value of upper bound
         """
         if lower_val > upper_val:
             raise ValueError("lower_val > upper_val in newly created Interval")
+        if lower_val is None:
+            lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
+                        NEUTRAL_INTERVAL_LOWER
+            upper_val = DEFAULT_INTERVAL_LOWER if neutral else \
+                DEFAULT_INTERVAL_LOWER
         lower_array = numpy.ndarray(shp)
         upper_array = numpy.ndarray(shp)
         lower_array.fill(lower_val)

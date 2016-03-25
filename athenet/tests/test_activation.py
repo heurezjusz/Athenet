@@ -61,7 +61,7 @@ class FullyConnectedActivationTest(ActivationTest):
         w = m((1, 2))
         b = m(2)
         arae(fully_connected(inp, w, b), A([v[0] * v[1] + v[3],
-                v[0] * v[2] + v[4]]))
+             v[0] * v[2] + v[4]]))
 
     def test_2D_simple(self):
         s, v, m = self.prepare()
@@ -69,7 +69,7 @@ class FullyConnectedActivationTest(ActivationTest):
         w = m((2, 2))
         b = m(2)
         arae(fully_connected(inp, w, b), A([v[0] * v[2] + v[1] * v[4] + v[6],
-                v[0] * v[3] + v[1] * v[5] + v[7]]))
+             v[0] * v[3] + v[1] * v[5] + v[7]]))
 
     def test_2D_2(self):
         s, v, m = self.prepare()
@@ -220,33 +220,82 @@ class ConvolutionalActivationTest(ActivationTest):
                    stride=(2, 2))
         arae(res.eval(), A([[[8, 9], [10, 7]]]))
 
-#    def test_interval(self):
-#        inpl = A()
-#        inp = npl([[[2, 3], [5, 7]]])
-#        w = npl([[[[1, 2], [3, 4]]]])
-#        w_flipped = w[:, :, ::-1, ::-1]
-#        f_shp = (w.shape[0], w.shape[2], w.shape[3])
-#        b = npl([[[0]]])
-#        res = conv(inp, inp.shape, w_flipped, f_shp, b, padding=(1, 1),
-#                   stride=(2, 2))
-#        arae(res.eval(), A([[[8, 9], [10, 7]]]))
+    def test_interval_simple(self):
+        inpl = A([[[-1, 3], [4, 7]]], dtype=theano.config.floatX)
+        inpu = A([[[2, 3], [5, 9]]], dtype=theano.config.floatX)
+        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        w = A([[[[1, 2], [-3, 4]]]], dtype=theano.config.floatX)
+        w_flipped = w[:, :, ::-1, ::-1]
+        tw = theano.shared(w_flipped, borrow=True)
+        b = A([[[0]]], dtype=theano.config.floatX)
+        tb = theano.shared(b, borrow=True)
+        inp_shape = (1, 2, 2)
+        f_shp = (w.shape[0], w.shape[2], w.shape[3])
+        res = conv(iinp, inp_shape, tw, f_shp, tb)
+        d = {tinpl: inpl, tinpu: inpu}
+        rl, ru = res.eval(d)
+        arae(rl, A([[[18]]]))
+        arae(ru, A([[[32]]]))
+
+    def test_interval_3x3(self):
+        inpl = A([[[-1, 3], [4, 7]]], dtype=theano.config.floatX)
+        inpu = A([[[2, 3], [5, 9]]], dtype=theano.config.floatX)
+        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        w = A([[[[1, 2], [-3, 4]]]], dtype=theano.config.floatX)
+        w_flipped = w[:, :, ::-1, ::-1]
+        tw = theano.shared(w_flipped, borrow=True)
+        b = A([0], dtype=theano.config.floatX)
+        tb = theano.shared(b, borrow=True).dimshuffle(0, 'x', 'x')
+        inp_shape = (1, 2, 2)
+        f_shp = (w.shape[0], w.shape[2], w.shape[3])
+        res = conv(iinp, inp_shape, tw, f_shp, tb, padding=(1, 1))
+        d = {tinpl: inpl, tinpu: inpu}
+        rl, ru = res.eval(d)
+        arae(rl, A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
+        arae(ru, A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
+
+    def test_group_1_in_2_out(self):
+        inp = npl([[[2, 3], [5, 7]], [[2, 3], [5, 7]]])
+        w = npl([[[[1, 2], [3, 4]]], [[[5, 6], [7, 8]]],
+                 [[[5, 6], [7, 8]]], [[[1, 2], [3, 4]]]])
+        w_flipped = w[:, :, ::-1, ::-1]
+        f_shp = (w.shape[0], w.shape[2], w.shape[3])
+        b = npl([[[0]]])
+        res = conv(inp, inp.shape, w_flipped, f_shp, b, n_groups=2)
+        arae(res.eval(), A([[[51.0]], [[119.0]], [[119.0]], [[51.0]]]))
+
+    def test_group_2_in_1_out(self):
+        inp = npl([[[1, 2], [3, 4]], [[5, 6], [7, 8]],
+                   [[2, 3], [4, 5]], [[6, 7], [8, 9]]])
+        w = npl([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+                 [[[3, 4], [5, 6]], [[7, 8], [9, 1]]]])
+        w_flipped = w[:, :, ::-1, ::-1]
+        f_shp = (w.shape[0], w.shape[2], w.shape[3])
+        b = npl([[[0]]])
+        res = conv(inp, inp.shape, w_flipped, f_shp, b, n_groups=2)
+        arae(res.eval(), A([[[204.0]], [[247.0]]]))
 
 
 class MaxPoolActivationTest(ActivationTest):
-
     pass
+
 
 class AvgPoolActivationTest(ActivationTest):
 
     pass
 
+
 class SoftmaxActivationTest(ActivationTest):
 
     pass
 
+
 class LRNActivationTest(ActivationTest):
 
     pass
+
 
 class DropoutActivationTest(ActivationTest):
 

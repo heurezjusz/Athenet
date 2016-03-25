@@ -22,7 +22,9 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
     :param filter_shp: Filter shape in the format (number of output channels,
                                                    filter height,
                                                    filter width)
-    :param biases: Biases in convolution
+    :param biases: Biases in convolution in shape (0, 'x', 'x'). e.g.
+                   theano.shared(numpy.ndarray([0], dtype=theano.config.floatX),
+                   borrow=True).dimshuffle(0, 'x', 'x')
     :param stride: Pair representing interval at which to apply the filters.
     :param padding: Pair representing number of zero-valued pixels to add on
                     each side of the input.
@@ -62,19 +64,19 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
     output_h = (h - fh) / stride_h + 1
     output_w = (w - fw) / stride_w + 1
     output_shp = (n_out, output_h, output_w)
-    result = input_type.from_shape(output_shp)
-    for at_g in range(0, n_groups):
+    result = input_type.from_shape(output_shp, neutral=True)
+    for at_g in xrange(0, n_groups):
         # beginning and end of at_g'th group of input channel in input
         at_in_from = at_g * g_in
         at_in_to = at_in_from + g_in
         # beginning and end of at_g'th group of output channel in weights
         at_out_from = at_g * g_out
         at_out_to = at_out_from + g_out
-        for at_h in range(0, h - fh + 1, stride_h):
+        for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to filter at
             # position at_h
             at_out_h = at_h / stride_h
-            for at_w in range(0, w - fw + 1, stride_w):
+            for at_w in xrange(0, w - fw + 1, stride_w):
                 # at_out_w - height of output corresponding to filter at
                 # position at_w
                 at_out_w = at_w / stride_w
@@ -103,7 +105,6 @@ def dropout(layer_input, p_dropout):
 
 
 def fully_connected(layer_input, weights, biases):
-    # TODO: Check order of dimensions, put comment, check negatives
     """Returns estimated activation of fully connected layer.
 
     :param Numlike layer_input: input Numlike
@@ -159,11 +160,11 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
 #     output_w = (w - pool_w) / stride_w + 1
 #     output_shp = (n_out, output_h, output_w)
 #     result = input_type.from_shape(output_shp)
-#     for at_h in range(0, h, stride_h):
+#     for at_h in xrange(0, h, stride_h):
 #         at_out_h = at_h / stride_h
 #         at_h_from = at_h
 #         at_h_to = at_h + stride_h
-#         for at_w in range(0, w, stride_w):
+#         for at_w in xrange(0, w, stride_w):
 #             at_w_from = at_w
 #             at_w_to = at_w + stride_w
 #             at_out_w = at_w / stride_w
