@@ -18,6 +18,7 @@ DEFAULT_INTERVAL_LOWER = 0.0
 DEFAULT_INTERVAL_UPPER = 255.0
 DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
 
+
 class Interval(Numlike):
     """Theano interval matrix class
 
@@ -38,6 +39,7 @@ class Interval(Numlike):
 
         .. note:: lower must be lower than upper. It is not being checked.
         """
+        super(Interval, self).__init__()
         self.lower = lower
         self.upper = upper
 
@@ -61,19 +63,11 @@ class Interval(Numlike):
         self.lower = T.set_subtensor(self.lower[at], other.lower)
         self.upper = T.set_subtensor(self.upper[at], other.upper)
 
-    def __repr__(self):
-        """Standard repr method."""
-        return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'
-
-    def __str__(self):
-        """"Standard str method."""
-        return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
-
     @property
     def shape(self):
         """Returns shape of interval. Checks only 'lower' matrix.
 
-        :rtype: tuple of integers
+        :rtype: theano tuple of integers
 
         .. note:: does not require self.upper for computations. Therefore it is
         not safe, but faster.
@@ -95,8 +89,6 @@ class Interval(Numlike):
             res_upper = self.upper + other
         return Interval(res_lower, res_upper)
 
-    __radd__ = __add__
-
     def __sub__(self, other):
         """Returns difference between two intervals.
 
@@ -110,17 +102,6 @@ class Interval(Numlike):
         else:
             res_lower = self.lower - other
             res_upper = self.upper - other
-        return Interval(res_lower, res_upper)
-
-    def __rsub__(self, other):
-        """Returns diffeerence between number and interval.
-
-        :param other: A number matrix that self will be subtracted from.
-        :type other: numpy.ndarray
-        :rtype: Interval
-        """
-        res_lower = other - self.upper
-        res_upper = other - self.lower
         return Interval(res_lower, res_upper)
 
     def __mul__(self, other):
@@ -149,13 +130,11 @@ class Interval(Numlike):
             u = T.maximum(ll, uu)
             return Interval(l, u)
 
-    __rmul__ = __mul__
-
     def __div__(self, other):
         """Returns quotient of self and other.
 
         :param other: divisor
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
 
         .. warning:: Divisor should not contain zero.
@@ -187,10 +166,11 @@ class Interval(Numlike):
         """Returns quotient of other and self.
 
         :param other: dividend
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
 
-        .. warning:: Divisor (self) should not contain zero."""
+        .. warning:: Divisor (self) should not contain zero.
+        """
         if isinstance(other, Interval):
             # Should never happen. __div__ should be used instead.
             raise NotImplementedError
@@ -202,13 +182,6 @@ class Interval(Numlike):
                 return Interval(other / upper, other / lower)
             else:
                 return Interval(other / lower, other / upper)
-
-    def _has_zero(self):
-        """For any interval in Interval, returns whether is contains zero.
-
-        :rtype: Boolean
-        """
-        return T.and_(T.lt(self.lower, 0), T.gt(self.upper, 0))
 
     def reciprocal(self):
         """Returns reciprocal of the interval.
@@ -304,7 +277,8 @@ class Interval(Numlike):
         """Returns dot product of Interval(self) vector and a number array
         (other).
 
-        :param numpy.ndarray other: number array to be multiplied
+        :param numpy.ndarray or theano.tensor other: number array to be
+                                                     multiplied
         :rtype: Interval
         """
         # After first results, might be changed to save more memory / time
@@ -320,7 +294,7 @@ class Interval(Numlike):
         and no other.
 
         :param other: Interval to be compared
-        :type other: Interval
+        :type other: Interval or theano.tensor
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -372,18 +346,53 @@ class Interval(Numlike):
         :param type or None dtype: just like dtype argument in
                                    theano.tensor.sum
         :param Boolean keepdims: Whether to keep squashed dimensions of size 1
-
         """
         return Interval(self.lower.sum(axis=axis, dtype=dtype,
                                        keepdims=keepdims),
                         self.upper.sum(axis=axis, dtype=dtype,
                                        keepdims=keepdims))
 
+    def abs(self):
+        """Returns absolute value of Interval."""
+        lower = T.switch(T.gt(self.lower, 0.0), self.lower,
+                         T.switch(T.lt(self.upper, 0.0), -self.upper, 0.0))
+        upper = T.maximum(-self.lower, self.upper)
+        return Interval(lower, upper)
+
     @property
     def T(self):
         """Vector operation like in numpy.ndarray."""
         return Interval(self.lower.T,
                         self.upper.T)
+
+    @staticmethod
+    def from_shape(shp, neutral=True, lower_val=None,
+                   upper_val=None):
+        """Returns Interval of shape shp with given lower and upper values.
+        
+        :param tuple of integers shp: shape of created Interval
+        :param Boolean neutral: if True sets (lower_val, upper_val) to
+                                NEUTRAL_INTERVAL_VALUES, otherwise to
+                                DEFAULT_INTERVAL_VALUES, works only if pair is
+                                not set by passing arguments.
+        :param float lower_val: value of lower bound
+        :param float upper_val: value of upper bound
+        """
+        if lower_val > upper_val:
+            raise ValueError("lower_val > upper_val in newly created Interval")
+        if lower_val is None:
+            lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
+                        NEUTRAL_INTERVAL_UPPER
+        if upper_val is None:
+            upper_val = DEFAULT_INTERVAL_LOWER if neutral else \
+                DEFAULT_INTERVAL_UPPER
+        lower_array = numpy.ndarray(shp)
+        upper_array = numpy.ndarray(shp)
+        lower_array.fill(lower_val)
+        upper_array.fill(upper_val)
+        lower = shared(lower_array)
+        upper = shared(upper_array)
+        return Interval(lower, upper)
 
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method.
@@ -411,30 +420,22 @@ class Interval(Numlike):
         rlower, rupper = f(*values)
         return rlower, rupper
 
-    @staticmethod
-    def from_shape(shp, neutral=True, lower_val=None,
-                   upper_val=None):
-        """Returns Interval of shape shp with given lower and upper values.
-        
-        :param tuple of integers shp: shape of created Interval
-        :param Boolean neutral: if True sets (lower_val, upper_val) to
-                                NEUTRAL_INTERVAL_VALUES, otherwise to
-                                DEFAULT_INTERVAL_VALUES, works only if pair is
-                                not set by passing arguments.
-        :param float lower_val: value of lower bound
-        :param float upper_val: value of upper bound
-        """
-        if lower_val > upper_val:
-            raise ValueError("lower_val > upper_val in newly created Interval")
-        if lower_val is None:
-            lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
-                        NEUTRAL_INTERVAL_LOWER
-            upper_val = DEFAULT_INTERVAL_LOWER if neutral else \
-                DEFAULT_INTERVAL_LOWER
-        lower_array = numpy.ndarray(shp)
-        upper_array = numpy.ndarray(shp)
-        lower_array.fill(lower_val)
-        upper_array.fill(upper_val)
-        lower = shared(lower_array)
-        upper = shared(upper_array)
+    def op_relu(self):
+        lower = T.maximum(self.lower, 0.0)
+        upper = T.maximum(self.upper, 0.0)
         return Interval(lower, upper)
+
+    def __repr__(self):
+        """Standard repr method."""
+        return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'
+
+    def __str__(self):
+        """"Standard str method."""
+        return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
+
+    def _has_zero(self):
+        """For any interval in Interval, returns whether is contains zero.
+
+        :rtype: Boolean
+        """
+        return T.and_(T.lt(self.lower, 0), T.gt(self.upper, 0))
