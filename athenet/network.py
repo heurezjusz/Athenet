@@ -2,7 +2,6 @@
 
 import timeit
 import numpy as np
-from enum import Enum
 
 import theano
 import theano.tensor as T
@@ -75,7 +74,8 @@ class TrainConfig(object):
 class Network(object):
     """Neural network.
 
-    :verbosity: Level of network's verbosity. Integer value between 0 and 3. Default 1.
+    :verbosity: Level of network's verbosity. Integer value between 0 and 3.
+                Default 1.
     """
     def __init__(self, layers):
         """Create neural network.
@@ -289,7 +289,7 @@ class Network(object):
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
         lr = theano.shared(np.array(config.learning_rate,
-                                               dtype=theano.config.floatX))
+                                    dtype=theano.config.floatX))
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
         weights_grad = T.grad(cost, weights)

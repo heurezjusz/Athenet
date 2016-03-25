@@ -52,6 +52,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/build/
+docs/source/athenet*
 
 # PyBuilder
 target/
