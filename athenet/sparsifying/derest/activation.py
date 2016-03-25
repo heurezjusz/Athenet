@@ -134,7 +134,7 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
     assert_numlike(input_layer)
 
 
-def pool(layer_input, input_shp, poolsize, stride=None, mode="max"):
+def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     """Returns estimated activation of max pool layer.
 
     :param Numlike layer_input: Numlike input
@@ -168,9 +168,9 @@ def pool(layer_input, input_shp, poolsize, stride=None, mode="max"):
             at_out_w = at_w / stride_w
             input_slice = layer_input[:, at_h:(at_h + fh), at_w:(at_w + fw)]
             if is_max:
-                pool_res = input_slice.amax(axis=(1, 2), keepdims=True)
+                pool_res = input_slice.amax(axis=(1, 2), keepdims=False)
             else:
-                pool_res = input_slice.sum(axis=(1, 2), keepdims=True) / \
+                pool_res = input_slice.sum(axis=(1, 2), keepdims=False) / \
                            float(fh * fw)
             result[:, at_out_h, at_out_w] = pool_res
     return result

@@ -278,13 +278,45 @@ class ConvolutionalActivationTest(ActivationTest):
         arae(res.eval(), A([[[204.0]], [[247.0]]]))
 
 
-class MaxPoolActivationTest(ActivationTest):
-    pass
+class PoolActivationTest(ActivationTest):
 
+    def test_simple(self):
+        inp = npl([[[1, 2], [3, 4]]])
+        resmax = pool(inp, inp.shape, (1, 1), mode="max")
+        resavg = pool(inp, inp.shape, (1, 1), mode="avg")
+        arae(resmax.eval(), inp.eval())
+        arae(resavg.eval(), inp.eval())
 
-class AvgPoolActivationTest(ActivationTest):
+    def test_simple2(self):
+        inp = Nplike(A([[[1, 2], [3, 4]]], dtype=float))
+        resmax = pool(inp, inp.shape, (2, 2), mode="max")
+        resavg = pool(inp, inp.shape, (2, 2), mode="avg")
+        arae(resmax.eval(), A([[[4.0]]]))
+        arae(resavg.eval(), A([[[2.5]]]))
 
-    pass
+    def test_2D1(self):
+        inp = Nplike(A([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]))
+        resmax = pool(inp, inp.shape, (2, 2), mode="max")
+        resavg = pool(inp, inp.shape, (2, 2), mode="avg")
+        arae(resmax.eval(), A([[[5.0, 6.0], [8.0, 9.0]]]))
+        arae(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]]]))
+
+    def test_2D2(self):
+        inp = Nplike(A([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]))
+        resmax = pool(inp, inp.shape, (3, 3), mode="max")
+        resavg = pool(inp, inp.shape, (3, 3), mode="avg")
+        arae(resmax.eval(), A([[[9.0]]]))
+        arae(resavg.eval(), A([[[5.0]]]))
+
+    def test_3D(self):
+        inp = Nplike(A([[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+                        [[2, 3, 4], [5, 6, 7], [8, 9, 1]]]))
+        resmax = pool(inp, inp.shape, (2, 2), mode="max")
+        resavg = pool(inp, inp.shape, (2, 2), mode="avg")
+        arae(resmax.eval(), A([[[5.0, 6.0], [8.0, 9.0]],
+                               [[6.0, 7.0], [9.0, 9.0]]]))
+        arae(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]],
+                               [[4.0, 5.0], [7.0, 5.75]]]))
 
 
 class SoftmaxActivationTest(ActivationTest):

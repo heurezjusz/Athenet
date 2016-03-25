@@ -53,7 +53,10 @@ class Nplike(Numlike):
     __rmul__ = __mul__
 
     def __div__(self, other):
-        return Nplike(self.value / other.value)
+        if isinstance(other, Nplike):
+            return Nplike(self.value * other.value)
+        else:
+            return Nplike(self.value / other)
 
     def __rdiv__(self, other):
         return Nplike(other.value / self.value)
