@@ -165,15 +165,15 @@ class Interval(Numlike):
         if isinstance(other, Interval):
             o_lower = other.lower
             o_upper = other.upper
-            A = T.switch(T.gt(o_lower, 0.0), 1, 0)  # not(b_la), b_ua
-            B = T.switch(T.gt(lower, 0.0), 1, 0)
-            C = T.switch(T.gt(upper, 0.0), 1, 0)
-            b_lb = T.or_(T.and_(A, B),
-                         T.and_(1 - A, C))
-            b_ub = T.or_(1 - T.or_(A, B),
-                         T.and_(A, 1 - C))
-            la = T.switch(A, lower, upper)
-            ua = T.switch(A, upper, lower)
+            a = T.switch(T.gt(o_lower, 0.0), 1, 0)  # not(b_la), b_ua
+            b = T.switch(T.gt(lower, 0.0), 1, 0)
+            c = T.switch(T.gt(upper, 0.0), 1, 0)
+            b_lb = T.or_(T.and_(a, b),
+                         T.and_(1 - a, c))
+            b_ub = T.or_(1 - T.or_(a, b),
+                         T.and_(a, 1 - c))
+            la = T.switch(a, lower, upper)
+            ua = T.switch(a, upper, lower)
             lb = T.switch(b_lb, o_upper, o_lower)
             ub = T.switch(b_ub, o_upper, o_lower)
             return Interval(la / lb, ua / ub)
@@ -271,10 +271,9 @@ class Interval(Numlike):
                   should be integer."""
         # If You want to understand what is happening here, make plot of
         # f(x, y) = x^y domain. 'if's divide this domain with respect to
-        # monocity.
+        # monotonicity.
         le = T.pow(self.lower, exponent)
         ue = T.pow(self.upper, exponent)
-        l, u = None, None
         if isinstance(exponent, (int, long)):
             if exponent > 0:
                 if exponent % 2 == 0:
@@ -305,8 +304,7 @@ class Interval(Numlike):
         """Returns dot product of Interval(self) vector and a number array
         (other).
 
-        :param other: number array to be multiplied
-        :type other: numpy.ndarray
+        :param numpy.ndarray other: number array to be multiplied
         :rtype: Interval
         """
         # After first results, might be changed to save more memory / time
@@ -368,7 +366,14 @@ class Interval(Numlike):
                         self.upper.flatten(ndim=1))
 
     def sum(self, axis=None, dtype=None, keepdims=False):
-        """Vector operation like in numpy.ndarray."""
+        """Vector operation like in numpy.ndarray.
+
+        :param integer or None axis: axis along which this function sums
+        :param type or None dtype: just like dtype argument in
+                                   theano.tensor.sum
+        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+
+        """
         return Interval(self.lower.sum(axis=axis, dtype=dtype,
                                        keepdims=keepdims),
                         self.upper.sum(axis=axis, dtype=dtype,
@@ -396,31 +401,27 @@ class Interval(Numlike):
             try:
                 f = function([], [self.lower, self.upper])
                 rlower, rupper = f()
-                return (rlower, rupper)
+                return rlower, rupper
             except:
-                return (self.lower, self.upper)
+                return self.lower, self.upper
         keys = eval_map.keys()
         values = eval_map.values()
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
-        return (rlower, rupper)
+        return rlower, rupper
 
     @staticmethod
     def from_shape(shp, neutral=True, lower_val=DEFAULT_INTERVAL_LOWER,
-                      upper_val=DEFAULT_INTERVAL_UPPER):
+                   upper_val=DEFAULT_INTERVAL_UPPER):
         """Returns Interval of shape shp with given lower and upper values.
         
-        :param shp: shape of created Interval
-        :param lower_val: value of lower bound
-        :param upper_val: value of upper bound
-        :type shp: tuple of integers
-        :type lower_val: float
-        :type upper_val: float
-        :rtype: Interval
+        :param tuple of integers shp: shape of created Interval
+        :param Boolean neutral: - has no impact on results in Interval
+        :param float lower_val: value of lower bound
+        :param float upper_val: value of upper bound
         """
         if lower_val > upper_val:
             raise ValueError("lower_val > upper_val in newly created Interval")
-        lower_value, upper_value = DEFAULT_INTERVAL_VALUES
         lower_array = numpy.ndarray(shp)
         upper_array = numpy.ndarray(shp)
         lower_array.fill(lower_val)

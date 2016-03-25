@@ -128,6 +128,7 @@ class FullyConnectedActivationTest(unittest.TestCase):
         c = A([0, 2])
         arae(res, c)
 
+
 class ConvolutionalActivationTest(unittest.TestCase):
 
     prepare = sprepare
@@ -236,11 +237,13 @@ class ConvolutionalActivationTest(unittest.TestCase):
 #                   stride=(2, 2))
 #        arae(res.eval(), A([[[8, 9], [10, 7]]]))
 
+
 class MaxPoolActivationTest(unittest.TestCase):
 
     prepare = sprepare
     s = ss
     make_arr = smake_arr
+
 
 class AvgPoolActivationTest(unittest.TestCase):
 
@@ -248,17 +251,20 @@ class AvgPoolActivationTest(unittest.TestCase):
     s = ss
     make_arr = smake_arr
 
+
 class SoftmaxActivationTest(unittest.TestCase):
 
     prepare = sprepare
     s = ss
     make_arr = smake_arr
 
+
 class LRNActivationTest(unittest.TestCase):
 
     prepare = sprepare
     s = ss
     make_arr = smake_arr
+
 
 class DropoutActivationTest(unittest.TestCase):
 
