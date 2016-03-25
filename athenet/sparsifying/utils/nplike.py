@@ -95,9 +95,14 @@ class Nplike(Numlike):
         return Nplike(self.value.flatten())
 
     def sum(self, axis=None, dtype=None, keepdims=False):
-        """Vector operation like in numpy.array.
+        """Vector operation like in numpy.ndarray.
 
-        :param axis: """
+        :param integer or None axis: axis along which this function sums
+        :param type or None dtype: just like dtype argument in
+                                   theano.tensor.sum
+        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+
+        """
         s = self.value.sum(axis=axis, dtype=dtype, keepdims=keepdims)
         if isinstance(s, numpy.ndarray):
             return Nplike(s)

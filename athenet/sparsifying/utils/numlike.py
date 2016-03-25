@@ -131,8 +131,16 @@ class Numlike(object):
         """Flattens numlike tensor like theano Tensor."""
         raise NotImplementedError
 
-    def sum(self, *args):
-        """Vector operation like in numpy.ndarray."""
+    def sum(self, axis=None, dtype=None, keepdims=False):
+        """Vector operation like in numpy.ndarray.
+
+        :param axis: axis along which this function sums
+        :param numeric type or None dtype: just like dtype argument in
+                                   theano.tensor.sum
+        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :type axis: integer, tuple of integers or None
+
+        """
         raise NotImplementedError
 
     @property
