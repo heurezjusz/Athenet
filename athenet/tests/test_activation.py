@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal as are, \
 import theano
 from theano import function
 import theano.tensor as T
-from athenet.sparsifying.utils import Interval as I, Nplike
+from athenet.sparsifying.utils import Interval as Itv, Nplike
 from athenet.sparsifying.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
@@ -21,33 +21,29 @@ def npl(x):
     return Nplike(A(x))
 
 
-def sprepare(self):
-    self.v = np.arange(24) + 3.0
-    self.at_v = 0
-    return self.s, self.v, self.make_arr
+class ActivationTest(unittest.TestCase):
+
+    def prepare(self):
+        self.v = np.arange(24) + 3.0
+        self.at_v = 0
+        return self.s, self.v, self.make_arr
+
+    def s(self):
+        if self.at_v >= len(self.v):
+            raise ValueError
+        ret = self.v[self.at_v]
+        self.at_v += 1
+        return ret
+
+    def make_arr(self, shp):
+        sz = np.prod(shp)
+        a = np.ndarray(sz)
+        for i in range(sz):
+            a[i] = self.s()
+        return a.reshape(shp)
 
 
-def ss(self):
-    if self.at_v >= len(self.v):
-        raise ValueError
-    ret = self.v[self.at_v]
-    self.at_v += 1
-    return ret
-
-
-def smake_arr(self, shp):
-    sz = np.prod(shp)
-    a = np.ndarray(sz)
-    for i in range(sz):
-        a[i] = self.s()
-    return a.reshape(shp)
-
-
-class FullyConnectedActivationTest(unittest.TestCase):
-
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
+class FullyConnectedActivationTest(ActivationTest):
 
     def test_1D_simple(self):
         res = fully_connected(npl([1]), A([2]), A([0]))
@@ -95,25 +91,27 @@ class FullyConnectedActivationTest(unittest.TestCase):
         cru = A([v[2] * v[4] + v[3] * v[6] + 1,
                  v[2] * v[5] + v[3] * v[7] + 3])
         tinpl, tinpu = T.dvectors('inpl', 'inpu')
-        iinp = I(tinpl, tinpu)
+        iinp = Itv(tinpl, tinpu)
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
         arae(rl, crl)
         arae(ru, cru)
 
-    def test_3D_negative_using_intervals(self):
+    def test_3D_negative_weights_using_intervals(self):
         s, v, m = self.prepare()
-        inpl = A([v[0], v[1]])
-        inpu = A([v[2], v[3]])
-        w = A([[v[4], -v[5]], [v[6], v[7]]])
-        b = A([1, 3])
-        crl = A([v[0] * v[4] + v[1] * v[6] + 1,
-                v[0] * v[5] + v[3] * v[7] + 3])
-        cru = A([v[2] * v[4] + v[3] * v[6] + 1,
-                v[2] * v[5] + v[1] * v[7] + 3])
-        tinpl, tinpu = T.dvectors('inpl', 'inpu')
-        iinp = I(tinpl, tinpu)
+        inpl = A([[[v[0], v[1]]]])
+        inpu = A([[[v[2], v[3]]]])
+        w = A([[v[4], -v[5], v[6]], [v[7], v[8], v[9]]])
+        b = A([1, 3, 5])
+        crl = A([v[0] * v[4] + v[1] * v[7] + 1,
+                 v[2] * -v[5] + v[1] * v[8] + 3,
+                 v[0] * v[6] + v[1] * v[9] + 5])
+        cru = A([v[2] * v[4] + v[3] * v[7] + 1,
+                 v[0] * -v[5] + v[3] * v[8] + 3,
+                 v[2] * v[6] + v[3] * v[9] + 5])
+        tinpl, tinpu = T.tensor3s('inpl', 'inpu')
+        iinp = Itv(tinpl, tinpu)
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
@@ -121,19 +119,15 @@ class FullyConnectedActivationTest(unittest.TestCase):
         arae(ru, cru)
 
     def test_negative(self):
-        inp = A([1, -1])
+        inp = npl([1, -1])
         w = A([[1, 1], [1, -1]])
         b = A([0, 0])
         res = fully_connected(inp, w, b)
         c = A([0, 2])
-        arae(res, c)
+        arae(res.eval(), c)
 
 
-class ConvolutionalActivationTest(unittest.TestCase):
-
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
+class ConvolutionalActivationTest(ActivationTest):
 
     def test_trivial(self):
         inp = npl(A([[[1]]]))
@@ -238,52 +232,36 @@ class ConvolutionalActivationTest(unittest.TestCase):
 #        arae(res.eval(), A([[[8, 9], [10, 7]]]))
 
 
-class MaxPoolActivationTest(unittest.TestCase):
+class MaxPoolActivationTest(ActivationTest):
 
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
+    pass
 
+class AvgPoolActivationTest(ActivationTest):
 
-class AvgPoolActivationTest(unittest.TestCase):
+    pass
 
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
+class SoftmaxActivationTest(ActivationTest):
 
+    pass
 
-class SoftmaxActivationTest(unittest.TestCase):
+class LRNActivationTest(ActivationTest):
 
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
+    pass
 
-
-class LRNActivationTest(unittest.TestCase):
-
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
-
-
-class DropoutActivationTest(unittest.TestCase):
-
-    prepare = sprepare
-    s = ss
-    make_arr = smake_arr
+class DropoutActivationTest(ActivationTest):
 
     def test_2x2_matrix(self):
         s, v, m = self.prepare()
-        a = A([[s(), s()], [s(), s()]])
+        a = npl([[[s(), s()], [s(), s()]]])
         res = dropout(a, 0.8)
-        arae(res, 0.2 * a)
+        arae(res.eval(), a.eval() * A([0.2]))
 
     def test_2x2_matrix_interval(self):
         s, v, m = self.prepare()
-        l = A([[s(), s()], [s(), s()]])
-        u = A([[s(), s()], [s(), s()]])
-        tl, tu = T.dmatrices('l', 'u')
-        i = I(tl, tu)
+        l = A([[[s(), s()], [s(), s()]]])
+        u = A([[[s(), s()], [s(), s()]]])
+        tl, tu = T.dtensor3s('l', 'u')
+        i = Itv(tl, tu)
         drp = dropout(i, 0.8)
         d = {tl: l, tu: u}
         (rl, ru) = drp.eval(d)

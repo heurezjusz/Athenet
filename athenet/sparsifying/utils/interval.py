@@ -312,7 +312,7 @@ class Interval(Numlike):
         upper_dot = self.upper * other.T
         lower_res = T.minimum(lower_dot, upper_dot)
         upper_res = T.maximum(lower_dot, upper_dot)
-        return Interval(lower_res.sum(1), upper_res.sum(1))
+        return Interval(lower_res.sum(axis=1), upper_res.sum(axis=1))
 
     def max(self, other):
         """Returns interval such that for any numbers (x, y) in a pair of
@@ -362,8 +362,8 @@ class Interval(Numlike):
                 dimensions, but with all remaining dimensions of x collapsed
                 into the last dimension.
         """
-        return Interval(self.lower.flatten(ndim=1),
-                        self.upper.flatten(ndim=1))
+        return Interval(self.lower.flatten(),
+                        self.upper.flatten())
 
     def sum(self, axis=None, dtype=None, keepdims=False):
         """Vector operation like in numpy.ndarray.
@@ -388,8 +388,9 @@ class Interval(Numlike):
     def eval(self, *eval_map):
         """Evaluates interval in terms of theano TensorType eval method.
 
-        :*eval_map: map of Theano variables to be set, just like in
-                    theano.tensor.dtensorX.eval method
+        :param *eval_map: map of Theano variables to be set, just like in
+                          theano.tensor.dtensorX.eval method
+        :type *eval_map: {theano.tensor: numpy.ndarray dict}
 
         :rtype: (lower, upper) pair of numpy.ndarrays
         """

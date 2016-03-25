@@ -10,7 +10,6 @@ from athenet.sparsifying.derest.utils import Numlike, assert_numlike
 
 def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
          padding=(0, 0), n_groups=1):
-    # TODO: unit tests
     """Returns estimated activation of convolutional layer.
 
     :param layer_input: Input Numlike
@@ -108,13 +107,13 @@ def fully_connected(layer_input, weights, biases):
     """Returns estimated activation of fully connected layer.
 
     :param Numlike layer_input: input Numlike
-    :param numpy.ndarray or theano.tensor weights: weights of fully connected
-                                                   layer
-    :param numpy.ndarray or theano.tensor biases: biases of fully connected
-                                                  layer
+    :param weights: weights of fully connected layer in order (n_in, n_out)
+    :param biases: biases of fully connected layer of size n_out
+    :type weights: 2D numpy.ndarray or theano.tensor
+    :type biases: 1D numpy.ndarray or theano.tensor
     """
     assert_numlike(layer_input)
-    flat_input = layer_input.flatten(2)
+    flat_input = layer_input.flatten()
     try:
         return flat_input.dot(weights) + biases
     except NotImplementedError:
