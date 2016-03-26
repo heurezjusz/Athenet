@@ -20,6 +20,11 @@ def lenet(trained=True, weights_filename=LENET_FILENAME,
     :weights_url: Url from which to download file with weights.
     :return: LeNet network.
     """
+    if trained:
+        weights = load_data(get_bin_path(weights_filename), weights_url)
+        if weights is None:
+            raise Exception("cannot load LeNet weights")
+
     lenet = Network([
         ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(5, 5, 20)),
         ReLU(),
@@ -33,9 +38,5 @@ def lenet(trained=True, weights_filename=LENET_FILENAME,
         Softmax(),
     ])
     if trained:
-        weights = load_data(get_bin_path(weights_filename), weights_url)
-        if weights:
-            lenet.set_params(weights)
-        else:
-            raise Exception("cannot load LeNet weights")
+        lenet.set_params(weights)
     return lenet
