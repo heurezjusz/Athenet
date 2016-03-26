@@ -1,4 +1,4 @@
-"""Functions that for any neuron and given range of inputs of layers, calculate
+"""Functions that for any neuron and given range of inputs of layers calculate
 neuron's range of activation. Functions are being invoked from the beginning
 to the end of the network."""
 
