@@ -1,6 +1,6 @@
-"""For any neuron, we calculate its range of activation for inputs of neural
-networks in given range. For simplicity, we assume it is [0, 255]. We do it
-from the beginning to the end of the network."""
+"""Functions that for any neuron and given range of inputs of layers, calculate
+neuron's range of activation. Functions are being invoked from the beginning
+to the end of the network."""
 
 import numpy as np
 import theano
