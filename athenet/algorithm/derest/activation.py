@@ -12,7 +12,7 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
          padding=(0, 0), n_groups=1):
     """Returns estimated activation of convolutional layer.
 
-    :param layer_input: Input Numlike
+    :param layer_input: Input Numlike in input_shp format
     :param input_shp: Shape of input in the format
                 (number of input channels, image height, image width)
     :param weights: Weights tensor in format (number of output channels,
@@ -108,10 +108,11 @@ def fully_connected(layer_input, weights, biases):
     """Returns estimated activation of fully connected layer.
 
     :param Numlike layer_input: input Numlike
-    :param weights: weights of fully connected layer in order (n_in, n_out)
+    :param weights: weights of fully connected layer in format (n_in, n_out)
     :param biases: biases of fully connected layer of size n_out
     :type weights: 2D numpy.ndarray or theano.tensor
     :type biases: 1D numpy.ndarray or theano.tensor
+    :rtype: Numlike
     """
     assert_numlike(layer_input)
     flat_input = layer_input.flatten()
@@ -130,6 +131,7 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
     :param integer k: local range normalization k argument
     :param integer alpha: local range normalization alpha argument
     :param integer beta: local range normalization beta argument
+    :rtype: Numlike
     """
     # TODO
     assert_numlike(input_layer)
@@ -138,11 +140,14 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
 def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     """Returns estimated activation of max pool layer.
 
-    :param Numlike layer_input: Numlike input
-    :param integer pair poolsize: pool of max pool
-    :param integer pair stride: stride of max pool
+    :param Numlike layer_input: Numlike input in input_shp format
+    :param tuple of 3 integers input_shp: input shape in format (n_channels,
+                                          height, width)
+    :param pair of integers poolsize: pool size in format (height, width)
+    :param pair of integers stride: stride of max pool
     :param 'max' or 'avg' mode: specifies whether it is max pool or average
                                 pool
+    :rtype: Numlike
     """
     assert_numlike(layer_input)
     if mode not in ["max", "avg"]:
@@ -178,9 +183,18 @@ def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
 
 
 def softmax(layer_input):
-    """Returns estimated activation of softmax layer."""
+    """Returns estimated activation of softmax layer.
+    :param Numlike layer_input: input
+    :rtype: Numlike
+    """
     # TODO
     assert_numlike(layer_input)
+    try:
+        res = layer_input.op_softmax()
+    except:
+        exponents = layer_input.exp()
+        res = exponents / exponents.sum()
+    return res
 
 
 def relu(layer_input):

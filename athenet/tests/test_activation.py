@@ -1,13 +1,11 @@
 """Testing athenet.algorithm.derest.activation functions.
 """
 
+from math import e
 import unittest
-from nose.tools import assert_true, assert_is, assert_equal
 import numpy as np
-from numpy.testing import assert_array_equal as are, \
-    assert_array_almost_equal as arae
+from numpy.testing import assert_array_almost_equal as arae
 import theano
-from theano import function
 import theano.tensor as T
 from athenet.algorithm.numlike import Interval as Itv, Nplike
 from athenet.algorithm.derest.activation import *
@@ -340,7 +338,20 @@ class PoolActivationTest(ActivationTest):
 
 class SoftmaxActivationTest(ActivationTest):
 
-    pass
+    # TODO: Interval tests
+
+    def test_simple(self):
+        inp = npl([1, 2, 3])
+        res = softmax(inp)
+        s = e * (1 + e * (1 + e))
+        arae(res.eval(), A([e / s, e ** 2 / s, e ** 3 / s]))
+
+    def test_corner_cases(self):
+        inps = [npl([1]), npl([2]), npl([1, 1]), npl([0]), npl([0, 0])]
+        ress = [softmax(inp) for inp in inps]
+        cress = [1, 1, 0.5, 1, 0.5]
+        for (cres, res) in zip(cress, ress):
+            arae(res.eval(), cres)
 
 
 class LRNActivationTest(ActivationTest):

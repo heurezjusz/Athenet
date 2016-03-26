@@ -421,9 +421,20 @@ class Interval(Numlike):
         return rlower, rupper
 
     def op_relu(self):
+        """Returns result of relu operation on given Interval.
+
+        :rtype: Interval
+        """
         lower = T.maximum(self.lower, 0.0)
         upper = T.maximum(self.upper, 0.0)
         return Interval(lower, upper)
+
+    def op_softmax(self):
+        """Returns result of softmax operation on given Interval.
+
+        :rtype: Interval
+        """
+        
 
     def __repr__(self):
         """Standard repr method."""
