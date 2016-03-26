@@ -3,7 +3,7 @@
 This module contains Interval class and auxiliary objects.
 """
 
-from athenet.sparsifying.utils.numlike import Numlike
+from numlike import Numlike
 from theano import function
 from theano import tensor as T
 from theano import shared

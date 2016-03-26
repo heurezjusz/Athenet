@@ -1,10 +1,10 @@
-"""Testing athenet.sparsifying.utils.interval.Interval class with its methods.
+"""Testing athenet.algorithm.utils.numlike.Numlike class with its methods.
 """
 
 import numpy as np
 import unittest
 from nose.tools import raises
-from athenet.sparsifying.utils.numlike import Numlike
+from athenet.algorithm.numlike import Numlike
 
 
 class NumlikeTest(unittest.TestCase):

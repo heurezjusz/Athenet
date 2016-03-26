@@ -4,7 +4,7 @@ to this neuron. We do it from the end to the beginning of the network. """
 import numpy as np
 import theano
 import theano.tensor as T
-from athenet.sparsifying.derest.utils import *
+from athenet.algorithm.numlike import Numlike, assert_numlike
 
 # TODO: All functions below will be implemented.
 

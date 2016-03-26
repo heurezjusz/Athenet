@@ -1,6 +1,6 @@
 """numpy.ndarray packed in Numlike interface."""
 
-from athenet.sparsifying.utils.numlike import Numlike
+from numlike import Numlike
 import numpy
 
 

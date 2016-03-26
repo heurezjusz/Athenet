@@ -1,4 +1,4 @@
-"""Testing athenet.sparsifying.derest.activation functions.
+"""Testing athenet.algorithm.derest.activation functions.
 """
 
 import unittest
@@ -7,8 +7,8 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import theano.tensor as T
 from theano import function
-from athenet.sparsifying.utils.interval import Interval
-from athenet.sparsifying.derest.activation import *
+from athenet.algorithm.numlike import Interval
+from athenet.algorithm.derest.activation import *
 
 class FullyConnectedDerivativeTest(unittest.TestCase):
     pass

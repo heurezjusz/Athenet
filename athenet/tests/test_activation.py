@@ -1,4 +1,4 @@
-"""Testing athenet.sparsifying.derest.activation functions.
+"""Testing athenet.algorithm.derest.activation functions.
 """
 
 import unittest
@@ -9,8 +9,8 @@ from numpy.testing import assert_array_equal as are, \
 import theano
 from theano import function
 import theano.tensor as T
-from athenet.sparsifying.utils import Interval as Itv, Nplike
-from athenet.sparsifying.derest.activation import *
+from athenet.algorithm.numlike import Interval as Itv, Nplike
+from athenet.algorithm.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
 

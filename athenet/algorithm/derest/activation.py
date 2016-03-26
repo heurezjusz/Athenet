@@ -3,7 +3,7 @@ networks in given range. For simplicity, we assume it is [0, 255]. We do it
 from the beginning to the end of the network. Functions at first try to use
 """
 
-from athenet.sparsifying.derest.utils import Numlike, assert_numlike
+from athenet.algorithm.numlike import Numlike, assert_numlike
 
 # TODO: All functions below will be implemented.
 
