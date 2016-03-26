@@ -103,7 +103,7 @@ class ImageNetDataLoader(DataLoader):
         img = img.reshape((1, 3, 227, 227))
         result = np.asarray(img, dtype=theano.config.floatX)
         if reverse:
-            return result[...,::-1]
+            return result[..., ::-1]
         return result
 
     def _load_imgs(self, dir_name, files):
@@ -155,6 +155,3 @@ class ImageNetDataLoader(DataLoader):
 
     def train_output(self, batch_index):
         return self._get_subset(self._train_out, batch_index)
-
-#a = np.asarray([[[1, 0, 0],[1,0,0],[1,0,0]],[[0,0,2],[0,0,2],[0,0,2]]])
-#>>> 
