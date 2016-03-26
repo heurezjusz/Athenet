@@ -1,3 +1,13 @@
+"""
+    Runs chosen algorithm on chosen type of network and prints results.
+    With -p flag displays results on the plot.
+    By default runs simple_neuron_deleter algorithm on LeNet network on one
+    configuration case.
+
+    More information with -h option.
+"""
+
+
 import argparse
 import sys
 from argparse import RawTextHelpFormatter
@@ -5,12 +15,14 @@ from config import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
 
 
-parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
+parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
+                  description="Runs chosen algorithm on chosen type of network"
+                  " and prints results.")
 
 parser.add_argument("-a", "--algorithm",
                     help="Chooses algorithm of which result will be "
                          "demonstrated. Meaning of shortcuts "
-                         "(shortcut: algorithm):\n"
+                         "(shortcut: called function):\n"
                          " * sender: simple_neuron_deleter (default)\n"
                          " * sender2: simple_neuron_deleter2\n"
                          " * rat: sparsify_smallest_on_network",
