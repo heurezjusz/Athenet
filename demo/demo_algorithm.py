@@ -28,6 +28,11 @@ parser.add_argument("-p", "--plot",
                          " on the plot.",
                     action="store_true")
 
+parser.add_argument("-l", "--log",
+                    help="When this option is added the plot (if chosed) will"
+                    " be displayed on logaritmic scale",
+                    action="store_true")
+
 parser.add_argument("-d", "--dataset", type=int,
                     help="Number of dataset. Dataset is a set of configs."
                          " Algorithm will run on every config from chosen "
@@ -66,4 +71,5 @@ for config in dataset:
     print "error rate:", results[config][1]
 
 if args.plot:
-    plot_2d_results(results)
+    plot_2d_results(results, ylog=args.log,
+                    title="results of " + args.algorithm + " algorithm")
