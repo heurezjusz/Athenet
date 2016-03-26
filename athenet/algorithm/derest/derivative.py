@@ -1,5 +1,7 @@
-"""For any neuron, we calculate its range of derivative of output with respect
-to this neuron. We do it from the end to the beginning of the network. """
+"""Functions that for any neuron calculate its range of derivative of output
+with respect to this neuron. Functions should be invoked from the end to the
+beginning of the network.
+"""
 
 import numpy as np
 import theano

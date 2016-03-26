@@ -1,4 +1,4 @@
-"""Testing athenet.algorithm.utils.numlike.Numlike class with its methods.
+"""Testing athenet.algorithm.numlike.Numlike class with its methods.
 """
 
 import numpy as np
