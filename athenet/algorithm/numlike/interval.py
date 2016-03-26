@@ -465,8 +465,8 @@ class Interval(Numlike):
                     sum_upp = sum_upp + input_upp[j]
             # Could consider evaluation below but it gives wrong answers.
             # It might be because of arithmetic accuracy.
-            #sum_low = input_low.sum() - input_low[i]
-            #sum_upp = input_upp.sum() - input_upp[i]
+            # sum_low = input_low.sum() - input_low[i]
+            # sum_upp = input_upp.sum() - input_upp[i]
             upper_counter_low = input_low.upper[i]
             lower_counter_upp = input_upp.lower[i]
             upper_low = upper_counter_low / \
@@ -475,6 +475,10 @@ class Interval(Numlike):
                 (sum_upp[0].upper + lower_counter_upp)
             result[i] = Interval(lower_upp, upper_low)
         return result
+
+    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
+        # TODO
+        pass
 
     def __repr__(self):
         """Standard repr method."""

@@ -122,12 +122,14 @@ def fully_connected(layer_input, weights, biases):
         return (flat_input * weights.T).sum(1) + biases
 
 
-def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
+def norm(input_layer, input_shp, local_range=5, k=1, alpha=0.0002, beta=0.75):
     """Returns estimated activation of LRN layer.
 
     :param Numlike input_layer: Numlike input
     :param integer local_range: size of local range in local range
                                 normalization
+    :param integer or tuple of integers input_shp: shape of input in format
+                                                   (n_channels, height, width)
     :param integer k: local range normalization k argument
     :param integer alpha: local range normalization alpha argument
     :param integer beta: local range normalization beta argument
@@ -135,6 +137,13 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
     """
     # TODO
     assert_numlike(input_layer)
+    try:
+        res = input_layer.op_norm(input_layer, input_shp, local_range, k,
+                                  alpha, beta)
+    except NotImplementedError:
+        # TODO: res =
+        pass
+    return res
 
 
 def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
