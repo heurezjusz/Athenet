@@ -21,7 +21,8 @@ class ImageNetDataLoader(DataLoader):
     verbosity = 0
 
     def __init__(self, year, buffer_size=1, train_data=True, val_data=True,
-                 val_size=None, reverse=True):
+                 val_size=None, reverse_training=True,
+                 reverse_validation=True):
         """Create ImageNet data loader.
 
         :year: Specifies which year's data should be loaded.
@@ -52,7 +53,7 @@ class ImageNetDataLoader(DataLoader):
                 files = os.listdir(get_bin_path(path))
                 train_files += [(os.path.join(d, f), False) for f in files]
                 answers += [index for i in range(len(files))]
-                if reverse:
+                if reverse_training:
                     train_files += [(os.path.join(d, f), True) for f in files]
                     answers += [index for i in range(len(files))]
                 index += 1
@@ -76,7 +77,7 @@ class ImageNetDataLoader(DataLoader):
                     answers[filename] = int(answer)
             val_files = [(filename, False) for filename in answers.keys()]
             val_answers = answers.values()
-            if reverse:
+            if reverse_validation:
                 val_files = [(filename, True) for filename in answers.keys()]
                 val_answers *= 2
             val_answers = np.asarray(val_answers)
