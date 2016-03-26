@@ -1,4 +1,5 @@
-"""Intervals in Theano including special functions for sparsifying.
+"""Intervals implemented in Theano including special functions for
+sparsifying.
 
 This module contains Interval class and auxiliary objects.
 """
@@ -22,7 +23,7 @@ DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
 class Interval(Numlike):
     """Theano interval matrix class
 
-    represents matrix of interval. Behaves like limited numpy.ndarray.
+    Represents matrix of intervals. Behaves like limited numpy.ndarray of intervals.
 
     .. note:: Should be treated as interval type with bounds as Theano nodes.
               Opetations on Interval create nodes in Theano graph. In order to
@@ -217,7 +218,7 @@ class Interval(Numlike):
 
         :Example:
 
-        >>> from athenet.sparsifying.utils import Interval
+        >>> from athenet.algorithm.numlike import Interval
         >>> import numpy
         >>> a = numpy.array([-1])
         >>> b = numpy.array([1])
