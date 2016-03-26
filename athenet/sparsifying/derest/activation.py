@@ -131,6 +131,7 @@ def norm(input_layer, local_range=5, k=1, alpha=0.0002, beta=0.75):
     :param integer alpha: local range normalization alpha argument
     :param integer beta: local range normalization beta argument
     """
+    # TODO
     assert_numlike(input_layer)
 
 
@@ -178,6 +179,7 @@ def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
 
 def softmax(layer_input):
     """Returns estimated activation of softmax layer."""
+    # TODO
     assert_numlike(layer_input)
 
 def relu(layer_input):
