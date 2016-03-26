@@ -80,7 +80,7 @@ class IntervalTest(unittest.TestCase):
         assert_equal(rshp[1], 2)
 
     def test_ops1(self):
-        # __add__, __sub__, __mul__
+        # __add__, __sub__, __mul__,
         x, y, z, w = T.dmatrices('x', 'y', 'z', 'w')
         i1 = Interval(x, y)
         i2 = Interval(z, w)

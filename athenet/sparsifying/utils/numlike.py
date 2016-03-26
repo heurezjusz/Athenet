@@ -66,8 +66,7 @@ class Numlike(object):
         :param other: dividend
         :type other: float
         :rtype: Nplike
-        .. warning:: divisor (self) should not contain zero, other must be
-                     float
+        .. warning:: divisor (self) should not contain zero, other must be float
         """
         raise NotImplementedError
 

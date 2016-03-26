@@ -369,7 +369,7 @@ class Interval(Numlike):
     def from_shape(shp, neutral=True, lower_val=None,
                    upper_val=None):
         """Returns Interval of shape shp with given lower and upper values.
-
+        
         :param tuple of integers shp: shape of created Interval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
