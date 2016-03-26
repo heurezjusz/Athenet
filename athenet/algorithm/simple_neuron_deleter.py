@@ -16,7 +16,10 @@ def simple_neuron_deleter(network, config):
     """
         :network: - an instance of athenet.Network.
         :config: - tuple of 2 foats, p and layer_limit
-        :p, layer_limit: - floats between 0 and 1.
+        :p, layer_limit: - floats between 0 and 1. [p] reprezents the fraction
+        of neurons to be deleted from fully connected layers, [layer_limit]
+        is maximum fraction of neurons which will be deleted from single
+        layer.
 
         Modifies [network]. Deletes [p] neurons from layers connected direclty
         to fully connected layer's. Do not delete more than [layer_limit]
