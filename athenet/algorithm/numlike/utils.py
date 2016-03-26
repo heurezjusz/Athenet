@@ -1,9 +1,10 @@
-"""Auxiliary functions for derest."""
+"""Auxiliary functions for testing numlikeness."""
 
-from athenet.sparsifying.utils import Numlike
+from athenet.algorithm.numlike import Numlike
 import theano
 import theano.tensor as T
 import numpy as np
+
 
 def assert_numlike(value):
     if isinstance(value, (Numlike, np.ndarray, np.generic)):
