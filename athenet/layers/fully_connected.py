@@ -63,7 +63,7 @@ class FullyConnectedLayer(WeightedLayer):
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for fully connected layer.
 
-        :param raw_layer_input: Input in the format (n_batches, n_channels) or
+        :param raw_layer_input: Input in the format (n_batches, n_in) or
                                 compatible.
         :type raw_layer_input: pair of integers
         """
