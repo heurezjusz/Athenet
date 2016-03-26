@@ -388,9 +388,9 @@ class ReluActivationTest(ActivationTest):
 
     def test_interval_3D(self):
         inpl = A([[[-1, 2, -1], [0, 3, 5], [1, 2, 3]],
-                    [[2, 3, 4], [-2, -3, -4], [-4, 0, 4]]])
+                  [[2, 3, 4], [-2, -3, -4], [-4, 0, 4]]])
         inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
-                    [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
+                  [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
         iinp = Itv(tinpl, tinpu)
         res = relu(iinp)

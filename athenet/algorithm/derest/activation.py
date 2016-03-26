@@ -23,7 +23,7 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
                                                    filter height,
                                                    filter width)
     :param biases: Biases in convolution in shape (0, 'x', 'x'). e.g.
-                   theano.shared(numpy.ndarray([0], dtype=theano.config.floatX),
+                   theano.shared(np.ndarray([0], dtype=theano.config.floatX),
                    borrow=True).dimshuffle(0, 'x', 'x')
     :param stride: Pair representing interval at which to apply the filters.
     :param padding: Pair representing number of zero-valued pixels to add on
@@ -181,6 +181,7 @@ def softmax(layer_input):
     """Returns estimated activation of softmax layer."""
     # TODO
     assert_numlike(layer_input)
+
 
 def relu(layer_input):
     """Returns estimated activation of relu layer."""

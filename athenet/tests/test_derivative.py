@@ -10,20 +10,26 @@ from theano import function
 from athenet.algorithm.numlike import Interval
 from athenet.algorithm.derest.activation import *
 
+
 class FullyConnectedDerivativeTest(unittest.TestCase):
     pass
+
 
 class ConvolutionalDerivativeTest(unittest.TestCase):
     pass
 
+
 class MaxPoolDerivativeTest(unittest.TestCase):
     pass
+
 
 class SoftmaxDerivativeTest(unittest.TestCase):
     pass
 
+
 class LRNDerivativeTest(unittest.TestCase):
     pass
+
 
 class DropoutDerivativeTest(unittest.TestCase):
     pass
