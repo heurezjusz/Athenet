@@ -182,26 +182,30 @@ def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     return result
 
 
-def softmax(layer_input):
+def softmax(layer_input, input_shp):
     """Returns estimated activation of softmax layer.
     :param Numlike layer_input: input
+    :param integer input_shp: shape of 1D input
     :rtype: Numlike
     """
-    # TODO
     assert_numlike(layer_input)
     try:
-        res = layer_input.op_softmax()
-    except:
+        res = layer_input.op_softmax(input_shp)
+    except NotImplementedError:
         exponents = layer_input.exp()
         res = exponents / exponents.sum()
     return res
 
 
 def relu(layer_input):
-    """Returns estimated activation of relu layer."""
+    """Returns estimated activation of relu layer.
+
+    :param Numlike layer_input: input
+    :rtype: Numlike
+    """
     assert_numlike(layer_input)
     try:
         res = layer_input.op_relu()
-    except:
+    except NotImplementedError:
         res = (layer_input + layer_input.abs()) * 0.5
     return res

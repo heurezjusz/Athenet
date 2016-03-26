@@ -102,12 +102,10 @@ class Nplike(Numlike):
             return Nplike(numpy.array([s]))
 
     def abs(self):
-        """Returns absolute value of Nplike."""
         return Nplike(numpy.absolute(self.value))
 
     @property
     def T(self):
-        """Vector operation like in numpy.ndarray."""
         return Nplike(self.value.T)
 
     @staticmethod
@@ -119,6 +117,12 @@ class Nplike(Numlike):
 
     def eval(self):
         return self.value
+
+    def op_relu(self):
+        return super(Nplike, self).op_relu()
+
+    def op_softmax(self, arg):
+        return super(Nplike, self).op_softmax(arg)
 
     def __repr__(self):
         """Standard repr method."""

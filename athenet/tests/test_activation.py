@@ -1,12 +1,14 @@
 """Testing athenet.algorithm.derest.activation functions.
 """
 
-from math import e
-import unittest
 import numpy as np
-from numpy.testing import assert_array_almost_equal as arae
 import theano
 import theano.tensor as T
+import unittest
+from math import e
+from nose.tools import assert_almost_equal as aae, \
+    assert_greater as ag
+from numpy.testing import assert_array_almost_equal as arae
 from athenet.algorithm.numlike import Interval as Itv, Nplike
 from athenet.algorithm.derest.activation import *
 
@@ -338,20 +340,127 @@ class PoolActivationTest(ActivationTest):
 
 class SoftmaxActivationTest(ActivationTest):
 
-    # TODO: Interval tests
-
     def test_simple(self):
         inp = npl([1, 2, 3])
-        res = softmax(inp)
+        res = softmax(inp, 3)
         s = e * (1 + e * (1 + e))
         arae(res.eval(), A([e / s, e ** 2 / s, e ** 3 / s]))
 
     def test_corner_cases(self):
         inps = [npl([1]), npl([2]), npl([1, 1]), npl([0]), npl([0, 0])]
-        ress = [softmax(inp) for inp in inps]
+        ress = [softmax(inp, 5) for inp in inps]
         cress = [1, 1, 0.5, 1, 0.5]
         for (cres, res) in zip(cress, ress):
             arae(res.eval(), cres)
+
+    def test_interval_flat(self):
+        inp = A([1, 2, 3, 4, 5])
+        tinp = T.dvector('tinp')
+        itv = Itv(tinp, tinp)
+        res = softmax(itv, 5)
+        d = {tinp: inp}
+        l, u = res.eval(d)
+        arae(l, u)
+        for i in xrange(5):
+            aae(l[i], u[i])
+        for i in xrange(4):
+            ag(l[i + 1], l[i])
+
+    def test_uniform_input(self):
+        inp = np.ones(4) * 4
+        tinp = T.dvector('tinp')
+        itv = Itv(tinp, tinp)
+        res = softmax(itv, 4)
+        d = {tinp: inp}
+        l, u = res.eval(d)
+        arae(l, u)
+        for i in xrange(4):
+            aae(l[i], u[i])
+        for i in xrange(3):
+            aae(l[i], l[i + 1])
+
+    def test_one_big_elt(self):
+        inp = -20 * np.ones(4)
+        inp[0] = 1
+        tinp = T.dvector('tinp')
+        itv = Itv(tinp, tinp)
+        res = softmax(itv, 4)
+        d = {tinp: inp}
+        l, u = res.eval(d)
+        arae(l, u)
+        aae(l[0], 1)
+        aae(l[1], 0)
+        aae(l[2], 0)
+        aae(l[3], 0)
+
+    def test_case1(self):
+        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
+        itv = Itv(tinpl, tinpu)
+        res = softmax(itv, 3)
+        inp = A([1, 2, 3])
+        d = {tinpl: inp, tinpu: inp}
+        l, u = res.eval(d)
+        cres = (e - 1) / (e ** 3 - 1)
+        arae(l, u)
+        arae(l, A([cres, cres * e, cres * e ** 2]))
+
+    def test_case2(self):
+        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
+        itv = Itv(tinpl, tinpu)
+        res = softmax(itv, 2)
+        inpl = A([1, -1])
+        inpu = A([2, 3])
+        d = {tinpl: inpl, tinpu: inpu}
+        l, u = res.eval(d)
+
+        def calc_cres(e1, e2):
+            return (e ** e1) / (e ** e1 + e ** e2)
+
+        cresl = A([calc_cres(a, b) for (a, b) in
+                   [(1, 3), (-1, 2)]])
+        cresu = A([calc_cres(a, b) for (a, b) in
+                   [(2, -1), (3, 1)]])
+        arae(l, cresl)
+        arae(u, cresu)
+
+    def test_case3(self):
+        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
+        itv = Itv(tinpl, tinpu)
+        res = softmax(itv, 3)
+        inpl = A([1, -1, 2])
+        inpu = A([2, 3, 4])
+        d = {tinpl: inpl, tinpu: inpu}
+        l, u = res.eval(d)
+
+        def calc_cres(e1, e2, e3):
+            return (e ** e1) / (e ** e1 + e ** e2 + e ** e3)
+
+        cresl = A([calc_cres(a, b, c) for (a, b, c) in
+                   [(1, 3, 4), (-1, 2, 4), (2, 2, 3)]])
+        cresu = A([calc_cres(a, b, c) for (a, b, c) in
+                   [(2, -1, 2), (3, 1, 2), (4, 1, -1)]])
+        arae(l, cresl)
+        arae(u, cresu)
+
+    def test_best_worst_case_for_specific_interval(self):
+        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
+        itv = Itv(tinpl, tinpu)
+        res = softmax(itv, 4)
+        inpl1 = np.ones(4) + 1
+        inpu1 = inpl1 + 1
+        d1 = {tinpl: inpl1, tinpu: inpu1}
+        l1, u1 = res.eval(d1)
+        inp2 = np.ones(4) * 2.0
+        inp2[0] = 1.0
+        d2 = {tinpl: inp2, tinpu: inp2}
+        l2, u2 = res.eval(d2)
+        inp3 = 2.0 - inp2
+        d3 = {tinpl: inp3, tinpu: inp3}
+        l3, u3 = res.eval(d3)
+        d1 = l1[0] - l2[0]
+        d2 = u1[0] - u3[0]
+        ag(0.01, abs(d1))
+        ag(0.01, abs(d2))
 
 
 class LRNActivationTest(ActivationTest):
