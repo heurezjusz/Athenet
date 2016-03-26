@@ -11,7 +11,7 @@
 import argparse
 import sys
 from argparse import RawTextHelpFormatter
-from config import datasets, algorithms, get_network, ok
+from config.algorithm import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
 
 
