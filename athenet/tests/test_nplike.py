@@ -1,9 +1,9 @@
-"""Testing athenet.sparsifying.utils.interval.Interval class with its methods.
+"""Testing athenet.algorithm.utils.interval.Nplike class with its methods.
 """
 
 import unittest
 from nose.tools import raises, assert_true
-from athenet.sparsifying.utils import Nplike
+from athenet.algorithm.numlike import Nplike
 import numpy as np
 from numpy.testing import assert_array_equal as are, \
     assert_array_almost_equal as arae

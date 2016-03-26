@@ -1,9 +1,9 @@
-"""Testing athenet.sparsifying.utils.interval.Interval class with its methods.
+"""Testing athenet.algorithm.numlike.Interval class with its methods.
 """
 
 import unittest
 from nose.tools import assert_true, assert_is, assert_equal
-from athenet.sparsifying.utils.interval import Interval, \
+from athenet.algorithm.numlike.interval import Interval, \
     NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER, \
     DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER
 import numpy as np
