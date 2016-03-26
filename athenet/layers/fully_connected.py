@@ -13,8 +13,8 @@ class FullyConnectedLayer(WeightedLayer):
     def __init__(self, n_out, n_in=None):
         """Create fully connected layer.
 
-        :n_out: Number of output neurons.
-        :n_in: Number of input neurons.
+        :param integer n_out: Number of output neurons.
+        :param integer n_in: Number of input neurons.
         """
         super(FullyConnectedLayer, self).__init__()
         self._n_in = None
@@ -63,7 +63,9 @@ class FullyConnectedLayer(WeightedLayer):
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for fully connected layer.
 
-        :raw_layer_input: Input in the format (n_in, n_out) or compatible.
+        :param raw_layer_input: Input in the format (n_batches, n_in) or
+                                compatible.
+        :type raw_layer_input: pair of integers
         """
         return raw_layer_input.flatten(2)
 

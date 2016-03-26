@@ -1,6 +1,6 @@
 """Intervals in Theano including special functions for sparsifying."""
 
-from athenet.sparsifying.utils.numlike import Numlike
+from athenet.algorithm.numlike.numlike import Numlike
 from theano import function
 from theano import tensor as T
 from theano.ifelse import ifelse
@@ -231,7 +231,7 @@ class Interval(Numlike):
 
         :Example:
 
-        >>> from athenet.sparsifying.utils import Interval
+        >>> from athenet.algorithm.utils import Interval
         >>> import numpy
         >>> a = numpy.array([-1])
         >>> b = numpy.array([1])

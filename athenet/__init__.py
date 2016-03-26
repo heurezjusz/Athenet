@@ -1,6 +1,6 @@
-from network import *
+from network import TrainConfig, Network
 import data_loader
 import layers
-import sparsifying
+import algorithm
 import utils
 import models

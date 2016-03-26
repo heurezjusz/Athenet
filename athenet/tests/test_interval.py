@@ -1,9 +1,9 @@
-"""Testing athenet.sparsifying.utils.interval.Interval class with its methods.
+"""Testing athenet.algorithm.numlike.interval.Interval class with its methods.
 """
 
 import unittest
 from nose.tools import assert_true, assert_is, assert_equal
-from athenet.sparsifying.utils.interval import Interval
+from athenet.algorithm.numlike.interval import Interval
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal
 import theano.tensor as T
