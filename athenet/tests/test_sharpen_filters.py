@@ -3,7 +3,7 @@ import numpy
 from copy import deepcopy
 from nose.tools import assert_false, assert_true
 
-from athenet.sparsifying.sharpen_filters import sharpen_filters_in_layer
+from athenet.algorithm.sharpen_filters import sharpen_filters_in_layer
 from mocks.mock_network import LayerMock
 
 
