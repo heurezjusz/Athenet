@@ -8,7 +8,7 @@ from numlike import Numlike
 from theano import function
 from theano import tensor as T
 from theano import shared
-from theano.ifelse import ifelse
+
 import numpy
 
 NEUTRAL_INTERVAL_LOWER = 0.0
@@ -23,10 +23,11 @@ DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
 class Interval(Numlike):
     """Theano interval matrix class
 
-    Represents matrix of intervals. Behaves like limited numpy.ndarray of intervals.
+    Represents matrix of intervals. Behaves like limited numpy.ndarray of
+    intervals.
 
     .. note:: Should be treated as interval type with bounds as Theano nodes.
-              Opetations on Interval create nodes in Theano graph. In order to
+              Operations on Interval create nodes in Theano graph. In order to
               read result of given operations, use eval method.
     """
 
@@ -371,7 +372,7 @@ class Interval(Numlike):
                    upper_val=None):
         """Returns Interval of shape shp with given lower and upper values.
 
-        :param tuple of integers shp: shape of created Interval
+        :param tuple of integers or integer shp : shape of created Interval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
@@ -395,19 +396,18 @@ class Interval(Numlike):
         upper = shared(upper_array)
         return Interval(lower, upper)
 
-    def eval(self, *eval_map):
+    def eval(self, eval_map=None):
         """Evaluates interval in terms of theano TensorType eval method.
 
-        :param *eval_map: map of Theano variables to be set, just like in
+        :param eval_map: map of Theano variables to be set, just like in
                           theano.tensor.dtensorX.eval method
-        :type *eval_map: {theano.tensor: numpy.ndarray dict}
+        :type eval_map: {theano.tensor: numpy.ndarray} dict
 
         :rtype: (lower, upper) pair of numpy.ndarrays
         """
-        has_args = (len(eval_map) != 0)
+        has_args = eval_map is not None
         if has_args:
-            eval_map = eval_map[0]
-            has_args = (len(eval_map) != 0)
+            has_args = len(eval_map) != 0
         if not has_args:
             try:
                 f = function([], [self.lower, self.upper])
@@ -422,9 +422,63 @@ class Interval(Numlike):
         return rlower, rupper
 
     def op_relu(self):
+        """Returns result of relu operation on given Interval.
+
+        :rtype: Interval
+        """
         lower = T.maximum(self.lower, 0.0)
         upper = T.maximum(self.upper, 0.0)
         return Interval(lower, upper)
+
+    def op_softmax(self, input_shp):
+        """Returns result of softmax operation on given Interval.
+
+        :param integer input_shp: shape of 1D input
+        :rtype: Interval
+
+        .. note:: Implementation note. Tricks for encountering representation
+                  problems:
+                  Theoretically, softmax(input) == softmax(input.map(x->x+c))
+                  for Real x, y. For floating point arithmetic it is not true.
+                  e.g. in expression:
+
+                  e^x / (e^x + e^y) = 0.0f / (0.0f + 0.0f) = NaN for too little
+                  values of x, y
+                  or
+                  e^x / (e^x + e^y) = +Inf / +Inf = NaN for too hight values of
+                  x, y.
+                  There is used a workaround:
+                      * _low endings are for softmax with variables shifted so
+                        that input[i].upper() == 0
+                      * _upp endings are for softmax with variables shifted so
+                        that input[i].lower() == 0
+        """
+        result = Interval.from_shape(input_shp, neutral=True)
+        for i in xrange(input_shp):
+            input_low = (self - self.upper[i]).exp()
+            input_upp = (self - self.lower[i]).exp()
+            sum_low = Interval.from_shape(1, neutral=True)
+            sum_upp = Interval.from_shape(1, neutral=True)
+            for j in xrange(input_shp):
+                if j != i:
+                    sum_low = sum_low + input_low[j]
+                    sum_upp = sum_upp + input_upp[j]
+            # Could consider evaluation below but it gives wrong answers.
+            # It might be because of arithmetic accuracy.
+            # sum_low = input_low.sum() - input_low[i]
+            # sum_upp = input_upp.sum() - input_upp[i]
+            upper_counter_low = input_low.upper[i]
+            lower_counter_upp = input_upp.lower[i]
+            upper_low = upper_counter_low / \
+                (sum_low[0].lower + upper_counter_low)
+            lower_upp = lower_counter_upp / \
+                (sum_upp[0].upper + lower_counter_upp)
+            result[i] = Interval(lower_upp, upper_low)
+        return result
+
+    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
+        # TODO
+        pass
 
     def __repr__(self):
         """Standard repr method."""

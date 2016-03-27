@@ -19,6 +19,7 @@ class Numlike(object):
         """Returns specified slice of numlike.
 
         :at: Coordinates / slice to be taken.
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -32,32 +33,46 @@ class Numlike(object):
 
     @property
     def shape(self):
-        """Returns shape of numlike."""
+        """Returns shape of numlike.
+
+        :rtype: integer or tuple of integers or theano shape
+        """
         raise NotImplementedError
 
     def __add__(self, other):
         """Returns sum of two numlikes.
 
-        :other: numlike.
+        :param other: value to be added.
+        :type other: Numlike or np.ndarray or theano.tensor
+        :rtype: Numlike
         """
         raise NotImplementedError
 
     def __sub__(self, other):
         """Returns difference between two numlikes.
 
-        :other: numlike to be subtracted.
+        :param other: value to be subtracted.
+        :type other: Numlike or np.ndarray or theano.tensor
+        :rtype: Numlike
         """
         raise NotImplementedError
 
     def __mul__(self, other):
         """Returns product of two numlikes.
 
-        :other: numlike to be multiplied.
+        :param other: value to be multiplied.
+        :type other: Numlike or np.ndarray or theano.tensor
+        :rtype: Numlike
         """
         raise NotImplementedError
 
     def __div__(self, other):
-        """Returns quotient of self and other."""
+        """Returns quotient of self and other.
+
+        :param other: divisor
+        :type other: Numlike or np.ndarray or theano.tensor
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     def __rdiv__(self, other):
@@ -72,25 +87,38 @@ class Numlike(object):
         raise NotImplementedError
 
     def reciprocal(self):
-        """Returns reciprocal of the numlike."""
+        """Returns reciprocal of the Numlike.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     def neg(self):
-        """Returns (-1) * numlike."""
+        """Returns (-1) * Numlike.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     def exp(self):
-        """Returns numlike representing the exponential of the numlike."""
+        """Returns Numlike representing the exponential of the Numlike.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     def square(self):
-        """Returns square of the numlike."""
+        """Returns square of the Numlike.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     def power(self, exponent):
         """For numlike N, returns N^exponent.
 
         :param float exponent: Number to be passed as exponent to N^exponent.
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -98,6 +126,7 @@ class Numlike(object):
         """Dot product of numlike vector and a other.
 
         :param unspecified other: second dot param, type to be specified
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -105,6 +134,7 @@ class Numlike(object):
         """Returns maximum of self and other.
 
         :param unspecified other: second masx param, type to be specified
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -115,6 +145,7 @@ class Numlike(object):
 
         :param axis: axis along which max is evaluated
         :param Boolean keepdims: whether flattened dimensions should remain
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -122,11 +153,15 @@ class Numlike(object):
         """Reshapes numlike tensor like theano Tensor.
 
         :param integer tuple shape: shape to be set
+        :rtype: Numlike
         """
         raise NotImplementedError
 
     def flatten(self):
-        """Flattens numlike tensor like theano Tensor."""
+        """Flattens numlike tensor like theano Tensor.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     def sum(self, axis=None, dtype=None, keepdims=False):
@@ -137,17 +172,24 @@ class Numlike(object):
                                    theano.tensor.sum
         :param Boolean keepdims: Whether to keep squashed dimensions of size 1
         :type axis: integer, tuple of integers or None
+        :rtype: Numlike
 
         """
         raise NotImplementedError
 
     def abs(self):
-        """Returns absolute value of Numlike."""
+        """Returns absolute value of Numlike.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     @property
     def T(self):
-        """Vector operation like in numpy.ndarray"""
+        """Vector operation like in numpy.ndarray.
+
+        :rtype: Numlike
+        """
         raise NotImplementedError
 
     @staticmethod
@@ -157,9 +199,42 @@ class Numlike(object):
         :param integer tuple shp: shape to be set
         :param Boolean neutral: whether created Numlike should have neutral
                         values or significant values.
+        :rtype: Numlike
         """
         raise NotImplementedError
 
-    def eval(self):
+    def eval(self, *args):
         """Returns some readable form of stored value."""
+        raise NotImplementedError
+
+    def op_relu(self):
+        """Returns result of relu operation on given Numlike.
+
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    def op_softmax(self, input_shp):
+        """Returns result of softmax operation on given Numlike.
+
+        :param integer input_shp: shape of 1D input
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
+        """Returns result of norm operation on given Numlike.
+
+        :param Numlike input_layer: Numlike input
+        :param integer local_range: size of local range in local range
+        normalization
+        :param integer or tuple of integers input_shp: shape of input in format
+        (n_channels, height, width)
+        :param integer k: local range normalization k argument
+        :param integer alpha: local range normalization alpha argument
+        :param integer beta: local range normalization beta argument
+        :rtype: Numlike
+        :param integer input_shp: shape of 1D input
+        :rtype: Numlike
+        """
         raise NotImplementedError
