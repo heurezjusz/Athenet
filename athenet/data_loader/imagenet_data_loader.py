@@ -20,8 +20,8 @@ class ImageNetDataLoader(DataLoader):
     mean_rgb = [123, 117, 104]
     verbosity = 0
 
-    def __init__(self, year, image_shape, buffer_size=1, train_data=True, val_data=True,
-                 val_size=None):
+    def __init__(self, year, image_shape, buffer_size=1, train_data=True,
+                 val_data=True, val_size=None):
         """Create ImageNet data loader.
 
         :year: Specifies which year's data should be loaded.
@@ -62,7 +62,6 @@ class ImageNetDataLoader(DataLoader):
             self.train_set_size = len(answers)
 
         if val_data:
-            files = os.listdir(get_bin_path(self.val_name))
             answers = OrderedDict()
             with open(get_data_path(self.val_name + '.txt'), 'rb') as f:
                 while True:
