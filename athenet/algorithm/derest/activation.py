@@ -146,7 +146,7 @@ def norm(input_layer, input_shp, local_range=5, k=1, alpha=0.0002, beta=0.75):
 
 
 def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
-    """Returns estimated activation of max pool layer.
+    """Returns estimated activation of pool layer.
 
     :param Numlike layer_input: Numlike input in input_shp format
     :param tuple of 3 integers input_shp: input shape in format (n_channels,
