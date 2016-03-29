@@ -42,9 +42,9 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
     :rtype: Numlike
     """
     assert_numlike(layer_input)
-    # h, w, n_in - image height, image width, number of input channels
+    # n_in, h, w - number of input channels, image height, image width
     n_in, h, w = input_shp
-    # fw, fh, n_out - filter height, filter width, number of output channels
+    # n_out, fh, fw - number of output channels, filter height, filter width
     n_out, fh, fw = filter_shp
     # g_in - number of input channels per group
     g_in = n_in / n_groups
@@ -59,7 +59,7 @@ def conv(layer_input, input_shp, weights, filter_shp, biases, stride=(1, 1),
     padded_input = input_type.from_shape(padded_input_shape)
     padded_input[0:n_in, pad_h:(pad_h + h), pad_w:(pad_w + w)] = \
         layer_input
-    # setting new h, w, n_in for padded input, you can forget about padding
+    # setting new n_in, h, w for padded input, now you can forget about padding
     n_in, h, w = padded_input_shape
     output_h = (h - fh) / stride_h + 1
     output_w = (w - fw) / stride_w + 1
@@ -141,7 +141,6 @@ def norm(input_layer, input_shp, local_range=5, k=1, alpha=0.0002, beta=0.75):
         res = input_layer.op_norm(input_layer, input_shp, local_range, k,
                                   alpha, beta)
     except NotImplementedError:
-        # TODO: res =
         pass
     return res
 
@@ -162,11 +161,10 @@ def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     if mode not in ["max", "avg"]:
         raise ValueError("pool mode should be 'max' or 'avg'")
     is_max = mode == "max"
-    # h, w, n_in, n_out - image height, image width, number of input channels,
-    #                     number of output channels
+    # n_in, h, w - number of input channels, image height, image width
     n_in, h, w = input_shp
     n_out = n_in
-    # fw, fh, n_out - pool height, pool width
+    # fh, fw - pool height, pool width
     fh, fw = poolsize
     stride_h, stride_w = stride
     input_type = type(layer_input)
