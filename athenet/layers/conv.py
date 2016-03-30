@@ -6,7 +6,7 @@ import theano
 import theano.tensor as T
 
 from athenet.layers import WeightedLayer
-from athenet.utils import cudnn_available
+from athenet.utils.misc import convolution
 
 
 class ConvolutionalLayer(WeightedLayer):
@@ -108,39 +108,10 @@ class ConvolutionalLayer(WeightedLayer):
         return extra_pixels
 
     def _get_output(self, layer_input):
-        n_channels = self.image_shape[2]
-        n_filters = self.filter_shape[2]
-
-        n_group_channels = n_channels / self.n_groups
-        n_group_filters = n_filters / self.n_groups
-
         # By default, Theano doesn't use cuDNN convolutions if
         # subsample != (1, 1), so we need to call it manually
-        if cudnn_available():  # use cuDNN convolutions
-            conv_outputs = [theano.sandbox.cuda.dnn.dnn_conv(
-                img=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
-                               :, :],
-                kerns=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
-                                    :, :, :],
-                subsample=self.stride
-            ) for i in xrange(self.n_groups)]
-        else:  # let Theano decide which implementation to use
-            h, w = self.image_shape[0:2]
-            pad_h, pad_w = self.padding
-            group_image_shape = (self.batch_size, n_group_channels,
-                                 h + 2*pad_h, w + 2*pad_w)
-            h, w = self.filter_shape[0:2]
-            group_filter_shape = (n_group_filters, n_group_channels, h, w)
-
-            conv_outputs = [theano.tensor.nnet.conv.conv2d(
-                input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
-                                 :, :],
-                filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
-                                      :, :, :],
-                filter_shape=group_filter_shape,
-                image_shape=group_image_shape,
-                subsample=self.stride
-            ) for i in xrange(self.n_groups)]
-
-        conv_output = T.concatenate(conv_outputs, axis=1)
+        conv_output = convolution(self.input, self.W_shared, self.stride,
+                                  self.n_groups, self.image_shape,
+                                  self.padding, self.batch_size,
+                                  self.filter_shape)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
