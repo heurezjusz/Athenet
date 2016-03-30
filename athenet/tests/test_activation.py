@@ -228,7 +228,7 @@ class ConvolutionalActivationTest(ActivationTest):
         w = A([[[[1, 2], [-3, 4]]]], dtype=theano.config.floatX)
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
-        b = A([[[0]]], dtype=theano.config.floatX)
+        b = A([0], dtype=theano.config.floatX)
         tb = theano.shared(b, borrow=True)
         inp_shape = (1, 2, 2)
         f_shp = (w.shape[0], w.shape[2], w.shape[3])

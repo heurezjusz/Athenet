@@ -238,3 +238,7 @@ class Numlike(object):
         :rtype: Numlike
         """
         raise NotImplementedError
+
+    def op_conv(self, weights, image_shape, filter_shape, biases, stride,
+                padding, n_groups):
+        raise NotImplementedError

@@ -5,11 +5,14 @@ This module contains Interval class and auxiliary objects.
 """
 
 from numlike import Numlike
+import theano
 from theano import function
 from theano import tensor as T
 from theano import shared
 
 import numpy
+
+from athenet.utils.misc import convolution, reshape_for_padding
 
 NEUTRAL_INTERVAL_LOWER = 0.0
 NEUTRAL_INTERVAL_UPPER = 0.0
@@ -479,6 +482,62 @@ class Interval(Numlike):
     def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
         # TODO
         pass
+
+    def op_conv(self, weights, image_shape, filter_shape, biases, stride,
+                padding, n_groups):
+        """Returns estimated activation of convolution applied to Interval.
+
+        :param weights: weights tensor in format (number of output channels,
+                                                  number of input channels,
+                                                  filter height,
+                                                  filter width)
+        :param image_shape: shape of input in the format
+                    (number of input channels, image height, image width)
+        :param filter_shape: filter shape in the format
+                             (number of output channels, filter height,
+                              filter width)
+        :param biases: biases in convolution
+        :param stride: pair representing interval at which to apply the filters
+        :param padding: pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :param n_groups: number of groups input and output channels will be
+                         split into, two channels are connected only if they
+                         belong to the same group.
+        :type image_shape: tuple of 3 integers
+        :type weights: theano.tensor3
+        :type filter_shape: tuple of 3 integers
+        :type biases: theano.vector
+        :type stride: pair of integers
+        :type padding: pair of integers
+        :type n_groups: integer
+        :rtype: Interval
+        """
+        image_shape = (image_shape[1], image_shape[2], image_shape[0])
+        filter_shape = (filter_shape[1], filter_shape[2], filter_shape[0])
+        args = (stride, n_groups, image_shape, padding, 1, filter_shape)
+        input_lower = self.lower.dimshuffle('x', 0, 1, 2)
+        input_upper = self.upper.dimshuffle('x', 0, 1, 2)
+        input_lower_padded = reshape_for_padding(input_lower, image_shape, 1,
+                                                 padding)
+        input_upper_padded = reshape_for_padding(input_upper, image_shape, 1,
+                                                 padding)
+        weights_positive = T.maximum(weights, 0.)
+        weights_negative = T.minimum(weights, 0.)
+        conv_lower_positive = convolution(input_lower_padded, weights_positive,
+                                          *args)
+        conv_lower_negative = convolution(input_lower_padded, weights_negative,
+                                          *args)
+        conv_upper_positive = convolution(input_upper_padded, weights_positive,
+                                          *args)
+        conv_upper_negative = convolution(input_upper_padded, weights_negative,
+                                          *args)
+        conv_result_lower = conv_lower_positive + conv_upper_negative
+        conv_result_upper = conv_lower_negative + conv_upper_positive
+        _, n_in, h, w = conv_result_lower.shape
+        conv_result_lower_3d = conv_result_lower.reshape((n_in, h, w))
+        conv_result_upper_3d = conv_result_upper.reshape((n_in, h, w))
+        result_interval = Interval(conv_result_lower_3d, conv_result_upper_3d)
+        return result_interval + biases.dimshuffle(0, 'x', 'x')
 
     def __repr__(self):
         """Standard repr method."""

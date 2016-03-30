@@ -6,7 +6,7 @@ import theano
 import theano.tensor as T
 
 from athenet.layers import WeightedLayer
-from athenet.utils.misc import convolution
+from athenet.utils.misc import convolution, reshape_for_padding
 
 
 class ConvolutionalLayer(WeightedLayer):
@@ -93,19 +93,8 @@ class ConvolutionalLayer(WeightedLayer):
                                                image height, image width) or
                           compatible.
         """
-        h, w, n_channels = self.image_shape
-        conv_image_shape = (self.batch_size, n_channels, h, w)
-        reshaped_input = raw_layer_input.reshape(conv_image_shape)
-
-        pad_h, pad_w = self.padding
-        h_in = h + 2*pad_h
-        w_in = w + 2*pad_w
-
-        extra_pixels = T.alloc(np.array(0., dtype=theano.config.floatX),
-                               self.batch_size, n_channels, h_in, w_in)
-        extra_pixels = T.set_subtensor(
-            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
-        return extra_pixels
+        return reshape_for_padding(raw_layer_input, self.image_shape,
+                                   self.batch_size, self.padding)
 
     def _get_output(self, layer_input):
         # By default, Theano doesn't use cuDNN convolutions if

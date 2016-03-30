@@ -127,6 +127,9 @@ class Nplike(Numlike):
     def op_norm(self, *args):
         return super(Nplike, self).op_softmax(*args)
 
+    def op_conv(self, *args):
+        return super(Nplike, self).op_conv(*args)
+
     def __repr__(self):
         """Standard repr method."""
         return repr(self.value)

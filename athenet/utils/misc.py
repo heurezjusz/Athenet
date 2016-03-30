@@ -139,8 +139,57 @@ def cudnn_available():
         return False
 
 
+def reshape_for_padding(layer_input, image_shape, batch_size, padding):
+    """Returns padded tensor.
+
+    :param theano.tensor4 layer_input: input in shape
+                                       (batch_size, number of channels,
+                                        height, width)
+    :param tuple of integers image_shape: shape of input images in format
+                                          (height, width, number of channels)
+    :param integer batch_size: size of input batch size
+    :param pair of integers padding: padding to be applied to layer_input
+    :returns: padded layer_input
+    :rtype: theano.tensor4
+
+    """
+    h, w, n_channels = image_shape
+    conv_image_shape = (batch_size, n_channels, h, w)
+    reshaped_input = layer_input.reshape(conv_image_shape)
+
+    pad_h, pad_w = padding
+    h_in = h + 2*pad_h
+    w_in = w + 2*pad_w
+
+    extra_pixels = T.alloc(numpy.array(0., dtype=theano.config.floatX),
+                           batch_size, n_channels, h_in, w_in)
+    extra_pixels = T.set_subtensor(
+        extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
+    return extra_pixels
+
+
 def convolution(layer_input, w_shared, stride, n_groups, image_shape,
                 padding, batch_size, filter_shape):
+    """Returns result of applying convolution to layer_input.
+
+    :param theano.tensor4 layer_input: input of convolution in format
+                                       (batch_size, number of channels,
+                                        height, width)
+    :param theano.tensor4 w_shared: weights in format
+                                    (number of output channels,
+                                     number of input channels,
+                                     height, width)
+    :param pair of integers stride: stride of convolution
+    :param integer n_groups: number of groups in convolution
+    :param image_shape: shape of single image in layer_input in format
+                        (height, width, number of channels)
+    :param pair of integers padding: padding of convolution
+    :param integer batch_size: size of batch of layer_input
+    :param filter_shape: shape of single filter in format
+                         (height, width, number of output channels)
+    :type image_shape: tuple of 3 integers
+    :type filter_shape: tuple of 3 integers
+    """
     n_channels = image_shape[2]
     n_filters = filter_shape[2]
 
