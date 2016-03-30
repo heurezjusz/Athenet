@@ -1,55 +1,26 @@
-import numpy as np
+import numpy
+
+from athenet.algorithm.utils import set_zeros_by_layer_fractions, set_zeros_by_global_fraction
 
 
-def set_zeros_on_layer(layer, zeroed_weights_fraction, order):
-    """
-    Change weights in layer to zeros.
-
-    This function, for given order of weights,
-    changes the given fraction of the smallest weights to zeros or,
-    if that is not possible, takes the ceiling of such number.
-
-    :param WeightedLayer layer: layer for sparsifying
-    :param float zeroed_weights_fraction:
-        fraction of weights to be changed to zeros
-    :param order: order of weights
-    """
-
-    if zeroed_weights_fraction == 0:
-        return
-
-    W = layer.W
-    percentile = np.percentile([order(a) for a in W.flat],
-                               zeroed_weights_fraction * 100)
-    W[order(W) <= percentile] = 0
-    layer.W = W
+def get_smallest_indicators(layers):
+    return numpy.array([1 - abs(layer.W) for layer in layers])
 
 
-def set_zeros_on_network(network, zeroed_weights_fraction, order):
-    """
-    Change weights in network to zeros.
+def get_nearest_to_global_mean_indicators(layers):
+    weights = numpy.concatenate(
+        [layer.W.flatten() for layer in layers])
+    mean = numpy.mean(weights)
+    return numpy.array([abs(mean - layer.W) for layer in layers])
 
-    This function, for given order of weights,
-    change the given fraction of the smallest to zeros or,
-    if that is not possible, takes the ceiling of such number.
 
-    :param Network network: network for sparsifying
-    :param float zeroed_weights_fraction:
-        fraction of weights to be changed to zeros
-    :param order: order of weights
-    :type order: function
-    """
-    if zeroed_weights_fraction == 0:
-        return
+def get_nearest_to_layer_mean_indicators(layer):
+    mean = numpy.mean(layer.W)
+    return abs(mean - layer.W)
 
-    weights = np.concatenate(
-        [layer.W.flatten() for layer in network.weighted_layers])
-    percentile = np.percentile([order(a) for a in weights.flat],
-                               zeroed_weights_fraction * 100)
-    for layer in network.weighted_layers:
-        W = layer.W
-        W[order(W) <= percentile] = 0
-        layer.W = W
+
+def get_nearest_to_layers_mean_indicators(layers):
+    return numpy.array([get_nearest_to_layer_mean_indicators(layer) for layer in layers])
 
 
 def sparsify_smallest_on_network(network, zeroed_weights_fraction):
@@ -62,9 +33,10 @@ def sparsify_smallest_on_network(network, zeroed_weights_fraction):
     or, if that is not possible, takes the ceiling of such a number.
 
     :param Network network: network for sparsifying
-    :param float fraction: percentage of weights to be changed to zeros
+    :param float zeroed_weights_fraction: percentage of weights to be changed to zeros
     """
-    set_zeros_on_network(network, zeroed_weights_fraction, abs)
+    indicators = get_smallest_indicators(network.weighted_layers)
+    set_zeros_by_global_fraction(network.weighted_layers, zeroed_weights_fraction, indicators)
 
 
 def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
@@ -80,12 +52,8 @@ def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changes to zeros
     """
-
-    weights = np.concatenate(
-        [layer.W.flatten() for layer in network.weighted_layers])
-    mean = np.mean(weights)
-    set_zeros_on_network(network, zeroed_weights_fraction,
-                         lambda x: abs(mean - x))
+    indicators = get_nearest_to_global_mean_indicators(network.weighted_layers)
+    set_zeros_by_global_fraction(network.weighted_layers, zeroed_weights_fraction, indicators)
 
 
 def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
@@ -99,9 +67,10 @@ def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changed to zeros
     """
-
-    for layer in network.weighted_layers:
-        set_zeros_on_layer(layer, zeroed_weights_fraction, abs)
+    layers = network.weighted_layers
+    indicators = get_smallest_indicators(layers)
+    fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
+    set_zeros_by_layer_fractions(layers, fractions, indicators)
 
 
 def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
@@ -116,7 +85,7 @@ def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changed to zeros
     """
-    for layer in network.weighted_layers:
-        mean = np.mean(layer.W.flatten())
-        set_zeros_on_layer(layer, zeroed_weights_fraction,
-                           lambda x: abs(mean - x))
+    layers = network.weighted_layers
+    indicators = get_nearest_to_layers_mean_indicators(layers)
+    fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
+    set_zeros_by_layer_fractions(layers, fractions, indicators)
