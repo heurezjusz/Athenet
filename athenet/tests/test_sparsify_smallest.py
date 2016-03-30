@@ -11,8 +11,8 @@ class SparsifySmallestTest(unittest.TestCase):
 
     def set_network(self, number_of_layers=5, size_of_layer=100):
         layers = [LayerMock(
-            weights=np.random.uniform(low=-15, high=30, size=size_of_layer),
-            biases=np.random.uniform(low=-15, high=30, size=size_of_layer))
+            weights=np.random.uniform(low=-1, high=1, size=size_of_layer),
+            biases=np.random.uniform(low=-1, high=1, size=size_of_layer))
             for x in xrange(number_of_layers)]
         self.network = NetworkMock(weighted_layers=layers)
 
