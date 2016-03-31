@@ -24,7 +24,7 @@ def get_noise_indicators(filter, bilateral_filter_args):
                                            *bilateral_filter_args)
 
     return abs(numpy.array(sharpened_filter, dtype=numpy.float32) -
-            numpy.array(filter_as_image, dtype=numpy.float32)) / 255.
+               numpy.array(filter_as_image, dtype=numpy.float32)) / 255.
 
 
 def get_filters_indicators_in_conv_layer(layer, bilateral_filter_args):
@@ -35,8 +35,8 @@ def get_filters_indicators_in_conv_layer(layer, bilateral_filter_args):
 
 
 def get_filters_indicators(layers, bilateral_filter_args):
-    return numpy.array([
-         get_filters_indicators_in_conv_layer(layer, bilateral_filter_args)
+    return numpy.array(
+        [get_filters_indicators_in_conv_layer(layer, bilateral_filter_args)
          for layer in layers
          if isinstance(layer, ConvolutionalLayer)])
 
