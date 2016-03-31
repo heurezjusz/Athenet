@@ -41,6 +41,9 @@ class InceptionLayer(Layer):
             ReLU(),
         ]
         layer_list4 = [
+            MaxPool(poolsize=(3, 3),
+                    stride=(1, 1),
+                    padding=(1, 1)),
             ConvolutionalLayer(filter_shape=(1, 1, n_filters[5]),
                                name=name+'/1x1_conv4'),
             ReLU(),
