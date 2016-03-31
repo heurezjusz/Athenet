@@ -206,35 +206,3 @@ class Numlike(object):
     def eval(self, *args):
         """Returns some readable form of stored value."""
         raise NotImplementedError
-
-    def op_relu(self):
-        """Returns result of relu operation on given Numlike.
-
-        :rtype: Numlike
-        """
-        raise NotImplementedError
-
-    def op_softmax(self, input_shp):
-        """Returns result of softmax operation on given Numlike.
-
-        :param integer input_shp: shape of 1D input
-        :rtype: Numlike
-        """
-        raise NotImplementedError
-
-    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
-        """Returns result of norm operation on given Numlike.
-
-        :param Numlike input_layer: Numlike input
-        :param integer local_range: size of local range in local range
-        normalization
-        :param integer or tuple of integers input_shp: shape of input in format
-        (n_channels, height, width)
-        :param integer k: local range normalization k argument
-        :param integer alpha: local range normalization alpha argument
-        :param integer beta: local range normalization beta argument
-        :rtype: Numlike
-        :param integer input_shp: shape of 1D input
-        :rtype: Numlike
-        """
-        raise NotImplementedError

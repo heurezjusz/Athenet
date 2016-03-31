@@ -2,7 +2,7 @@
 """
 
 import unittest
-from nose.tools import assert_true, assert_is, assert_equal
+from nose.tools import assert_is, assert_equal
 from athenet.algorithm.numlike.interval import Interval, \
     NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER, \
     DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER
@@ -285,9 +285,10 @@ class IntervalTest(unittest.TestCase):
                         2 * 6 + 3 * 9 + 5])
         tinpl, tinpu = T.tensor3s('inpl', 'inpu')
         iinp = Interval(tinpl, tinpu)
-        res = iinp.flatten().dot(w) + b
+        res = iinp.flatten().dot(w)
+        res += b
         d = {tinpl: inpl, tinpu: inpu}
-        (rl, ru) = res.eval(d)
+        rl, ru = res.eval(d)
         arae(rl, crl)
         arae(ru, cru)
 
@@ -480,17 +481,6 @@ class IntervalTest(unittest.TestCase):
         i2l, i2u = i2.eval({})
         assert_equal(i2l, 1)
         assert_equal(i2u, 3)
-
-    def test_op_relu(self):
-        inpl = np.array([[[-3, -1, 1]]])
-        inpu = np.array([[[-2, 3, 2]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
-        res = iinp.op_relu()
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        arae(rl, np.array([[[0, 0, 1]]]))
-        arae(ru, np.array([[[0, 3, 2]]]))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

@@ -118,15 +118,6 @@ class Nplike(Numlike):
     def eval(self):
         return self.value
 
-    def op_relu(self):
-        return super(Nplike, self).op_relu()
-
-    def op_softmax(self, arg):
-        return super(Nplike, self).op_softmax(arg)
-
-    def op_norm(self, *args):
-        return super(Nplike, self).op_softmax(*args)
-
     def __repr__(self):
         """Standard repr method."""
         return repr(self.value)
