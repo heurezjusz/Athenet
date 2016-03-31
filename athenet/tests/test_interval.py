@@ -2,7 +2,7 @@
 """
 
 import unittest
-from nose.tools import assert_true, assert_is, assert_equal
+from nose.tools import assert_is, assert_equal
 from athenet.algorithm.numlike.interval import Interval, \
     NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER, \
     DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER
@@ -285,9 +285,10 @@ class IntervalTest(unittest.TestCase):
                         2 * 6 + 3 * 9 + 5])
         tinpl, tinpu = T.tensor3s('inpl', 'inpu')
         iinp = Interval(tinpl, tinpu)
-        res = iinp.flatten().dot(w) + b
+        res = iinp.flatten().dot(w)
+        res += b
         d = {tinpl: inpl, tinpu: inpu}
-        (rl, ru) = res.eval(d)
+        rl, ru = res.eval(d)
         arae(rl, crl)
         arae(ru, cru)
 

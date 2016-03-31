@@ -5,8 +5,6 @@ to the end of the network.
 
 from athenet.algorithm.numlike import Numlike, assert_numlike
 
-# TODO: All functions below will be implemented.
-
 
 def conv(layer_input, image_shape, weights, filter_shape, biases,
          stride=(1, 1), padding=(0, 0), n_groups=1):

@@ -5,7 +5,6 @@ This module contains Interval class and auxiliary objects.
 """
 
 from numlike import Numlike
-import theano
 from theano import function
 from theano import tensor as T
 from theano import shared
@@ -229,7 +228,7 @@ class Interval(Numlike):
         >>> i = Interval(-1, 1)
         >>> s = i.square()
         >>> s.eval()
-        >>> (array([0]), array([1]))
+        >>> (numpy.ndarray([0]), numpy.ndarray([1]))
 
         """
         lsq = self.lower * self.lower
