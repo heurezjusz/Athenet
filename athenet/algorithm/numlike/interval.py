@@ -229,7 +229,7 @@ class Interval(Numlike):
         >>> i = Interval(-1, 1)
         >>> s = i.square()
         >>> s.eval()
-        (array([0]), array([1]))
+        >>> (array([0]), array([1]))
 
         """
         lsq = self.lower * self.lower
@@ -310,7 +310,7 @@ class Interval(Numlike):
                             T.maximum(self.upper, other))
 
     def amax(self, axis=None, keepdims=False):
-        """Returns maximum of a Numlike along an axis.
+        """Returns maximum of an Interval along an axis.
 
         Works like theano.tensor.max.
         :param axis: axis or axes along which to compute the maximum
@@ -479,9 +479,48 @@ class Interval(Numlike):
             result[i] = Interval(lower_upp, upper_low)
         return result
 
-    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
-        # TODO
-        pass
+    def op_norm(self, input_shape, local_range, k, alpha, beta):
+        """Returns estimated activation of LRN layer.
+
+        :param input_shape: shape of Interval in format
+                            (n_channels, height, width)
+        :param integer local_range: size of local range in local range
+                                    normalization
+        :param integer k: local range normalization k argument
+        :param integer alpha: local range normalization alpha argument
+        :param integer beta: local range normalization beta argument
+        :type input_shape: tuple of 3 integers
+        :rtype: Interval
+        """
+        k_array = numpy.ndarray([k])
+        alpha_array = numpy.ndarray([alpha])
+        lower = self.lower
+        upper = self.upper
+        half = local_range / 2
+        sq = self.square()
+        n_channels, h, w = input_shape
+        extra_channels = self.from_shape((n_channels + 2 * half, h, w),
+                                         neutral=True)
+        extra_channels[half:half + n_channels, :, :] = sq
+        neigh_sums = self.from_shape(input_shape, neutral=True)
+
+        for i in xrange(local_range):
+            if i != half:
+                neigh_sums += extra_channels[:, i:i+ + n_channels, :, :]
+        c1 = neigh_sums * alpha_array + k_array
+        c2 = alpha_array
+        extreme = c1 * numpy.ndarray([2.0]) - c2 * sq
+        upper_v = T.sqrt(c1.lower * 2.0 / alpha)
+        lower_alpha = alpha * sq.lower
+        upper_alpha = alpha * sq.upper
+        lower1 = lower / T.pow(c1.upper + lower_alpha, beta)
+        lower2 = upper / T.pow(c1.upper + upper_alpha, beta)
+        upper1 = upper / T.pow(c1.lower + upper_alpha, beta)
+        upper2 = lower / T.pow(c1.lower + lower_alpha, beta)
+        res_lower = T.minimum(lower1, lower2)
+        res_upper = T.switch(extreme._has_zero(), upper_v,
+                             T.minimum(upper1, upper2))
+        return Interval(res_lower, res_upper)
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):

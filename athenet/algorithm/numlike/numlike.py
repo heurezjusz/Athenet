@@ -222,23 +222,48 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
-        """Returns result of norm operation on given Numlike.
+    def op_norm(self, input_shape, local_range, k, alpha, beta):
+        """Returns estimated activation of LRN layer.
 
-        :param Numlike input_layer: Numlike input
+        :param input_shape: shape of input in format
+                            (n_channels, height, width)
         :param integer local_range: size of local range in local range
-        normalization
-        :param integer or tuple of integers input_shp: shape of input in format
-        (n_channels, height, width)
+                                    normalization
         :param integer k: local range normalization k argument
         :param integer alpha: local range normalization alpha argument
         :param integer beta: local range normalization beta argument
-        :rtype: Numlike
-        :param integer input_shp: shape of 1D input
+        :type input_shape: tuple of 3 integers
         :rtype: Numlike
         """
         raise NotImplementedError
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):
+        """Returns estimated activation of convolution applied to Numlike.
+
+        :param weights: weights tensor in format (number of output channels,
+                                                  number of input channels,
+                                                  filter height,
+                                                  filter width)
+        :param image_shape: shape of input in the format
+                    (number of input channels, image height, image width)
+        :param filter_shape: filter shape in the format
+                             (number of output channels, filter height,
+                              filter width)
+        :param biases: biases in convolution
+        :param stride: pair representing interval at which to apply the filters
+        :param padding: pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :param n_groups: number of groups input and output channels will be
+                         split into, two channels are connected only if they
+                         belong to the same group.
+        :type image_shape: tuple of 3 integers
+        :type weights: 3D numpy.ndarray or theano.tensor
+        :type filter_shape: tuple of 3 integers
+        :type biases: 1D numpy.ndarray or theano.vector
+        :type stride: pair of integers
+        :type padding: pair of integers
+        :type n_groups: integer
+        :rtype: Numlike
+        """
         raise NotImplementedError
