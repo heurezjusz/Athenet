@@ -12,8 +12,8 @@ class InceptionLayer(Layer):
     def __init__(self, n_filters, input_layer_name=None, name='inception'):
         """Create inception layer.
 
-        :n_filters: List of length 6: number of filters in convolutional
-                    layers.
+        :param int n_filters: List of length 6: number of filters in
+                              convolutional layers.
         """
         super(InceptionLayer, self).__init__(input_layer_name, name)
 
