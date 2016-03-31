@@ -130,7 +130,7 @@ def fully_connected(layer_input, weights, biases):
         return (flat_input * weights.T).sum(1) + biases
 
 
-def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0002,
+def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.00002,
          beta=0.75):
     """Returns estimated activation of LRN layer.
 
@@ -150,16 +150,16 @@ def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0002,
     except NotImplementedError:
         half = local_range / 2
         sq = layer_input.square()
-        n_channels, h, w = layer_input.shape
+        n_channels, h, w = input_shape
         extra_channels = layer_input.from_shape((n_channels + 2 * half, h, w),
                                                 neutral=True)
         extra_channels[half:half + n_channels, :, :] = sq
         local_sums = layer_input.from_shape(input_shape, neutral=True)
 
         for i in xrange(local_range):
-            local_sums += extra_channels[:, i:i + n_channels, :, :]
+            local_sums += extra_channels[i:i + n_channels, :, :]
 
-        return layer_input / (k + alpha / local_range * local_sums) ** beta
+        return layer_input / (local_sums * alpha + k).power(beta)
 
 
 def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):

@@ -492,8 +492,8 @@ class Interval(Numlike):
         :type input_shape: tuple of 3 integers
         :rtype: Interval
         """
-        k_array = numpy.ndarray([k])
-        alpha_array = numpy.ndarray([alpha])
+        k_array = numpy.array([k])
+        alpha_array = numpy.array([alpha])
         lower = self.lower
         upper = self.upper
         half = local_range / 2
@@ -506,10 +506,10 @@ class Interval(Numlike):
 
         for i in xrange(local_range):
             if i != half:
-                neigh_sums += extra_channels[:, i:i+ + n_channels, :, :]
+                neigh_sums += extra_channels[i:i + n_channels, :, :]
         c1 = neigh_sums * alpha_array + k_array
         c2 = alpha_array
-        extreme = c1 * numpy.ndarray([2.0]) - c2 * sq
+        extreme = c1 * numpy.array([2.0]) - sq * c2
         upper_v = T.sqrt(c1.lower * 2.0 / alpha)
         lower_alpha = alpha * sq.lower
         upper_alpha = alpha * sq.upper
@@ -591,4 +591,4 @@ class Interval(Numlike):
 
         :rtype: Boolean
         """
-        return T.and_(T.lt(self.lower, 0), T.gt(self.upper, 0))
+        return T.and_(T.lt(self.lower, 0.0), T.gt(self.upper, 0.0))

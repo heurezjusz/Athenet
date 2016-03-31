@@ -125,7 +125,7 @@ class Nplike(Numlike):
         return super(Nplike, self).op_softmax(arg)
 
     def op_norm(self, *args):
-        return super(Nplike, self).op_softmax(*args)
+        return super(Nplike, self).op_norm(*args)
 
     def op_conv(self, *args):
         return super(Nplike, self).op_conv(*args)

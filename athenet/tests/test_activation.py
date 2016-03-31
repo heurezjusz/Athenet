@@ -463,9 +463,182 @@ class SoftmaxActivationTest(ActivationTest):
         ag(0.01, abs(d2))
 
 
-class LRNActivationTest(ActivationTest):
+class NormActivationTest(ActivationTest):
 
-    pass
+    def test_case1(self):
+        inp = npl([[[1, 10], [100, 1000]]])
+        out = norm(inp, (1, 2, 2))
+        arae(out.eval(), A([[[0.9999850, 9.9850262],
+                             [87.2195949, 101.9378639]]]))
+
+    def test_case1_interval(self):
+        inp = A([[[1, 10], [100, 1000]]])
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        out = norm(iinp, (1, 2, 2))
+        d = {tinpl: inp, tinpu: inp}
+        l, u = out.eval(d)
+        arae(l, u)
+        arae(l, A([[[0.9999850, 9.9850262],
+                    [87.2195949, 101.9378639]]]))
+
+    def test_case2(self):
+        inp1 = npl([[[1]]])
+        inp2 = npl([[[10]]])
+        inp3 = npl([[[100]]])
+        inp4 = npl([[[1000]]])
+        out1 = norm(inp1, (1, 1, 1))
+        out2 = norm(inp2, (1, 1, 1))
+        out3 = norm(inp3, (1, 1, 1))
+        out4 = norm(inp4, (1, 1, 1))
+        res1 = out1.eval()
+        res2 = out2.eval()
+        res3 = out3.eval()
+        res4 = out4.eval()
+        arae(res1, A([[[0.9999850]]]))
+        arae(res2, A([[[9.9850262]]]))
+        arae(res3, A([[[87.2195949]]]))
+        arae(res4, A([[[101.9378639]]]))
+
+    def test_case2_interval(self):
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        out = norm(iinp, (1, 1, 1))
+        inp1 = A([[[1]]])
+        inp2 = A([[[10]]])
+        inp3 = A([[[100]]])
+        inp4 = A([[[1000]]])
+        d1 = {tinpl: inp1, tinpu: inp1}
+        d2 = {tinpl: inp2, tinpu: inp2}
+        d3 = {tinpl: inp3, tinpu: inp3}
+        d4 = {tinpl: inp4, tinpu: inp4}
+        l1, u1 = out.eval(d1)
+        l2, u2 = out.eval(d2)
+        l3, u3 = out.eval(d3)
+        l4, u4 = out.eval(d4)
+        arae(l1, u1)
+        arae(l2, u2)
+        arae(l3, u3)
+        arae(l4, u4)
+        arae(l1, A([[[0.9999850]]]))
+        arae(l2, A([[[9.9850262]]]))
+        arae(l3, A([[[87.2195949]]]))
+        arae(l4, A([[[101.9378639]]]))
+
+    def test_case3(self):
+        inp1 = npl([[[1]], [[1]]])
+        inp2 = npl([[[10]], [[10]]])
+        inp3 = npl([[[100]], [[100]]])
+        inp4 = npl([[[1000]], [[1000]]])
+        out1 = norm(inp1, (2, 1, 1))
+        out2 = norm(inp2, (2, 1, 1))
+        out3 = norm(inp3, (2, 1, 1))
+        out4 = norm(inp4, (2, 1, 1))
+        res1 = out1.eval()
+        res2 = out2.eval()
+        res3 = out3.eval()
+        res4 = out4.eval()
+        v1 = 0.99997
+        v2 = 9.9701046
+        v3 = 77.6969504
+        v4 = 61.7180374
+        arae(res1, A([[[v1]], [[v1]]]))
+        arae(res2, A([[[v2]], [[v2]]]))
+        arae(res3, A([[[v3]], [[v3]]]))
+        arae(res4, A([[[v4]], [[v4]]]))
+
+    def test_case3_interval(self):
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        out = norm(iinp, (2, 1, 1))
+        inp1 = A([[[1]], [[1]]])
+        inp2 = A([[[10]], [[10]]])
+        inp3 = A([[[100]], [[100]]])
+        inp4 = A([[[1000]], [[1000]]])
+        d1 = {tinpl: inp1, tinpu: inp1}
+        d2 = {tinpl: inp2, tinpu: inp2}
+        d3 = {tinpl: inp3, tinpu: inp3}
+        d4 = {tinpl: inp4, tinpu: inp4}
+        l1, u1 = out.eval(d1)
+        l2, u2 = out.eval(d2)
+        l3, u3 = out.eval(d3)
+        l4, u4 = out.eval(d4)
+        arae(l1, u1)
+        arae(l2, u2)
+        arae(l3, u3)
+        arae(l4, u4)
+        v1 = 0.99997
+        v2 = 9.9701046
+        v3 = 77.6969504
+        v4 = 61.7180374
+        arae(l1, A([[[v1]], [[v1]]]))
+        arae(l2, A([[[v2]], [[v2]]]))
+        arae(l3, A([[[v3]], [[v3]]]))
+        arae(l4, A([[[v4]], [[v4]]]))
+
+    def test_case4_interval(self):
+        shp = (100, 1, 1)
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        out = norm(iinp, shp)
+        inp = np.zeros(shp)
+        d = {tinpl: inp, tinpu: inp}
+        inp[47, 0, 0] = inp[53, 0, 0] = 65536.0
+        inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
+            inp[52, 0, 0] = 10.0
+        l, u = out.eval(d)
+        aae(l[50, 0, 0], u[50, 0, 0])
+        aae(l[50, 0, 0], 9.9256, places=2)
+        inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
+            inp[52, 0, 0] = 100.0
+        l, u = out.eval(d)
+        aae(l[50, 0, 0], u[50, 0, 0])
+        aae(l[50, 0, 0], 59.4603, places=2)
+        inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
+            inp[52, 0, 0] = 1000.0
+        l, u = out.eval(d)
+        aae(l[50, 0, 0], u[50, 0, 0])
+        aae(l[50, 0, 0], 31.3876, places=2)
+        aae(l[49, 0, 0], 0.1991, places=2)
+        aae(l[51, 0, 0], 0.1991, places=2)
+
+    def test_bitoniicity_and_extremas_interval(self):
+        shp = (5, 1, 1)
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
+        iinp = Itv(tinpl, tinpu)
+        out = norm(iinp, shp)
+        b = 200.0
+        a = (2.0 * (50000.0 + b * b)) ** 0.5
+        inp = np.array([[[b]], [[0.0]], [[a]], [[0.0]], [[0.0]]])
+        d = {tinpl: inp, tinpu: inp}
+        l1, _ = out.eval(d)
+        inp[2, 0, 0] = a - 20.0
+        l2, _ = out.eval(d)
+        inp[2, 0, 0] = a + 20.0
+        l3, _ = out.eval(d)
+        inp[2, 0, 0] = a - 19.0
+        l4, _ = out.eval(d)
+        inp[2, 0, 0] = a - 18.0
+        l5, _ = out.eval(d)
+        inpl = inp.copy()
+        inpu = inp.copy()
+        d2 = {tinpl: inpl, tinpu: inpu}
+        inpl[2, 0, 0] = a - 18.0
+        inpu[2, 0, 0] = a + 20.0
+        l6, _ = out.eval(d2)
+        inpl[2, 0, 0] = a - 19.0
+        inpu[2, 0, 0] = a + 20.0
+        l7, _ = out.eval(d2)
+        inpl[2, 0, 0] = a - 20.0
+        inpu[2, 0, 0] = a + 20.0
+        l8, _ = out.eval(d2)
+        inpl[2, 0, 0] = a - 19.0
+        inpu[2, 0, 0] = a + 20.0
+        ag(l1[2, 0, 0], l2[2, 0, 0])
+        ag(l1[2, 0, 0], l3[2, 0, 0])
+        ag(l5[2, 0, 0], l3[2, 0, 0])
+        aae(l3[2, 0, 0], l6[2, 0, 0], places=2)
+        aae(l3[2, 0, 0], l7[2, 0, 0], places=2)
 
 
 class DropoutActivationTest(ActivationTest):
