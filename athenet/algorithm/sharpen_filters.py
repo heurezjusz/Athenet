@@ -20,19 +20,24 @@ def get_noise_indicators(filter, bilateral_filter_args):
     """
 
     filter_as_image = numpy.array(filter * 255, dtype=numpy.uint8)
-    sharpened_filter = cv2.bilateralFilter(filter_as_image, *bilateral_filter_args)
+    sharpened_filter = cv2.bilateralFilter(filter_as_image,
+                                           *bilateral_filter_args)
 
     return abs(numpy.array(sharpened_filter, dtype=numpy.float32) -
             numpy.array(filter_as_image, dtype=numpy.float32)) / 255.
 
 
 def get_filters_indicators_in_conv_layer(layer, bilateral_filter_args):
-    return numpy.array([[get_noise_indicators(f_2d, bilateral_filter_args) for f_2d in f] for f in layer.W])
+    filter_indicator = lambda filter_3d: \
+        [get_noise_indicators(filter_2d, bilateral_filter_args)
+         for filter_2d in filter_3d]
+    return numpy.array([filter_indicator(filter_3d) for filter_3d in layer.W])
 
 
 def get_filters_indicators(layers, bilateral_filter_args):
-    return numpy.array(
-        [get_filters_indicators_in_conv_layer(layer, bilateral_filter_args) for layer in layers
+    return numpy.array([
+         get_filters_indicators_in_conv_layer(layer, bilateral_filter_args)
+         for layer in layers
          if isinstance(layer, ConvolutionalLayer)])
 
 
@@ -48,7 +53,10 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     :param float fraction: fraction of weights to be changes to zeros
     :param bilateral_filter_args: args for bilateral filtering
     """
-    conv_layers = [layer for layer in network.weighted_layers if isinstance(layer, ConvolutionalLayer)]
-    filter_indicators = get_filters_indicators(conv_layers, bilateral_filter_args)
+    conv_layers = [layer for layer in network.weighted_layers
+                   if isinstance(layer, ConvolutionalLayer)]
+    filter_indicators = get_filters_indicators(conv_layers,
+                                               bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(conv_layers)
-    set_zeros_by_global_fraction(conv_layers, fraction, filter_indicators * smallest_indicators)
+    set_zeros_by_global_fraction(conv_layers, fraction,
+                                 filter_indicators * smallest_indicators)

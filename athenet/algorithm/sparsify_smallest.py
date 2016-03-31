@@ -1,6 +1,7 @@
 import numpy
 
-from athenet.algorithm.utils import set_zeros_by_layer_fractions, set_zeros_by_global_fraction
+from athenet.algorithm.utils import set_zeros_by_layer_fractions,\
+    set_zeros_by_global_fraction
 
 
 def get_smallest_indicators(layers):
@@ -20,7 +21,8 @@ def get_nearest_to_layer_mean_indicators(layer):
 
 
 def get_nearest_to_layers_mean_indicators(layers):
-    return numpy.array([get_nearest_to_layer_mean_indicators(layer) for layer in layers])
+    return numpy.array([get_nearest_to_layer_mean_indicators(layer)
+                        for layer in layers])
 
 
 def sparsify_smallest_on_network(network, zeroed_weights_fraction):
@@ -33,10 +35,12 @@ def sparsify_smallest_on_network(network, zeroed_weights_fraction):
     or, if that is not possible, takes the ceiling of such a number.
 
     :param Network network: network for sparsifying
-    :param float zeroed_weights_fraction: percentage of weights to be changed to zeros
+    :param float zeroed_weights_fraction:
+        percentage of weights to be changed to zeros
     """
     indicators = get_smallest_indicators(network.weighted_layers)
-    set_zeros_by_global_fraction(network.weighted_layers, zeroed_weights_fraction, indicators)
+    set_zeros_by_global_fraction(network.weighted_layers,
+                                 zeroed_weights_fraction, indicators)
 
 
 def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
@@ -52,8 +56,10 @@ def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changes to zeros
     """
-    indicators = get_nearest_to_global_mean_indicators(network.weighted_layers)
-    set_zeros_by_global_fraction(network.weighted_layers, zeroed_weights_fraction, indicators)
+    indicators = get_nearest_to_global_mean_indicators(
+        network.weighted_layers)
+    set_zeros_by_global_fraction(network.weighted_layers,
+                                 zeroed_weights_fraction, indicators)
 
 
 def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
