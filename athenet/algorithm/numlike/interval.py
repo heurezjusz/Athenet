@@ -226,7 +226,7 @@ class Interval(Numlike):
         >>> i = Interval(-1, 1)
         >>> s = i.square()
         >>> s.eval()
-        (array([0]), array([1]))
+        >>> (numpy.ndarray([0]), numpy.ndarray([1]))
 
         """
         lsq = self.lower * self.lower
@@ -307,7 +307,7 @@ class Interval(Numlike):
                             T.maximum(self.upper, other))
 
     def amax(self, axis=None, keepdims=False):
-        """Returns maximum of a Numlike along an axis.
+        """Returns maximum of an Interval along an axis.
 
         Works like theano.tensor.max.
         :param axis: axis or axes along which to compute the maximum
@@ -421,65 +421,6 @@ class Interval(Numlike):
         rlower, rupper = f(*values)
         return rlower, rupper
 
-    def op_relu(self):
-        """Returns result of relu operation on given Interval.
-
-        :rtype: Interval
-        """
-        lower = T.maximum(self.lower, 0.0)
-        upper = T.maximum(self.upper, 0.0)
-        return Interval(lower, upper)
-
-    def op_softmax(self, input_shp):
-        """Returns result of softmax operation on given Interval.
-
-        :param integer input_shp: shape of 1D input
-        :rtype: Interval
-
-        .. note:: Implementation note. Tricks for encountering representation
-                  problems:
-                  Theoretically, softmax(input) == softmax(input.map(x->x+c))
-                  for Real x, y. For floating point arithmetic it is not true.
-                  e.g. in expression:
-
-                  e^x / (e^x + e^y) = 0.0f / (0.0f + 0.0f) = NaN for too little
-                  values of x, y
-                  or
-                  e^x / (e^x + e^y) = +Inf / +Inf = NaN for too hight values of
-                  x, y.
-                  There is used a workaround:
-                      * _low endings are for softmax with variables shifted so
-                        that input[i].upper() == 0
-                      * _upp endings are for softmax with variables shifted so
-                        that input[i].lower() == 0
-        """
-        result = Interval.from_shape(input_shp, neutral=True)
-        for i in xrange(input_shp):
-            input_low = (self - self.upper[i]).exp()
-            input_upp = (self - self.lower[i]).exp()
-            sum_low = Interval.from_shape(1, neutral=True)
-            sum_upp = Interval.from_shape(1, neutral=True)
-            for j in xrange(input_shp):
-                if j != i:
-                    sum_low = sum_low + input_low[j]
-                    sum_upp = sum_upp + input_upp[j]
-            # Could consider evaluation below but it gives wrong answers.
-            # It might be because of arithmetic accuracy.
-            # sum_low = input_low.sum() - input_low[i]
-            # sum_upp = input_upp.sum() - input_upp[i]
-            upper_counter_low = input_low.upper[i]
-            lower_counter_upp = input_upp.lower[i]
-            upper_low = upper_counter_low / \
-                (sum_low[0].lower + upper_counter_low)
-            lower_upp = lower_counter_upp / \
-                (sum_upp[0].upper + lower_counter_upp)
-            result[i] = Interval(lower_upp, upper_low)
-        return result
-
-    def op_norm(self, input_layer, input_shp, local_range, k, alpha, beta):
-        # TODO
-        pass
-
     def __repr__(self):
         """Standard repr method."""
         return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'
@@ -493,4 +434,4 @@ class Interval(Numlike):
 
         :rtype: Boolean
         """
-        return T.and_(T.lt(self.lower, 0), T.gt(self.upper, 0))
+        return T.and_(T.lt(self.lower, 0.0), T.gt(self.upper, 0.0))
