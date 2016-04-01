@@ -577,6 +577,39 @@ class Interval(Numlike):
         result_interval = Interval(conv_result_lower_3d, conv_result_upper_3d)
         return result_interval + biases.dimshuffle(0, 'x', 'x')
 
+    def op_d_relu(self, activation):
+        """Returns result of operation on given Interval.
+
+        :param Interval activation: activation of relu layer
+        :returns: Impact of input of relu on output of network
+        :rtype: Interval
+        """
+        out_lower = self.lower
+        out_upper = self.upper
+        act_low = activation.lower
+        act_upp = activation.upper
+        low_gt_zero = T.gt(act_low, 0.0)
+        upp_lt_zero = T.lt(act_upp, 0.0)
+        lower = T.switch(low_gt_zero, out_lower,
+                         T.switch(upp_lt_zero, 0.0, T.minimum(out_lower, 0.0)))
+        upper = T.switch(low_gt_zero, out_upper,
+                         T.switch(upp_lt_zero, 0.0, T.maximum(out_upper, 0.0)))
+        return Interval(lower, upper)
+
+    @staticmethod
+    def derest_output(n_outputs):
+        # TODO: tests
+        """Generates Interval of impact of output on output.
+
+        :param int n_outputs: Number of outputs of network.
+        :returns: 2D square Interval in shape (n_batches, n_outputs) with one
+                  different "1" in every batch, like numpy.eye(n_outputs)
+        :rtype: Interval
+        """
+        np_matrix = numpy.eye(n_outputs)
+        th_matrix = shared(np_matrix)
+        return Interval(th_matrix, th_matrix)
+
     def __repr__(self):
         """Standard repr method."""
         return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'

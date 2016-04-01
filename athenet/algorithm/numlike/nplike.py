@@ -130,6 +130,13 @@ class Nplike(Numlike):
     def op_conv(self, *args):
         return super(Nplike, self).op_conv(*args)
 
+    def op_d_relu(self, *args):
+        return super(Nplike, self).op_d_relu(*args)
+
+    @staticmethod
+    def derest_output(self, *args):
+        return super(Nplike, self).derest_output(*args)
+
     def __repr__(self):
         """Standard repr method."""
         return repr(self.value)

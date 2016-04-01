@@ -267,3 +267,24 @@ class Numlike(object):
         :rtype: Numlike
         """
         raise NotImplementedError
+
+    def op_d_relu(self, activation):
+        """Returns result of operation on given Numlike.
+
+        :param Numlike activation: activation of relu layer
+        :returns: Impact of input of relu on output of network
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def derest_output(n_outputs):
+        """Generates Numlike of impact of output on output.
+
+        :param int n_outputs: Number of outputs of network.
+        :returns: 2D square Numlike in shape (n_batches, n_outputs) with one
+                  different "1" in every batch.
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
