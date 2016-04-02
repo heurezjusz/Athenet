@@ -598,7 +598,6 @@ class Interval(Numlike):
 
     @staticmethod
     def derest_output(n_outputs):
-        # TODO: tests
         """Generates Interval of impact of output on output.
 
         :param int n_outputs: Number of outputs of network.

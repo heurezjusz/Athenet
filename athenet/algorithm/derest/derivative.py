@@ -40,20 +40,18 @@ def d_dropout(output, p_dropout):
     return output * (1.0 - p_dropout)
 
 
-def d_fully_connected(activation, weights, output):
+def d_fully_connected(output, weights, input_shape):
     # TODO: tests with batches
     """Returns estimated impact of fully connected layer on output of network.
 
-    :param Numlike activation: estimated activation of input
-    :param weights: weights of fully connected layer in format (n_in, n_out)
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
+    :param weights: weights of fully connected layer in format (n_in, n_out)
     :type weights: 2D numpy.ndarray or theano.tensor
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    assert_numlike(activation)
     assert_numlike(output)
     try:
         return output.dot(weights.T)
@@ -61,14 +59,14 @@ def d_fully_connected(activation, weights, output):
         return (output * weights).sum(1)
 
 
-def d_norm(activation, output):
+def d_norm(output, activation):
     # TODO: all
     """Returns estimated impact of LRN layer on output of network.
 
-    :param Numlike activation: estimated activation of input
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
+    :param Numlike activation: estimated activation of input
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
@@ -76,14 +74,14 @@ def d_norm(activation, output):
     assert_numlike(output)
 
 
-def d_pool(activation, output):
+def d_pool(output, activation):
     # TODO: all
     """Returns estimated impact of max pool layer on output of network.
 
-    :param Numlike activation: estimated activation of input
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
+    :param Numlike activation: estimated activation of input
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
@@ -91,25 +89,23 @@ def d_pool(activation, output):
     assert_numlike(output)
 
 
-def d_softmax(activation, output):
-    # TODO: all
+def d_softmax(output):
+    # TODO: test
     """Returns estimated impact of softmax layer on output of network.
 
     .. warning: Current implementation only consider softmax as the last layer.
 
-    :param Numlike activation: estimated activation of input
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    assert_numlike(activation)
     assert_numlike(output)
     return output
 
 
-def d_relu(activation, output):
+def d_relu(output, activation):
     """Returns estimated impact of relu layer on output of network.
 
     :param Numlike activation: estimated activation of input

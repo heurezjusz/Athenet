@@ -60,7 +60,20 @@ class PoolDerivativeTest(DerivativeTest):
 
 
 class SoftmaxDerivativeTest(DerivativeTest):
-    pass
+
+    def test_case1(self):
+        dout = Itv.derest_output(1)
+        din = d_softmax(dout)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[1]]))
+
+    def test_case2(self):
+        dout = Itv.derest_output(3)
+        din = d_softmax(dout)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 
 
 class NormDerivativeTest(DerivativeTest):
@@ -94,7 +107,7 @@ class ReluDerivativeTest(DerivativeTest):
         iact = Itv(thact, thact)
         thdout = theano.shared(np.ones(shp))
         idout = Itv(thdout, thdout)
-        idin = d_relu(iact, idout)
+        idin = d_relu(idout, iact)
         l, u = idin.eval()
         aae(l[0, 0, 0], 0.0)
         aae(u[0, 0, 0], 1.0)
@@ -112,7 +125,7 @@ class ReluDerivativeTest(DerivativeTest):
         doutu = thv([3, 5, 7, 11, 13, 17])
         iact = Itv(actl, actu)
         idout = Itv(doutl, doutu)
-        idin = d_relu(iact, idout)
+        idin = d_relu(idout, iact)
         l, u = idin.eval()
         rl = A([0, 0, 0, 0, 0, 13])
         ru = A([0, 5, 7, 11, 13, 17])
@@ -126,7 +139,7 @@ class ReluDerivativeTest(DerivativeTest):
         doutu = thv([-2, -3, -5, -7, -11, -13])
         iact = Itv(actl, actu)
         idout = Itv(doutl, doutu)
-        idin = d_relu(iact, idout)
+        idin = d_relu(idout, iact)
         l, u = idin.eval()
         rl = A([0, -5, -7, -11, -13, -17])
         ru = A([0, 0, 0, 0, 0, -13])
