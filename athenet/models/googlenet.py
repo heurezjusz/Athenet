@@ -21,7 +21,7 @@ def googlenet(trained=True, weights_filename=GOOGLENET_FILENAME,
     beta = 0.75
     k = 1
 
-    googlenet = Network([
+    net = Network([
         ConvolutionalLayer(image_shape=(224, 224, 3),
                            filter_shape=(7, 7, 64),
                            stride=(2, 2),
@@ -68,5 +68,5 @@ def googlenet(trained=True, weights_filename=GOOGLENET_FILENAME,
         Softmax(),
     ])
     if trained:
-        googlenet.set_params(weights)
-    return googlenet
+        net.set_params(weights)
+    return net

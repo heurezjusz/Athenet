@@ -12,7 +12,7 @@ class Concatenation(Layer):
     def __init__(self, input_layer_names=None, name='concat'):
         """Create concatenation layer.
 
-        :input_layer_names: List of input layers' names.
+        :param input_layer_names: List of input layers' names.
         """
         super(Concatenation, self).__init__(input_layer_names, name)
         self.input_shapes = None
