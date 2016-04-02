@@ -12,6 +12,9 @@ class InceptionLayer(Layer):
     def __init__(self, n_filters, input_layer_name=None, name='inception'):
         """Create inception layer.
 
+        Input for the Inception layer is in the format
+        (batch size, number of channels, image height, image width).
+
         :param int list of length 6 n_filters: Number of filters in
                                                convolutional layers.
         """

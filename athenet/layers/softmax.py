@@ -12,6 +12,11 @@ class Softmax(Layer):
         super(Softmax, self).__init__(input_layer_name, name)
 
     def _get_output(self, layer_input):
+        """Return layer's output.
+
+        :param layer_input: Input in the format (n_batches, n_neurons).
+        :return: Layer output.
+        """
         return softmax(layer_input)
 
     def set_cost(self, answer):

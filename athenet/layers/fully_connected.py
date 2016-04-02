@@ -70,6 +70,11 @@ class FullyConnectedLayer(WeightedLayer):
         return raw_layer_input.flatten(2)
 
     def _get_output(self, layer_input):
+        """Return layer's output.
+
+        :param layer_input: Input in the format (n_batches, n_in).
+        :return: Layer output.
+        """
         return T.dot(self.input, self.W_shared) + self.b_shared
 
     def set_params(self, params):

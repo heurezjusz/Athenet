@@ -45,4 +45,11 @@ class Concatenation(Layer):
         return (x, y, n_channels)
 
     def _get_output(self, layer_inputs):
+        """Return layer's output.
+
+        :param layer_inputs: List of inputs in the format
+                             (batch size, number of channels,
+                              image height, image width).
+        :return: Layer output.
+        """
         return T.concatenate(layer_inputs, axis=1)

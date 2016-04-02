@@ -11,13 +11,13 @@ class PoolingLayer(Layer):
                  input_layer_name=None, name='pool'):
         """Create pooling layer.
 
-        :poolsize: Shape of pooling filter in the format (height, width).
-        :stride: Pair representing interval at which to apply the filters.
-                 If None, then stride of the size of the pooling filter will be
-                 used.
-        :padding: Pair representing number of zero-valued pixels to add on
-                  each side of the input.
-        :mode: Pooling method: 'max' or 'avg'. Default 'max'.
+        :param poolsize: Shape of pooling filter in the format (height, width).
+        :param stride: Pair representing interval at which to apply the
+                       filters. If None, then stride of the size of the pooling
+                       filter will be used.
+        :param padding: Pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :param mode: Pooling method: 'max' or 'avg'. Default 'max'.
         """
         super(PoolingLayer, self).__init__(input_layer_name, name)
         self.poolsize = poolsize
@@ -47,8 +47,9 @@ class PoolingLayer(Layer):
     def _get_output(self, layer_input):
         """Return layer's output.
 
-        :layer_input: Input in the format (batch size, number of channels,
-                                           image height, image width).
+        :param layer_input: Input in the format
+                            (batch size, number of channels,
+                             image height, image width).
         :return: Layer output.
         """
         if self.stride == self.poolsize:
