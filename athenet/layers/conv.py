@@ -113,16 +113,17 @@ class ConvolutionalLayer(WeightedLayer):
         n_group_channels = n_channels / self.n_groups
         n_group_filters = n_filters / self.n_groups
 
-        h, w = self.image_shape[0:2]
-        pad_h, pad_w = self.padding
-        if self.batch_size is not None:
+        if self.batch_size is None:
+            group_input_shape = None
+            group_filter_shape = None
+        else:
+            h, w = self.image_shape[0:2]
+            pad_h, pad_w = self.padding
             group_input_shape = (self.batch_size, n_group_channels,
                                  h + 2*pad_h, w + 2*pad_w)
-        else:
-            group_input_shape = None
 
-        h, w = self.filter_shape[0:2]
-        group_filter_shape = (n_group_filters, n_group_channels, h, w)
+            h, w = self.filter_shape[0:2]
+            group_filter_shape = (n_group_filters, n_group_channels, h, w)
 
         conv_outputs = [T.nnet.conv2d(
             input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
