@@ -12,6 +12,7 @@ from athenet.algorithm.numlike import Numlike, assert_numlike
 
 
 def d_conv(activation, output):
+    # TODO: all
     """Returns estimated impact of convolutional layer on output of network.
 
     :param Numlike activation: estimated activation of input
@@ -25,11 +26,9 @@ def d_conv(activation, output):
     assert_numlike(output)
 
 
-def d_dropout(activation, output, p_dropout):
-    # TODO: tests
+def d_dropout(output, p_dropout):
     """Returns estimated impact of dropout layer on output of network.
 
-    :param Numlike activation: estimated activation of input
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
@@ -37,7 +36,6 @@ def d_dropout(activation, output, p_dropout):
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    assert_numlike(activation)
     assert_numlike(output)
     return output * (1.0 - p_dropout)
 
@@ -112,7 +110,6 @@ def d_softmax(activation, output):
 
 
 def d_relu(activation, output):
-    # TODO: tests
     """Returns estimated impact of relu layer on output of network.
 
     :param Numlike activation: estimated activation of input

@@ -10,7 +10,7 @@ from nose.tools import assert_almost_equal as aae, \
     assert_greater as ag
 from numpy.testing import assert_array_almost_equal as arae
 from athenet.algorithm.numlike import Interval as Itv, Nplike
-from athenet.algorithm.derest.derivative import d_relu
+from athenet.algorithm.derest.derivative import *
 
 theano.config.exception_verbosity = 'high'
 
@@ -19,6 +19,10 @@ A = np.array
 
 def npl(x):
     return Nplike(A(x))
+
+
+def thv(x):
+    return theano.shared(np.array(x, dtype=float))
 
 
 class DerivativeTest(unittest.TestCase):
@@ -64,7 +68,17 @@ class NormDerivativeTest(DerivativeTest):
 
 
 class DropoutDerivativeTest(DerivativeTest):
-    pass
+
+    def test_case1(self):
+        doutl = thv([[-3, 0, 3], [3, -3, -5], [-3, -2, 1]])
+        doutu = thv([[-3, 2, 3], [5, 3, 2], [-1, 3, 3]])
+        idout = Itv(doutl, doutu)
+        idin = d_dropout(idout, 0.8)
+        l, u = idin.eval()
+        rl = A([[-0.6, 0, 0.6], [0.6, -0.6, -1], [-0.6, -0.4, 0.2]])
+        ru = A([[-0.6, 0.4, 0.6], [1, 0.6, 0.4], [-0.2, 0.6, 0.6]])
+        arae(l, rl)
+        arae(u, ru)
 
 
 class ReluDerivativeTest(DerivativeTest):
@@ -92,30 +106,30 @@ class ReluDerivativeTest(DerivativeTest):
         aae(l[1, 0, 1], 1.0)
 
     def test_case2(self):
-        actl = theano.shared(np.array([-2, -1, -1, 0, 0, 1]))
-        actu = theano.shared(np.array([-1, 1, 0, 0, 1, 2]))
-        doutl = theano.shared(np.array([2, 3, 4, 7, 11, 13]))
-        doutu = theano.shared(np.array([3, 5, 7, 11, 13, 17]))
+        actl = thv([-2, -1, -1, 0, 0, 1])
+        actu = thv([-1, 1, 0, 0, 1, 2])
+        doutl = thv([2, 3, 4, 7, 11, 13])
+        doutu = thv([3, 5, 7, 11, 13, 17])
         iact = Itv(actl, actu)
         idout = Itv(doutl, doutu)
         idin = d_relu(iact, idout)
         l, u = idin.eval()
-        rl = np.array([0, 0, 0, 0, 0, 13])
-        ru = np.array([0, 5, 7, 11, 13, 17])
+        rl = A([0, 0, 0, 0, 0, 13])
+        ru = A([0, 5, 7, 11, 13, 17])
         arae(l, rl)
         arae(u, ru)
 
     def test_case3(self):
-        actl = theano.shared(np.array([-2, -1, -1, 0, 0, 1]))
-        actu = theano.shared(np.array([-1, 1, 0, 0, 1, 2]))
-        doutl = theano.shared(np.array([-3, -5, -7, -11, -13, -17]))
-        doutu = theano.shared(np.array([-2, -3, -5, -7, -11, -13]))
+        actl = thv([-2, -1, -1, 0, 0, 1])
+        actu = thv([-1, 1, 0, 0, 1, 2])
+        doutl = thv([-3, -5, -7, -11, -13, -17])
+        doutu = thv([-2, -3, -5, -7, -11, -13])
         iact = Itv(actl, actu)
         idout = Itv(doutl, doutu)
         idin = d_relu(iact, idout)
         l, u = idin.eval()
-        rl = np.array([0, -5, -7, -11, -13, -17])
-        ru = np.array([0, 0, 0, 0, 0, -13])
+        rl = A([0, -5, -7, -11, -13, -17])
+        ru = A([0, 0, 0, 0, 0, -13])
         arae(l, rl)
         arae(u, ru)
 
