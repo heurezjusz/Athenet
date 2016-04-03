@@ -6,7 +6,7 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athenet.layers import WeightedLayer, ConvolutionalLayer
+from athenet.layers import WeightedLayer, ConvolutionalLayer, InceptionLayer
 from athenet.utils import overwrite, save_data_to_pickle
 
 
@@ -98,10 +98,15 @@ class Network(object):
         self.layers = layers
 
         self.weighted_layers = [layer for layer in self.layers
-                                if isinstance(layer, WeightedLayer)]
+                                if isinstance(layer, WeightedLayer) or
+                                isinstance(layer, InceptionLayer)]
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
+        self.layers_dict = {}
+        for layer in self.layers:
+            if layer.name is not None:
+                self.layers_dict[layer.name] = layer
         self.batch_size = 1
 
     @property
@@ -128,11 +133,19 @@ class Network(object):
         if self.data_loader:
             self.data_loader.batch_size = value
 
-        for layer in self.convolutional_layers:
+        for layer in self.layers:
             layer.batch_size = self.batch_size
         self.layers[0].input = self._input
-        for i in xrange(1, len(self.layers)):
-            self.layers[i].input_layer = self.layers[i-1]
+        self.layers[0].train_input = self._input
+        for layer, prev_layer in zip(self.layers[1:], self.layers[:-1]):
+            if layer.input_layer_name is None:
+                layer.input_layer = prev_layer
+            elif isinstance(layer.input_layer_name, list):
+                layer.input_layers = [
+                    self.layers_dict[layer_name]
+                    for layer_name in layer.input_layer_names]
+            else:
+                layer.input_layer = self.layers_dict[layer.input_layer_name]
 
         output = self.layers[-1].output
         self.answers = T.argsort(-output, axis=1)
@@ -228,9 +241,8 @@ class Network(object):
 
         :params: List of pairs (W, b).
         """
-        for p, layer in zip(params, self.weighted_layers):
-            layer.W = p[0]
-            layer.b = p[1]
+        for layer, p in zip(self.weighted_layers, params):
+            layer.set_params(p)
 
     def save_to_file(self, filename):
         """Save network's weights to file.
@@ -271,7 +283,7 @@ class Network(object):
     def train(self, config):
         """Train the network.
 
-        :config: Instance of TrainConfig.
+        :config: Instance of :class:`TrainConfig`.
         """
         if self.data_loader is None:
             raise Exception('data loader is not set')
@@ -289,7 +301,7 @@ class Network(object):
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
         lr = theano.shared(np.array(config.learning_rate,
-                                    dtype=theano.config.floatX))
+                           dtype=theano.config.floatX))
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
         weights_grad = T.grad(cost, weights)
