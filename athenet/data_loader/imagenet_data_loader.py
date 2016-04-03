@@ -25,16 +25,16 @@ class ImageNetDataLoader(DataLoader):
                  reverse_validation=True):
         """Create ImageNet data loader.
 
-        :year: Specifies which year's data should be loaded.
-        :image_shape: Image shape in format (height, width).
-        :buffer_size: Number of batches to be stored in memory.
-        :train_data: Specifies whether to load training data.
-        :val_data: Specifies whether to load validation data.
-        :val_size: Maximal size of validation data. If None, then all
-                   validation data will be used. Otherwise, val_size images
-                   will be chosen randomly from the whole set.
-        :reverse: When set on True, reversed copies of images will be
-                  attached to train and validaton data
+        :param year: Specifies which year's data should be loaded.
+        :param image_shape: Image shape in format (height, width).
+        :param buffer_size: Number of batches to be stored in memory.
+        :param train_data: Specifies whether to load training data.
+        :param val_data: Specifies whether to load validation data.
+        :param val_size: Maximal size of validation data. If None, then all
+                         validation data will be used. Otherwise, val_size
+                         images will be chosen randomly from the whole set.
+        :param reverse: When set on True, reversed copies of images will be
+                        attached to train and validaton data
         """
         super(ImageNetDataLoader, self).__init__()
         self.buffer_size = buffer_size

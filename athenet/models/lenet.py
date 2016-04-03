@@ -14,10 +14,10 @@ def lenet(trained=True, weights_filename=LENET_FILENAME,
           weights_url=LENET_URL):
     """Create and return instance of LeNet network.
 
-    :trained: If True, trained weights will be loaded from file.
-    :weights_filename: Name of a file with LeNet weights. Will be used if
-                       ``trained`` argument is set to True.
-    :weights_url: Url from which to download file with weights.
+    :param trained: If True, trained weights will be loaded from file.
+    :param weights_filename: Name of a file with LeNet weights. Will be used if
+                             ``trained`` argument is set to True.
+    :param weights_url: Url from which to download file with weights.
     :return: LeNet network.
     """
     if trained:

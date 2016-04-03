@@ -13,16 +13,16 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
                   verbose=False):
     """Runs algorithm on copy of neural_network for config_l cases.
 
-    :neural_network: Instance of Network class to be copied and used for
-                     algorithm.
-    :algorithm: Function executing algorithm on network, takes Network and
-                config parameters.
-    :config_l:  List of configs to be passed to algorithm. For every config
-                algorithm is being executed once.
-    :results_pkl: File where results of algorithm are saved online and from
-                  where they are initially loaded. Stores dictionary
-                  {config: algorithm(neural_network, config)}.
-    :verbose: If True, then progress of tests is being printed.
+    :param neural_network: Instance of Network class to be copied and used for
+                           algorithm.
+    :param algorithm: Function executing algorithm on network, takes Network
+                      and config parameters.
+    :param config_l: List of configs to be passed to algorithm. For every
+                     config algorithm is being executed once.
+    :param results_pkl: File where results of algorithm are saved online and
+                        from where they are initially loaded. Stores dictionary
+                        {config: algorithm(neural_network, config)}.
+    :param verbose: If True, then progress of tests is being printed.
     :return: Dictionary {config: algorithm(neural_network, config)}.
     """
     results = {}
