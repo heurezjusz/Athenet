@@ -9,12 +9,12 @@ from athenet.layers import Layer
 
 class Dropout(Layer):
     """Dropout layer."""
-    def __init__(self, p_dropout=0.5):
+    def __init__(self, p_dropout=0.5, input_layer_name=None, name='dropout'):
         """Create dropout layer.
 
         :p_dropout: Weight dropout probability
         """
-        super(Dropout, self).__init__()
+        super(Dropout, self).__init__(input_layer_name, name)
         self.p_dropout = p_dropout
 
     def _get_output(self, layer_input):
