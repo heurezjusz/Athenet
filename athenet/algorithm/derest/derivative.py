@@ -49,14 +49,12 @@ def d_fully_connected(output, weights, input_shape):
                            height, width)
     :param weights: weights of fully connected layer in format (n_in, n_out)
     :type weights: 2D numpy.ndarray or theano.tensor
+    :param tuple of integers input_shape: shape of fully connected layer input
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
     assert_numlike(output)
-    try:
-        return output.dot(weights.T)
-    except NotImplementedError:
-        return (output * weights).sum(1)
+    return output.op_d_fc(weights, input_shape)
 
 
 def d_norm(output, activation):
@@ -76,7 +74,7 @@ def d_norm(output, activation):
 
 def d_pool(output, activation):
     # TODO: all
-    """Returns estimated impact of max pool layer on output of network.
+    """Returns estimated impact of pool layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
@@ -87,10 +85,11 @@ def d_pool(output, activation):
     """
     assert_numlike(activation)
     assert_numlike(output)
+    res = output.op_d_pool(activation)
+    return res
 
 
 def d_softmax(output):
-    # TODO: test
     """Returns estimated impact of softmax layer on output of network.
 
     .. warning: Current implementation only consider softmax as the last layer.

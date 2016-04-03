@@ -269,10 +269,43 @@ class Numlike(object):
         raise NotImplementedError
 
     def op_d_relu(self, activation):
-        """Returns result of operation on given Numlike.
+        """Returns estimated impact of input of relu layer on output of
+        network.
 
-        :param Numlike activation: activation of relu layer
-        :returns: Impact of input of relu on output of network
+        :param Numlike activation: estimated activation of input
+        :param Numlike self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :returns: Estimated impact of input on output of network
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    def op_d_pool(self, activation):
+        """Returns estimated impact of pool layer on output of network.
+
+        :param Numlike self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param Numlike activation: estimated activation of input
+        :returns: Estimated impact of input on output of network
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    def op_d_fc(self, weights, input_shape):
+        """Returns estimated impact of fully connected layer on output of
+        network.
+
+        :param Numlike self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param weights: weights of fully connected layer in format
+                        (n_in, n_out)
+        :type weights: 2D numpy.ndarray or theano.tensor
+        :param tuple of integers input_shape: shape of fully connected layer
+                                              input
+        :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
         raise NotImplementedError
@@ -287,4 +320,3 @@ class Numlike(object):
         :rtype: Numlike
         """
         raise NotImplementedError
-

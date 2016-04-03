@@ -133,6 +133,12 @@ class Nplike(Numlike):
     def op_d_relu(self, *args):
         return super(Nplike, self).op_d_relu(*args)
 
+    def op_d_pool(self, *args):
+        return super(Nplike, self).op_d_pool(*args)
+
+    def op_d_fc(self, *args):
+        return super(Nplike, self).op_d_fc(*args)
+
     @staticmethod
     def derest_output(self, *args):
         return super(Nplike, self).derest_output(*args)

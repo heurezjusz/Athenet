@@ -596,6 +596,40 @@ class Interval(Numlike):
                          T.switch(upp_lt_zero, 0.0, T.maximum(out_upper, 0.0)))
         return Interval(lower, upper)
 
+    def op_d_pool(self, activation):
+        """Returns estimated impact of pool layer on output of network.
+
+        :param Interval self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param Interval activation: estimated activation of input
+        :returns: Estimated impact of input on output of network
+        :rtype: Interval
+        """
+        raise NotImplementedError
+
+    def op_d_fc(self, weights, input_shape):
+        # TODO: all
+        """Returns estimated impact of fully connected layer on output of
+        network.
+
+        :param Interval self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param weights: weights of fully connected layer in format
+                        (n_in, n_out)
+        :type weights: 2D theano.tensor
+        :param tuple of integers input_shape: shape of fully connected layer
+                                              input
+        :returns: Estimated impact of input on output of network
+        :rtype: Interval
+        """
+        #lower_dot = self.lower * other.T
+        #upper_dot = self.upper * other.T
+        #lower_res = T.minimum(lower_dot, upper_dot)
+        #upper_res = T.maximum(lower_dot, upper_dot)
+        #return Interval(lower_res.sum(axis=1), upper_res.sum(axis=1))
+
     @staticmethod
     def derest_output(n_outputs):
         """Generates Interval of impact of output on output.
