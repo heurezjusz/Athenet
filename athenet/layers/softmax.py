@@ -22,7 +22,7 @@ class Softmax(Layer):
     def set_cost(self, answer):
         """Set layer's cost function.
 
-        :answer: Vector of desired answers for minibatch.
+        :param answer: Vector of desired answers for minibatch.
         """
         self.cost = T.mean(-T.log(self.train_output)
                            [T.arange(answer.shape[0]), answer])
