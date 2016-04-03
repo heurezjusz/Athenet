@@ -10,11 +10,11 @@ class Layer(object):
     def __init__(self, input_layer_name=None, name='layer'):
         """Create layer.
 
-        :input_layer_name: Optional name of input layer. If None, then
-                           :class:`Network` will set preceding layer as input
-                           layer.
-        :name: Optional name of layer. If set, it can later be used as
-               `input_layer_name` for another layer.
+        :param input_layer_name: Optional name of input layer. If None, then
+                                 :class:`Network` will set preceding layer as
+                                 input layer.
+        :param name: Optional name of layer. If set, it can later be used as
+                     `input_layer_name` for another layer.
         """
         self.output = None
         self.train_output = None
@@ -31,7 +31,7 @@ class Layer(object):
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for given layer.
 
-        :raw_layer_input: Layer input.
+        :param raw_layer_input: Layer input.
         :return: Reshaped input.
         """
         return raw_layer_input
@@ -39,7 +39,7 @@ class Layer(object):
     def _get_output(self, layer_input):
         """Return layer's output.
 
-        :layer_input: Layer input.
+        :param layer_input: Layer input.
         :return: Layer output.
         """
         return layer_input
@@ -47,7 +47,7 @@ class Layer(object):
     def _get_train_output(self, layer_input):
         """Return layer's output used for training.
 
-        :layer_input: Layer input.
+        :param layer_input: Layer input.
         :return: Layer train output.
         """
         return self._get_output(layer_input)

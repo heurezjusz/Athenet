@@ -13,7 +13,7 @@ class Buffer(object):
     def __init__(self, data_loader):
         """Create data Buffer.
 
-        :data_loader: Instance of DataLoader that will be using Buffer.
+        :param data_loader: Instance of DataLoader that will be using Buffer.
         """
         self.begin = -1
         self.end = 0
@@ -38,8 +38,8 @@ class Buffer(object):
         minibatch index, not direct index in data array. Effectively, buffer
         can be used as if it contained all of the minibatches data.
 
-        :key: Symbolic index or slice representing indices of minibatches to
-              return.
+        :param key: Symbolic index or slice representing indices of minibatches
+                    to return.
         :return: Minibatches data.
         """
         if isinstance(key, slice):
@@ -51,9 +51,9 @@ class Buffer(object):
     def __setitem__(self, key, value):
         """Set buffer data. Any previously stored data will be overwritten.
 
-        :key: Indices of minibatches to be stored. Step must be equal 1, other
-              values of step may be implemented in the future.
-        :value: Data to be stored in a buffer.
+        :param key: Indices of minibatches to be stored. Step must be equal 1,
+                    other values of step may be implemented in the future.
+        :param value: Data to be stored in a buffer.
         """
         if isinstance(key, slice):
             start, stop, step = key.start, key.stop, key.step
@@ -71,7 +71,7 @@ class Buffer(object):
     def contains(self, batch_index):
         """Check if minibatch is contained in a buffer.
 
-        :batch_index: Index of a minibatch.
+        :param batch_index: Index of a minibatch.
         :return: True, if minibatch of a given index is contained in a buffer.
                  False otherwise.
         """

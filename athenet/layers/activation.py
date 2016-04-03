@@ -10,7 +10,7 @@ class ActivationLayer(Layer):
     def __init__(self, activation_function, input_layer_name=None, name='act'):
         """Create activation layer.
 
-        :activation_function: Activation function to be applied.
+        :param activation_function: Activation function to be applied.
         """
         super(ActivationLayer, self).__init__(input_layer_name, name)
         self.activation_function = activation_function
@@ -22,7 +22,7 @@ class ActivationLayer(Layer):
 def relu(x):
     """Rectified linear activation function.
 
-    :x: Neuron input.
+    :param x: Neuron input.
     """
     return T.maximum(0., x)
 
