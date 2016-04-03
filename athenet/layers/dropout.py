@@ -12,7 +12,7 @@ class Dropout(Layer):
     def __init__(self, p_dropout=0.5, input_layer_name=None, name='dropout'):
         """Create dropout layer.
 
-        :p_dropout: Weight dropout probability
+        :param p_dropout: Weight dropout probability
         """
         super(Dropout, self).__init__(input_layer_name, name)
         self.p_dropout = p_dropout
@@ -22,7 +22,7 @@ class Dropout(Layer):
 
         When evaluating, each weight is multiplied by (1 - p_dropout).
 
-        :layer_input: Layer input.
+        :param layer_input: Layer input.
         :return: Layer output.
         """
         return (1. - self.p_dropout) * layer_input
@@ -32,7 +32,7 @@ class Dropout(Layer):
 
         When training, p_dropout weights are dropped out.
 
-        :layer_input: Layer input.
+        :param layer_input: Layer input.
         :return: layer output.
         """
         random = shared_randomstreams.RandomStreams()

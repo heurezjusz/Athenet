@@ -72,15 +72,11 @@ class TrainConfig(object):
 
 
 class Network(object):
-    """Neural network.
-
-    :verbosity: Level of network's verbosity. Integer value between 0 and 3.
-                Default 1.
-    """
+    """Neural network."""
     def __init__(self, layers):
         """Create neural network.
 
-        :layers: List of network's layers.
+        :param layers: List of network's layers.
         """
         self._batch_size = None
         self._data_loader = None
@@ -157,10 +153,10 @@ class Network(object):
     def test_accuracy(self, top_range=1):
         """Return network's accuracy on the test data.
 
-        :top_range: Number or list representing top ranges to be used.
-                    Network's answer is considered correct if correct answer
-                    is among top_range most probable answers given by the
-                    network.
+        :param top_range: Number or list representing top ranges to be used.
+                          Network's answer is considered correct if correct
+                          answer is among top_range most probable answers given
+                          by the network.
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
@@ -169,10 +165,10 @@ class Network(object):
     def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
 
-        :top_range: Number or list representing top ranges to be used.
-                    Network's answer is considered correct if correct answer
-                    is among top_range most probable answers given by the
-                    network.
+        :param top_range: Number or list representing top ranges to be used.
+                          Network's answer is considered correct if correct
+                          answer is among top_range most probable answers given
+                          by the network.
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
@@ -239,7 +235,7 @@ class Network(object):
     def set_params(self, params):
         """Set network's weights and biases.
 
-        :params: List of pairs (W, b).
+        :param params: List of pairs (W, b).
         """
         for layer, p in zip(self.weighted_layers, params):
             layer.set_params(p)
@@ -247,7 +243,7 @@ class Network(object):
     def save_to_file(self, filename):
         """Save network's weights to file.
 
-        :filename:Name of the file.
+        :param filename:Name of the file.
         """
         save_data_to_pickle(self.get_params(), filename)
 
@@ -257,7 +253,7 @@ class Network(object):
         Batch size must be equal 1 to use this method. If it isn't, it will be
         set to 1.
 
-        :net_input: Input for the network.
+        :param net_input: Input for the network.
         :return: A pair consisting of list of probabilities for every answer
                  index and list of answer indexes sorted by their
                  probabilities descending.
@@ -283,7 +279,7 @@ class Network(object):
     def train(self, config):
         """Train the network.
 
-        :config: Instance of :class:`TrainConfig`.
+        :param config: Instance of :class:`TrainConfig`.
         """
         if self.data_loader is None:
             raise Exception('data loader is not set')
