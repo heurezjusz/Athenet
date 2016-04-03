@@ -41,7 +41,6 @@ def d_dropout(output, p_dropout):
 
 
 def d_fully_connected(output, weights, input_shape):
-    # TODO: tests with batches
     """Returns estimated impact of fully connected layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
@@ -50,11 +49,16 @@ def d_fully_connected(output, weights, input_shape):
     :param weights: weights of fully connected layer in format (n_in, n_out)
     :type weights: 2D numpy.ndarray or theano.tensor
     :param tuple of integers input_shape: shape of fully connected layer input
+                                          without batch size
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
     assert_numlike(output)
-    return output.op_d_fc(weights, input_shape)
+    try:
+        res = output.dot(weights.T)
+    except NotImplementedError:
+        res = (output * weights).sum(1)
+    return res.reshape((output.shape[0],) + input_shape)
 
 
 def d_norm(output, activation):

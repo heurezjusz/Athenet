@@ -36,10 +36,8 @@ class Interval(Numlike):
     def __init__(self, lower, upper):
         """Creates interval.
 
-        :param lower: lower bound of Interval to be set
-        :param upper: upper bound of Interval to be set
-        :type lower: numpy.ndarray or theano variable
-        :type upper: numpy.ndarray or theano variable
+        :param theano tensor lower: lower bound of Interval to be set
+        :param theano tensor upper: upper bound of Interval to be set
 
         .. note:: lower must be lower than upper. It is not being checked.
         """
@@ -285,12 +283,17 @@ class Interval(Numlike):
                                                      multiplied
         :rtype: Interval
         """
-        # After first results, might be changed to save more memory / time
-        lower_dot = self.lower * other.T
-        upper_dot = self.upper * other.T
-        lower_res = T.minimum(lower_dot, upper_dot)
-        upper_res = T.maximum(lower_dot, upper_dot)
-        return Interval(lower_res.sum(axis=1), upper_res.sum(axis=1))
+        lower = self.lower
+        upper = self.upper
+        other_negative = T.minimum(other, 0.0)
+        other_positive = T.maximum(other, 0.0)
+        lower_pos_dot = T.dot(lower, other_positive)
+        lower_neg_dot = T.dot(lower, other_negative)
+        upper_pos_dot = T.dot(upper, other_positive)
+        upper_neg_dot = T.dot(upper, other_negative)
+        res_lower = lower_pos_dot + upper_neg_dot
+        res_upper = upper_pos_dot + lower_neg_dot
+        return Interval(res_lower, res_upper)
 
     def max(self, other):
         """Returns interval such that for any numbers (x, y) in a pair of
@@ -607,28 +610,6 @@ class Interval(Numlike):
         :rtype: Interval
         """
         raise NotImplementedError
-
-    def op_d_fc(self, weights, input_shape):
-        # TODO: all
-        """Returns estimated impact of fully connected layer on output of
-        network.
-
-        :param Interval self: estimated impact of output of layer on output
-                               of network in shape (batch_size, number of
-                               channels, height, width)
-        :param weights: weights of fully connected layer in format
-                        (n_in, n_out)
-        :type weights: 2D theano.tensor
-        :param tuple of integers input_shape: shape of fully connected layer
-                                              input
-        :returns: Estimated impact of input on output of network
-        :rtype: Interval
-        """
-        #lower_dot = self.lower * other.T
-        #upper_dot = self.upper * other.T
-        #lower_res = T.minimum(lower_dot, upper_dot)
-        #upper_res = T.maximum(lower_dot, upper_dot)
-        #return Interval(lower_res.sum(axis=1), upper_res.sum(axis=1))
 
     @staticmethod
     def derest_output(n_outputs):

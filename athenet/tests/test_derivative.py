@@ -48,8 +48,67 @@ class DerivativeTest(unittest.TestCase):
 
 
 class FullyConnectedDerivativeTest(DerivativeTest):
-    pass
 
+    def test_1D_simple(self):
+        dout = thv([[1]])
+        idout = Itv(dout, dout)
+        w = thv([[2]])
+        shp = (1,)
+        din = d_fully_connected(idout, w, shp)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[2]]))
+
+    def test_2D_simple_used_1D_of_weights(self):
+        dout = thv([[3, 6]])
+        idout = Itv(dout, dout)
+        w = thv([9, 12])
+        shp = (1,)
+        din = d_fully_connected(idout, w, shp)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[99]]))
+
+    def test_2D_simple_used_2D_of_weights(self):
+        dout = thv([[3, 0]])
+        idout = Itv(dout, dout)
+        w = thv([[6, 0], [9, 0]])
+        shp = (2,)
+        din = d_fully_connected(idout, w, shp)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[18, 27]]))
+
+    def test_2D_1(self):
+        dout = thv([[3, 6]])
+        idout = Itv(dout, dout)
+        w = thv([[9, 15], [12, 18]])
+        shp = (2,)
+        din = d_fully_connected(idout, w, shp)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[117, 144]]))
+
+    def test_2d_Intervals(self):
+        doutl = thv([[-3, -6, 3]])
+        doutu = thv([[9, -3, 6]])
+        idout = Itv(doutl, doutu)
+        w = thv([[2, -3, -3], [-3, 1, 2], [5, -4, 3], [-2, -3, -4]])
+        shp = (2, 2)
+        din = d_fully_connected(idout, w, shp)
+        l, u = din.eval()
+        arae(l, A([[[-15, -27], [6, -33]]]))
+        arae(u, A([[[27, 18], [87, 12]]]))
+
+    def test_2d_batches(self):
+        dout = thv([[3, 6], [1, 2]])
+        idout = Itv(dout, dout)
+        w = thv([[9, 15], [12, 18]])
+        shp = (2,)
+        din = d_fully_connected(idout, w, shp)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[117, 144], [39, 48]]))
 
 class ConvolutionalDerivativeTest(DerivativeTest):
     pass
