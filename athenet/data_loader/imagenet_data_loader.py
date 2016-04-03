@@ -34,7 +34,7 @@ class ImageNetDataLoader(DataLoader):
                          validation data will be used. Otherwise, val_size
                          images will be chosen randomly from the whole set.
         :param reverse: When set on True, reversed copies of images will be
-                  attached to train and validaton data
+                        attached to train and validaton data
         """
         super(ImageNetDataLoader, self).__init__()
         self.buffer_size = buffer_size

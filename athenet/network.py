@@ -243,7 +243,7 @@ class Network(object):
     def save_to_file(self, filename):
         """Save network's weights to file.
 
-        :param filename:Name of the file.
+        :param filename: Name of the file.
         """
         save_data_to_pickle(self.get_params(), filename)
 
