@@ -122,6 +122,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         arae(l, u)
         arae(l, A([[117, 144], [39, 48]]))
 
+
 class ConvolutionalDerivativeTest(DerivativeTest):
     pass
 
