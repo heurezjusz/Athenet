@@ -10,13 +10,13 @@ from athenet.layers import WeightedLayer
 
 class FullyConnectedLayer(WeightedLayer):
     """Fully connected layer."""
-    def __init__(self, n_out, n_in=None):
+    def __init__(self, n_out, n_in=None, input_layer_name=None, name='fc'):
         """Create fully connected layer.
 
         :param integer n_out: Number of output neurons.
         :param integer n_in: Number of input neurons.
         """
-        super(FullyConnectedLayer, self).__init__()
+        super(FullyConnectedLayer, self).__init__(input_layer_name, name)
         self._n_in = None
         self.W_shared = None
 
@@ -70,7 +70,13 @@ class FullyConnectedLayer(WeightedLayer):
         return raw_layer_input.flatten(2)
 
     def _get_output(self, layer_input):
+        """Return layer's output.
+
+        :param layer_input: Input in the format (n_batches, n_in).
+        :return: Layer output.
+        """
         return T.dot(self.input, self.W_shared) + self.b_shared
 
-    def get_output_shape(self, input_shape):
-        return input_shape
+    def set_params(self, params):
+        self.W = params[0]
+        self.b = params[1]

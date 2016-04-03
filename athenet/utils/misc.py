@@ -153,10 +153,10 @@ def reshape_for_padding(layer_input, image_shape, batch_size, padding):
     :rtype: theano.tensor4
 
     """
-    h, w, n_channels = image_shape
-    conv_image_shape = (batch_size, n_channels, h, w)
-    reshaped_input = layer_input.reshape(conv_image_shape)
+    if padding == (0, 0):
+        return layer_input
 
+    h, w, n_channels = image_shape
     pad_h, pad_w = padding
     h_in = h + 2*pad_h
     w_in = w + 2*pad_w
@@ -164,7 +164,7 @@ def reshape_for_padding(layer_input, image_shape, batch_size, padding):
     extra_pixels = T.alloc(numpy.array(0., dtype=theano.config.floatX),
                            batch_size, n_channels, h_in, w_in)
     extra_pixels = T.set_subtensor(
-        extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
+        extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], layer_input)
     return extra_pixels
 
 
@@ -195,29 +195,20 @@ def convolution(layer_input, w_shared, stride, n_groups, image_shape,
 
     n_group_channels = n_channels / n_groups
     n_group_filters = n_filters / n_groups
-    if cudnn_available():  # use cuDNN convolutions
-        conv_outputs = [theano.sandbox.cuda.dnn.dnn_conv(
-            img=layer_input[:, i*n_group_channels:(i+1)*n_group_channels,
-                            :, :],
-            kerns=w_shared[i*n_group_filters:(i+1)*n_group_filters,
-                           :, :, :],
-            subsample=stride
-        ) for i in xrange(n_groups)]
-    else:  # let Theano decide which implementation to use
-        h, w = image_shape[0:2]
-        pad_h, pad_w = padding
-        group_image_shape = (batch_size, n_group_channels,
-                             h + 2*pad_h, w + 2*pad_w)
-        h, w = filter_shape[0:2]
-        group_filter_shape = (n_group_filters, n_group_channels, h, w)
+    h, w = image_shape[0:2]
+    pad_h, pad_w = padding
+    group_image_shape = (batch_size, n_group_channels,
+                         h + 2*pad_h, w + 2*pad_w)
+    h, w = filter_shape[0:2]
+    group_filter_shape = (n_group_filters, n_group_channels, h, w)
 
-        conv_outputs = [T.nnet.conv.conv2d(
-            input=layer_input[:, i*n_group_channels:(i+1)*n_group_channels,
-                              :, :],
-            filters=w_shared[i*n_group_filters:(i+1)*n_group_filters,
-                             :, :, :],
-            filter_shape=group_filter_shape,
-            image_shape=group_image_shape,
-            subsample=stride
-        ) for i in xrange(n_groups)]
+    conv_outputs = [T.nnet.conv.conv2d(
+        input=layer_input[:, i*n_group_channels:(i+1)*n_group_channels,
+                          :, :],
+        filters=w_shared[i*n_group_filters:(i+1)*n_group_filters,
+                         :, :, :],
+        filter_shape=group_filter_shape,
+        image_shape=group_image_shape,
+        subsample=stride
+    ) for i in xrange(n_groups)]
     return T.concatenate(conv_outputs, axis=1)

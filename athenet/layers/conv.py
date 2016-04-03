@@ -12,29 +12,29 @@ from athenet.utils.misc import convolution, reshape_for_padding
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
     def __init__(self, filter_shape, image_shape=None, stride=(1, 1),
-                 padding=(0, 0), n_groups=1, batch_size=1):
+                 padding=(0, 0), n_groups=1, input_layer_name=None,
+                 name='conv'):
         """Create convolutional layer.
 
-        :filter_shape: Filter shape in the format
-                       (filter height, filter width, number of filters).
-        :image_shape: Image shape in the format
-                      (image height, image width, number of channels).
-        :stride: Pair representing interval at which to apply the filters.
-        :padding: Pair representing number of zero-valued pixels to add on
-                  each side of the input.
-        :n_groups: Number of groups input and output channels will be split
-                   into. Two channels are connected only if they belong to the
-                   same group.
-        :batch_size: Minibatch size.
+        :param filter_shape: Filter shape in the format
+                             (filter height, filter width, number of filters).
+        :param image_shape: Image shape in the format
+                            (image height, image width, number of channels).
+        :param stride: Pair representing interval at which to apply the
+                       filters.
+        :param padding: Pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :param n_groups: Number of groups input and output channels will be
+                         split into. Two channels are connected only if they
+                         belong to the same group.
         """
-        super(ConvolutionalLayer, self).__init__()
+        super(ConvolutionalLayer, self).__init__(input_layer_name, name)
         self._image_shape = None
 
         self.filter_shape = filter_shape
         self.stride = stride
         self.padding = padding
         self.n_groups = n_groups
-        self.batch_size = batch_size
         self.image_shape = image_shape
 
     @property
@@ -89,9 +89,9 @@ class ConvolutionalLayer(WeightedLayer):
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for convolutional layer.
 
-        :raw_layer_input: Input in the format (batch size, number of channels,
-                                               image height, image width) or
-                          compatible.
+        :param raw_layer_input: Input in the format
+                                (batch size, number of channels,
+                                 image height, image width).
         """
         return reshape_for_padding(raw_layer_input, self.image_shape,
                                    self.batch_size, self.padding)
@@ -104,3 +104,7 @@ class ConvolutionalLayer(WeightedLayer):
                                   self.padding, self.batch_size,
                                   self.filter_shape)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
+
+    def set_params(self, params):
+        self.W = params[0]
+        self.b = params[1]
