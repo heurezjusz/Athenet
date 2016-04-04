@@ -142,6 +142,9 @@ class Nplike(Numlike):
     def op_d_avg_pool(self, *args):
         return super(Nplike, self).op_d_avg_pool(*args)
 
+    def op_d_norm(self, *args):
+        return super(Nplike, self).op_d_norm(*args)
+
     @staticmethod
     def derest_output(self, *args):
         return super(Nplike, self).derest_output(*args)

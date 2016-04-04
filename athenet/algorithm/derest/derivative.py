@@ -61,7 +61,7 @@ def d_fully_connected(output, weights, input_shape):
     return res.reshape((output.shape[0],) + input_shape)
 
 
-def d_norm(output, activation):
+def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):
     # TODO: all
     """Returns estimated impact of LRN layer on output of network.
 
@@ -69,16 +69,26 @@ def d_norm(output, activation):
                            of network in shape (batch_size, number of channels,
                            height, width)
     :param Numlike activation: estimated activation of input
+    :param activation_shape: shape of activation in format
+                             (batch size, number of channels, height, width)
+    :type activation_shape: tuple of 4 integers
+    :param int local_range: Local channel range. Should be odd, otherwise it
+                            will be incremented.
+    :param float k: Additive constant.
+    :param float alpha: The scaling parameter.
+    :param float beta: The exponent.
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
     assert_numlike(activation)
     assert_numlike(output)
+    res = output.op_d_norm(activation, activation_shape, local_range, k, alpha,
+                           beta)
+    return res
 
 
 def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
            padding=(0, 0), mode='max'):
-    # TODO: avg_pool tests
     """Returns estimated impact of pool layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output

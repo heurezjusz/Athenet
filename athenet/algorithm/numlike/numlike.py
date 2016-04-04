@@ -333,6 +333,27 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def op_d_norm(self, activation, activation_shape, local_range, k, alpha,
+                  beta):
+        """Returns estimated impact of input of norm layer on output of
+        network.
+
+        :param Numlike self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param Numlike activation: estimated activation of input
+        :param activation_shape: shape of activation in format (batch size,
+                                 number of channels, height, width)
+        :type activation_shape: tuple of 4 integers
+        :param integer local_range: size of local range in local range
+                                    normalization
+        :param float k: local range normalization k argument
+        :param float alpha: local range normalization alpha argument
+        :param float beta: local range normalization beta argument
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
     @staticmethod
     def derest_output(n_outputs):
         """Generates Numlike of impact of output on output.
