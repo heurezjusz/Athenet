@@ -1,25 +1,15 @@
 import unittest
+from random import random
+
 import numpy as np
 from nose.tools import assert_equal, assert_true
-from random import random
 
 from athenet.algorithm.sparsify_smallest import sparsify_smallest_on_layers,\
     sparsify_smallest_on_network, get_smallest_indicators
-from athenet.tests.mocks.mock_network import NetworkMock, LayerMock
+from athenet.tests.mock_network import NetworkMock, LayerMock
 from athenet.tests.utils import get_fraction_of_zeros_in_layer,\
-    get_fraction_of_zeros_in_network
-
-
-def get_random_layer_mock(size_of_layer=100):
-    return LayerMock(
-        weights=np.random.uniform(low=-1, high=1, size=size_of_layer),
-        biases=np.random.uniform(low=-1, high=1, size=size_of_layer))
-
-
-def get_random_network_mock(number_of_layers=5, size_of_layer=100):
-    layers = [get_random_layer_mock(size_of_layer=size_of_layer)
-              for x in xrange(number_of_layers)]
-    return NetworkMock(weighted_layers=layers)
+    get_fraction_of_zeros_in_network, get_random_layer_mock,\
+    get_random_network_mock
 
 
 class SparsifySmallestIndicatorsTest(unittest.TestCase):
