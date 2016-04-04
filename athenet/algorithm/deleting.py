@@ -55,7 +55,7 @@ def delete_weights_by_global_fraction(layers, zeroed_weights_fraction,
     if zeroed_weights_fraction == 0:
         return
 
-    flattened_importance_indicators = np.concatenate(
+    flattened_importance_indicators = numpy.concatenate(
         [layer_importance_indicators.flatten()
          for layer_importance_indicators in importance_indicators])
 
