@@ -19,7 +19,7 @@ class SparsifySmallestIndicatorsTest(unittest.TestCase):
             for size_of_layer in [1, 10, 100, 500]:
                 network = get_random_network_mock(
                     number_of_layers=number_of_layers,
-                    size_of_layer=size_of_layer)
+                    shape_of_layer=size_of_layer)
                 indicators = get_smallest_indicators(network.weighted_layers)
 
                 assert_equal(number_of_layers, len(indicators))
@@ -80,14 +80,18 @@ class SparsifySmallestTest(unittest.TestCase):
         for fraction in [0.1, 0.3, 0.5, 0.6, 0.9]:
             sparsify_smallest_on_network(self.network, fraction)
             zeros_fraction = get_fraction_of_zeros_in_network(self.network)
-            assert_true(abs(zeros_fraction - fraction) <= self.epsilon)
+            difference = abs(zeros_fraction - fraction)
+            network_size = sum([layer.W.size
+                                for layer in self.network.weighted_layers])
+            assert_true(difference <= 1. / network_size)
 
     def test_fraction_of_zeros_on_layers(self):
         for fraction in [0.1, 0.3, 0.5, 0.6, 0.9]:
             sparsify_smallest_on_layers(self.network, fraction)
             for layer in self.network.weighted_layers:
                 zeros_fraction = get_fraction_of_zeros_in_layer(layer)
-                assert_true(abs(zeros_fraction - fraction) <= self.epsilon)
+                difference = abs(zeros_fraction - fraction)
+                assert_true(difference <= 1. / layer.W.size)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

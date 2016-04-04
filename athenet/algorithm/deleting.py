@@ -22,12 +22,14 @@ def delete_weights_by_layer_fractions(layers, fractions,
     if that is not possible, takes the ceiling of such number.
 
     :param WeightedLayer layer: layer for sparsifying
-    :param float zeroed_weights_fraction:
+    :param float or list or numpy.array zeroed_weights_fraction:
         fraction of weights to be changed to zeros
     :param order: order of weights
     """
 
-    if isinstance(fractions, (int, long)):
+    try:
+        iter(fractions)
+    except TypeError:
         fractions = [fractions for i in layers]
 
     for layer, fraction, importance_indicator \

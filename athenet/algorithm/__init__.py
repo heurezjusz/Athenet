@@ -6,5 +6,4 @@ from sparsify_smallest import sparsify_nearest_to_layer_mean,\
     get_nearest_to_global_mean_indicators,\
     get_nearest_to_layers_mean_indicators
 from sharpen_filters import sharpen_filters, get_filters_indicators
-from utils import *
 from derest import *
