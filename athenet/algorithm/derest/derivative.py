@@ -76,20 +76,36 @@ def d_norm(output, activation):
     assert_numlike(output)
 
 
-def d_pool(output, activation):
+def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
+           mode="max"):
     # TODO: all
     """Returns estimated impact of pool layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
+                           of network in shape (batch size, number of channels,
                            height, width)
     :param Numlike activation: estimated activation of input
+    :param activation_shape: shape of activation in format
+                             (batch size, number of channels, height, width)
+    :type activation_shape: tuple of 4 integers
+    :param pair of integers poolsize: pool size in format (height, width)
+    :param pair of integers stride: stride of max pool
+    :param 'max' or 'avg' mode: specifies whether it is max pool or average
+                                pool
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
     assert_numlike(activation)
     assert_numlike(output)
-    res = output.op_d_pool(activation)
+    if mode not in ["max", "avg"]:
+        raise ValueError("pool mode should be 'max' or 'avg'")
+    is_max = mode == "max"
+    if is_max:
+        res = output.op_d_max_pool(activation, activation_shape, poolsize,
+                                   stride)
+    else:
+        res = output.op_d_avg_pool(activation, activation_shape, poolsize,
+                                   stride)
     return res
 
 

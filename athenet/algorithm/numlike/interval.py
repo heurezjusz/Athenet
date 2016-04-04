@@ -581,7 +581,7 @@ class Interval(Numlike):
         return result_interval + biases.dimshuffle(0, 'x', 'x')
 
     def op_d_relu(self, activation):
-        """Returns result of operation on given Interval.
+        """Returns estimated impact of relu layer on output of network.
 
         :param Interval activation: activation of relu layer
         :returns: Impact of input of relu on output of network
@@ -599,13 +599,99 @@ class Interval(Numlike):
                          T.switch(upp_lt_zero, 0.0, T.maximum(out_upper, 0.0)))
         return Interval(lower, upper)
 
-    def op_d_pool(self, activation):
-        """Returns estimated impact of pool layer on output of network.
+    def op_d_max_pool(self, activation, activation_shape, poolsize, stride):
+        """Returns estimated impact of max pool layer on output of network.
 
         :param Interval self: estimated impact of output of layer on output
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
+        :param activation_shape: shape of activation in format (batch size,
+                                 number of channels, height, width)
+        :type activation_shape: tuple of 4 integers
+        :param pair of integers poolsize: pool size in format (height, width),
+                                          not equal (1, 1)
+        :param pair of integers stride: stride of max pool
+        :returns: Estimated impact of input on output of network
+        :rtype: Interval
+        """
+        # n_batches, n_in, h, w - number of batches, number of channels,
+        #                         image height, image width
+        n_batches, n_in, h, w = activation_shape
+        # fh, fw - pool height, pool width
+        fh, fw = poolsize
+        stride_h, stride_w = stride
+        output = self
+        output_h = (h - fh) / stride_h + 1
+        output_w = (w - fw) / stride_w + 1
+        result = activation.from_shape(activation_shape, neutral=True)
+        for at_h in xrange(0, h - fh + 1, stride_h):
+            # at_out_h - height of output corresponding to pool at position at
+            # h
+            at_out_h = at_h / stride_h
+            for at_w in xrange(0, w - fw + 1, stride_w):
+                # at_out_w - height of output corresponding to pool at
+                # position at_w
+                at_out_w = at_w / stride_w
+                # any input on any filter frame
+                for at_f_h in xrange(at_h, at_h + fh):
+                    for at_f_w in xrange(at_w, at_w + fw):
+                        # maximum lower and upper of neighbours
+                        neigh_max_low = T.shared(-numpy.inf)
+                        neigh_max_upp = T.shared(-numpy.inf)
+                        neigh_max_itv = Interval(neigh_max_low, neigh_max_upp)
+                        act_slice = activation[:, :, at_f_h, at_f_w]
+                        # setting maximum lower and upper of neighbours
+                        for at_f_h_neigh in xrange(at_h, at_h + fh):
+                            for at_f_w_neigh in xrange(at_w, at_w + fw):
+                                if (at_f_h_neigh, at_f_w_neigh) != (
+                                        at_f_h, at_f_w):
+                                    neigh_slice = activation[:, :,
+                                                             at_f_h_neigh,
+                                                             at_f_w_neigh]
+                                    neigh_max_itv = T.maximum(neigh_max_itv,
+                                                              neigh_slice)
+                        # must have impact on output
+                        low_gt_neigh_max_upp = \
+                            T.gt(act_slice.lower, neigh_max_itv.upper)
+                        # cannot have impact on output
+                        upp_gt_neigh_max_low = \
+                            T.gt(act_slice.upper, neigh_max_itv.lower)
+                        # might have impact on output
+                        mixed_low = T.minimum(output.lower, 0.0)
+                        mixed_upp = T.minimum(output.upper, 0.0)
+                        result.lower[:, :, at_f_h, at_f_w] += T.switch(
+                            low_gt_neigh_max_upp,
+                            output.lower[:, :, at_out_h, at_out_w],
+                            T.switch(
+                                upp_gt_neigh_max_low,
+                                mixed_low,
+                                0.0
+                            )
+                        )
+                        result.upper[:, :, at_f_h, at_f_w] += T.switch(
+                            low_gt_neigh_max_upp,
+                            output.upper[:, :, output_h, output_w],
+                            T.switch(
+                                upp_gt_neigh_max_low,
+                                mixed_upp,
+                                0.0
+                            )
+                        )
+        return result
+
+    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride):
+        """Returns estimated impact of avg pool layer on output of network.
+
+        :param Interval self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param Interval activation: estimated activation of input
+        :param activation_shape: shape of activation in format (batch size,
+                                 number of channels, height, width)
+        :type activation_shape: tuple of 4 integers
+        :param pair of integers poolsize: pool size in format (height, width)
+        :param pair of integers stride: stride of max pool
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """

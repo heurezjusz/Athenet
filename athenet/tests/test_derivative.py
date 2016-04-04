@@ -127,9 +127,12 @@ class ConvolutionalDerivativeTest(DerivativeTest):
     pass
 
 
-class PoolDerivativeTest(DerivativeTest):
+class MaxPoolDerivativeTest(DerivativeTest):
     pass
 
+
+class AvgPoolDerivativeTest(DerivativeTest):
+    pass
 
 class SoftmaxDerivativeTest(DerivativeTest):
 

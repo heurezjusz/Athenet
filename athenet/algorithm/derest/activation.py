@@ -182,11 +182,10 @@ def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     # fh, fw - pool height, pool width
     fh, fw = poolsize
     stride_h, stride_w = stride
-    input_type = type(layer_input)
     output_h = (h - fh) / stride_h + 1
     output_w = (w - fw) / stride_w + 1
     output_shp = (n_out, output_h, output_w)
-    result = input_type.from_shape(output_shp, neutral=True)
+    result = layer_input.from_shape(output_shp, neutral=True)
     for at_h in xrange(0, h - fh + 1, stride_h):
         # at_out_h - height of output corresponding to pool at position at_h
         at_out_h = at_h / stride_h
