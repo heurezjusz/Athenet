@@ -20,24 +20,26 @@ class ImageNetDataLoader(DataLoader):
     mean_rgb = [123, 117, 104]
     verbosity = 0
 
-    def __init__(self, year, buffer_size=1, train_data=True, val_data=True,
-                 val_size=None, reverse_training=True,
+    def __init__(self, year, image_shape, buffer_size=1, train_data=True,
+                 val_data=True, val_size=None, reverse_training=True,
                  reverse_validation=True):
         """Create ImageNet data loader.
 
-        :year: Specifies which year's data should be loaded.
-        :buffer_size: Number of batches to be stored in memory.
-        :train_data: Specifies whether to load training data.
-        :val_data: Specifies whether to load validation data.
-        :val_size: Maximal size of validation data. If None, then all
-                   validation data will be used. Otherwise, val_size images
-                   will be chosen randomly from the whole set.
-        :reverse: When set on True, reversed copies of images will be
-                  attached to train and validaton data
+        :param year: Specifies which year's data should be loaded.
+        :param image_shape: Image shape in format (height, width).
+        :param buffer_size: Number of batches to be stored in memory.
+        :param train_data: Specifies whether to load training data.
+        :param val_data: Specifies whether to load validation data.
+        :param val_size: Maximal size of validation data. If None, then all
+                         validation data will be used. Otherwise, val_size
+                         images will be chosen randomly from the whole set.
+        :param reverse: When set on True, reversed copies of images will be
+                        attached to train and validaton data
         """
         super(ImageNetDataLoader, self).__init__()
         self.buffer_size = buffer_size
         self.shuffle_train_data = True
+        self._height, self._width = image_shape
 
         base_name = self.name_prefix + str(year)
         self.train_name = base_name + self.train_suffix
@@ -66,7 +68,6 @@ class ImageNetDataLoader(DataLoader):
             self.train_set_size = len(answers)
 
         if val_data:
-            files = os.listdir(get_bin_path(self.val_name))
             answers = OrderedDict()
             with open(get_data_path(self.val_name + '.txt'), 'rb') as f:
                 while True:
@@ -100,7 +101,7 @@ class ImageNetDataLoader(DataLoader):
     def _get_img(self, filename, reverse):
         img = misc.imread(get_bin_path(filename))
         img = np.rollaxis(img, 2)
-        img = img.reshape((1, 3, 227, 227))
+        img = img.reshape((1, 3, self._height, self._width))
         result = np.asarray(img, dtype=theano.config.floatX)
         if reverse:
             return result[..., ::-1]
@@ -114,8 +115,7 @@ class ImageNetDataLoader(DataLoader):
             r -= self.mean_rgb[0]
             g -= self.mean_rgb[1]
             b -= self.mean_rgb[2]
-            img = np.concatenate([b, g, r], axis=1)
-            img = img[:, :, :, :]
+            img = np.concatenate([r, g, b], axis=1)
             imgs += [img]
         return np.asarray(np.concatenate(imgs, axis=0),
                           dtype=theano.config.floatX)

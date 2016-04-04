@@ -62,3 +62,6 @@ data/
 
 # Binary data files
 bin/
+
+# Pycharm
+.idea/
