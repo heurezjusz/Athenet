@@ -139,7 +139,8 @@ def cudnn_available():
         return False
 
 
-def reshape_for_padding(layer_input, image_shape, batch_size, padding):
+def reshape_for_padding(layer_input, image_shape, batch_size, padding,
+                        value=0.0):
     """Returns padded tensor.
 
     :param theano.tensor4 layer_input: input in shape
@@ -149,6 +150,7 @@ def reshape_for_padding(layer_input, image_shape, batch_size, padding):
                                           (height, width, number of channels)
     :param integer batch_size: size of input batch size
     :param pair of integers padding: padding to be applied to layer_input
+    :param float value: value of new fields
     :returns: padded layer_input
     :rtype: theano.tensor4
 
@@ -161,7 +163,7 @@ def reshape_for_padding(layer_input, image_shape, batch_size, padding):
     h_in = h + 2*pad_h
     w_in = w + 2*pad_w
 
-    extra_pixels = T.alloc(numpy.array(0., dtype=theano.config.floatX),
+    extra_pixels = T.alloc(numpy.array(value, dtype=theano.config.floatX),
                            batch_size, n_channels, h_in, w_in)
     extra_pixels = T.set_subtensor(
         extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], layer_input)
