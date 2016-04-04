@@ -649,7 +649,7 @@ class Interval(Numlike):
                                     neigh_slice = activation[:, :,
                                                              at_f_h_neigh,
                                                              at_f_w_neigh]
-                                    neigh_max_itv =\
+                                    neigh_max_itv = \
                                         neigh_max_itv.max(neigh_slice)
                         # must have impact on output
                         low_gt_neigh_max_upp = \
