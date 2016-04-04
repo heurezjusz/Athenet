@@ -140,11 +140,13 @@ class NumlikeTest(unittest.TestCase):
 
     @raises(NotImplementedError)
     def test_op_d_max_pool(self):
-        _ = Numlike().op_d_max_pool(Numlike(), (2, 2, 2, 2), (3, 3), (3, 3))
+        _ = Numlike().op_d_max_pool(Numlike(), (2, 2, 2, 2), (3, 3), (3, 3),
+                                    (1, 1))
 
     @raises(NotImplementedError)
     def test_op_d_avg_pool(self):
-        _ = Numlike().op_d_avg_pool(Numlike(), (2, 2, 2, 2), (3, 3), (3, 3))
+        _ = Numlike().op_d_avg_pool(Numlike(), (2, 2, 2, 2), (3, 3), (3, 3),
+                                    (1, 1))
 
     @raises(NotImplementedError)
     def test_derest_output(self):

@@ -734,7 +734,22 @@ class Interval(Numlike):
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
-        raise NotImplementedError
+        n_batches, n_in, h, w = activation_shape
+        pad_h, pad_w = padding
+        activation = activation.reshape_for_padding(activation_shape, padding,
+                                                    lower_val=-numpy.inf,
+                                                    upper_val=-numpy.inf)
+        activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        h += 2 * pad_h
+        w += 2 * pad_w
+        # n_batches, n_in, h, w - number of batches, number of channels,
+        #                         image height, image width
+        # fh, fw - pool height, pool width
+        fh, fw = poolsize
+        stride_h, stride_w = stride
+        output = self
+        result = activation.from_shape(activation_shape, neutral=True)
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     @staticmethod
     def derest_output(n_outputs):
