@@ -62,7 +62,7 @@ def delete_weights_by_global_fraction(layers, zeroed_weights_fraction,
          for layer_importance_indicators in importance_indicators])
 
     percentile = numpy.percentile(flattened_importance_indicators,
-                               (1 - zeroed_weights_fraction) * 100)
+                                  (1 - zeroed_weights_fraction) * 100)
 
     for layer, ord in zip(layers, importance_indicators):
         weights = layer.W

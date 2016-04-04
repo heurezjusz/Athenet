@@ -84,9 +84,9 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     """
 
     conv_layers = [layer for layer in network.weighted_layers
-                   if len(layer.W.shape) == 4] # only for convolutional layers
+                   if len(layer.W.shape) == 4]  # only for convolutional layers
     filter_indicators = get_filters_indicators(conv_layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(conv_layers)
     delete_weights_by_layer_fractions(conv_layers, fraction,
-                                 filter_indicators * smallest_indicators)
+                                      filter_indicators * smallest_indicators)

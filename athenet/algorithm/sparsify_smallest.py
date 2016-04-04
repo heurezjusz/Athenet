@@ -5,23 +5,61 @@ from athenet.algorithm.deleting import delete_weights_by_layer_fractions,\
 
 
 def get_smallest_indicators(layers):
+    """
+    Return indicators of smallest weights in layers.
+
+    This function, for a given set of layers,
+    computes importance indicators for every weight
+    based on how big it is.
+    Smaller weights will be marked as more likely to delete.
+
+    :param iterable layers: layers to get indicators for
+    :return: indicators
+    """
+
     return numpy.array([1 - abs(layer.W) for layer in layers])
 
 
 def get_nearest_to_global_mean_indicators(layers):
+    """
+    Return indicators of weights in layers nearest
+    to global weight mean.
+
+    This function, for a given set of layers, computes global weights mean
+    and returns importance indicators for every weight
+    based on how close to global mean it is.
+    Weights closest to global mean will be marked as more likely to delete.
+
+    :param iterable layers: layers to get indicators for
+    :return: indicators
+    """
+
     weights = numpy.concatenate(
         [layer.W.flatten() for layer in layers])
     mean = numpy.mean(weights)
     return numpy.array([abs(mean - layer.W) for layer in layers])
 
 
-def get_nearest_to_layer_mean_indicators(layer):
+def _get_nearest_to_layer_mean_indicators(layer):
     mean = numpy.mean(layer.W)
     return abs(mean - layer.W)
 
 
 def get_nearest_to_layers_mean_indicators(layers):
-    return numpy.array([get_nearest_to_layer_mean_indicators(layer)
+    """
+    Return indicators of weights in layers nearest
+    to layer weight mean.
+
+    This function, for every given layer, computes weights mean
+    and returns importance indicators for every weight
+    based on how close to it's layer mean it is.
+    Weights closest to it's layer mean will be marked as more likely to delete.
+
+    :param iterable layers: layers to get indicators for
+    :return: indicators
+    """
+
+    return numpy.array([_get_nearest_to_layer_mean_indicators(layer)
                         for layer in layers])
 
 
@@ -38,9 +76,10 @@ def sparsify_smallest_on_network(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         percentage of weights to be changed to zeros
     """
+
     indicators = get_smallest_indicators(network.weighted_layers)
     delete_weights_by_global_fraction(network.weighted_layers,
-                                 zeroed_weights_fraction, indicators)
+                                      zeroed_weights_fraction, indicators)
 
 
 def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
@@ -56,10 +95,11 @@ def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changes to zeros
     """
+
     indicators = get_nearest_to_global_mean_indicators(
         network.weighted_layers)
     delete_weights_by_global_fraction(network.weighted_layers,
-                                 zeroed_weights_fraction, indicators)
+                                      zeroed_weights_fraction, indicators)
 
 
 def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
@@ -73,6 +113,7 @@ def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changed to zeros
     """
+
     layers = network.weighted_layers
     indicators = get_smallest_indicators(layers)
     fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
@@ -91,6 +132,7 @@ def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
     :param float zeroed_weights_fraction:
         fraction of weights to be changed to zeros
     """
+
     layers = network.weighted_layers
     indicators = get_nearest_to_layers_mean_indicators(layers)
     fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
