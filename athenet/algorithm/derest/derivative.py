@@ -7,6 +7,7 @@ Every entity in batches store impact on different output of network.
 """
 
 from athenet.algorithm.numlike import Numlike, assert_numlike
+from athenet.utils.misc import reshape_for_padding
 
 # TODO: All functions below will be implemented.
 
@@ -77,7 +78,7 @@ def d_norm(output, activation):
 
 
 def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
-           mode="max"):
+           padding=(0, 0), mode="max"):
     # TODO: all
     """Returns estimated impact of pool layer on output of network.
 
@@ -89,7 +90,8 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
                              (batch size, number of channels, height, width)
     :type activation_shape: tuple of 4 integers
     :param pair of integers poolsize: pool size in format (height, width)
-    :param pair of integers stride: stride of max pool
+    :param pair of integers stride: stride of pool
+    :param pair of integers padding: padding of pool
     :param 'max' or 'avg' mode: specifies whether it is max pool or average
                                 pool
     :returns: Estimated impact of input on output of network
@@ -97,15 +99,20 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
     """
     assert_numlike(activation)
     assert_numlike(output)
-    if mode not in ["max", "avg"]:
+    if mode not in ['max', 'avg']:
         raise ValueError("pool mode should be 'max' or 'avg'")
-    is_max = mode == "max"
+    is_max = mode == 'max'
+    n_batches, n_in, h, w = activation_shape
+    pad_h, pad_w = padding
+    padded_activation = reshape_for_padding(activation, (n_in, h, w),
+                                            n_batches, padding)
+    activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
     if is_max:
-        res = output.op_d_max_pool(activation, activation_shape, poolsize,
-                                   stride)
+        res = output.op_d_max_pool(padded_activation, activation_shape,
+                                   poolsize, stride)
     else:
-        res = output.op_d_avg_pool(activation, activation_shape, poolsize,
-                                   stride)
+        res = output.op_d_avg_pool(padded_activation, activation_shape,
+                                   poolsize, stride)
     return res
 
 

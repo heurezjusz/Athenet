@@ -133,8 +133,11 @@ class Nplike(Numlike):
     def op_d_relu(self, *args):
         return super(Nplike, self).op_d_relu(*args)
 
-    def op_d_pool(self, *args):
-        return super(Nplike, self).op_d_pool(*args)
+    def op_d_max_pool(self, *args):
+        return super(Nplike, self).op_d_max_pool(*args)
+
+    def op_d_avg_pool(self, *args):
+        return super(Nplike, self).op_d_avg_pool(*args)
 
     @staticmethod
     def derest_output(self, *args):

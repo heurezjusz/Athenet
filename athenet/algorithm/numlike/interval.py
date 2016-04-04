@@ -637,8 +637,8 @@ class Interval(Numlike):
                 for at_f_h in xrange(at_h, at_h + fh):
                     for at_f_w in xrange(at_w, at_w + fw):
                         # maximum lower and upper of neighbours
-                        neigh_max_low = T.shared(-numpy.inf)
-                        neigh_max_upp = T.shared(-numpy.inf)
+                        neigh_max_low = shared(-numpy.inf)
+                        neigh_max_upp = shared(-numpy.inf)
                         neigh_max_itv = Interval(neigh_max_low, neigh_max_upp)
                         act_slice = activation[:, :, at_f_h, at_f_w]
                         # setting maximum lower and upper of neighbours
@@ -649,8 +649,8 @@ class Interval(Numlike):
                                     neigh_slice = activation[:, :,
                                                              at_f_h_neigh,
                                                              at_f_w_neigh]
-                                    neigh_max_itv = T.maximum(neigh_max_itv,
-                                                              neigh_slice)
+                                    neigh_max_itv =\
+                                        neigh_max_itv.max(neigh_slice)
                         # must have impact on output
                         low_gt_neigh_max_upp = \
                             T.gt(act_slice.lower, neigh_max_itv.upper)
@@ -658,26 +658,31 @@ class Interval(Numlike):
                         upp_gt_neigh_max_low = \
                             T.gt(act_slice.upper, neigh_max_itv.lower)
                         # might have impact on output
-                        mixed_low = T.minimum(output.lower, 0.0)
-                        mixed_upp = T.minimum(output.upper, 0.0)
-                        result.lower[:, :, at_f_h, at_f_w] += T.switch(
+                        output_slice = output[:, :, at_out_h, at_out_w]
+                        mixed_low = T.minimum(output_slice.lower, 0.0)
+                        mixed_upp = T.maximum(output_slice.upper, 0.0)
+                        to_add_low = T.switch(
                             low_gt_neigh_max_upp,
-                            output.lower[:, :, at_out_h, at_out_w],
+                            output_slice.lower,
                             T.switch(
                                 upp_gt_neigh_max_low,
                                 mixed_low,
-                                0.0
+                                T.zeros_like(mixed_low)
                             )
                         )
-                        result.upper[:, :, at_f_h, at_f_w] += T.switch(
+                        to_add_upp = T.switch(
                             low_gt_neigh_max_upp,
-                            output.upper[:, :, output_h, output_w],
+                            output_slice.upper,
                             T.switch(
                                 upp_gt_neigh_max_low,
                                 mixed_upp,
-                                0.0
+                                T.zeros_like(mixed_upp)
                             )
                         )
+                        itv_to_add = Interval(to_add_low, to_add_upp)
+                        result[:, :, at_f_h, at_f_w] = \
+                            result[:, :, at_f_h, at_f_w] + itv_to_add
+
         return result
 
     def op_d_avg_pool(self, activation, activation_shape, poolsize, stride):

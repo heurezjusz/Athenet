@@ -25,6 +25,11 @@ def thv(x):
     return theano.shared(np.array(x, dtype=float))
 
 
+def ithv(x):
+    v = thv(x)
+    return Itv(v, v)
+
+
 class DerivativeTest(unittest.TestCase):
 
     def prepare(self):
@@ -128,11 +133,101 @@ class ConvolutionalDerivativeTest(DerivativeTest):
 
 
 class MaxPoolDerivativeTest(DerivativeTest):
-    pass
+
+    def test_simple(self):
+        inpl = thv([[[[1, 1], [1, 1]]]])
+        inpu = thv([[[[2, 2], [2, 2]]]])
+        iinp = Itv(inpl, inpu)
+        idout = ithv([[[[5]]]])
+        shp = (1, 1, 2, 2)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
+        l, u = din.eval()
+        arae(l, A([[[[0, 0], [0, 0]]]]))
+        arae(u, A([[[[5, 5], [5, 5]]]]))
+
+    def test_neg_output(self):
+        inpl = thv([[[[1, 1], [1, 1]]]])
+        inpu = thv([[[[2, 2], [2, 2]]]])
+        iinp = Itv(inpl, inpu)
+        idout = ithv([[[[-3]]]])
+        shp = (1, 1, 2, 2)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
+        l, u = din.eval()
+        arae(l, A([[[[-3, -3], [-3, -3]]]]))
+        arae(u, A([[[[0, 0], [0, 0]]]]))
+
+    def test_2D(self):
+        inpl = thv([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inpu = thv([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        iinp = Itv(inpl, inpu)
+        doutl = thv([[[[-1, -2], [-3, -4]]]])
+        doutu = thv([[[[5, 4], [3, 2]]]])
+        idout = Itv(doutl, doutu)
+        shp = (1, 1, 3, 3)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
+        l, u = din.eval()
+        arae(l, A([[[[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]]]]))
+        arae(u, A([[[[5, 9, 4], [8, 14, 6], [3, 5, 2]]]]))
+
+    def test_channels_batch(self):
+        inpl = thv([[
+                     [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                     [[0, 0, 0], [0, 0, 0], [3, 1, 1]]
+                     ],
+                    [
+                     [[0, 3, 3], [4, 5, 6], [7, 8, 4]],
+                     [[-3, -3, -3], [-3, -3, -3], [3, 3, 3]]
+                    ]])
+        inpu = thv([[
+                     [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+                     [[1, 1, 1], [1, 2, 2], [4, 2, 2]]
+                    ],
+                    [
+                     [[2, 4, 4], [9, 9, 9], [9, 9, 9]],
+                     [[2, 2, 2], [2, 2, 2], [5, 5, 5]]
+                    ]])
+        iinp = Itv(inpl, inpu)
+        doutl = thv([[
+                      [[-1, -2], [-3, -4]],
+                      [[0, 1], [2, 3]]
+                     ],
+                     [
+                      [[1, 2], [-3, -2]],
+                      [[4, 4], [4, 4]]
+                     ]])
+        doutu = thv([[
+                      [[5, 4], [3, 2]],
+                      [[7, 6], [5, 4]],
+                     ],
+                     [
+                      [[4, 5], [0, 1]],
+                      [[4, 4], [4, 4]]
+                     ]])
+        idout = Itv(doutl, doutu)
+        shp = (2, 2, 3, 3)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
+        l, u = din.eval()
+        arae(l, A([[
+                    [[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]],
+                    [[]]
+                   ],
+                   [
+
+                   ]]))
+        arae(u, A([[[[5, 9, 4], [8, 14, 6], [3, 5, 2]]]]))
+
+    def test_stride(self):
+        # TODO
+        pass
+
+    def test_padding(self):
+        # TODO
+        pass
 
 
 class AvgPoolDerivativeTest(DerivativeTest):
     pass
+
 
 class SoftmaxDerivativeTest(DerivativeTest):
 

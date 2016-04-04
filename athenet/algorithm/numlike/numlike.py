@@ -281,13 +281,37 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def op_d_pool(self, activation):
-        """Returns estimated impact of pool layer on output of network.
+    def op_d_max_pool(self, activation, activation_shape, poolsize, stride):
+        """Returns estimated impact of max pool layer on output of network.
 
         :param Numlike self: estimated impact of output of layer on output
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Numlike activation: estimated activation of input
+        :param activation_shape: shape of activation in format (batch size,
+                                 number of channels, height, width)
+        :type activation_shape: tuple of 4 integers
+        :param pair of integers poolsize: pool size in format (height, width),
+                                          not equal (1, 1)
+        :param pair of integers stride: stride of max pool
+        :returns: Estimated impact of input on output of network
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride):
+        """Returns estimated impact of avg pool layer on output of network.
+
+        :param Numlike self: estimated impact of output of layer on output
+                               of network in shape (batch_size, number of
+                               channels, height, width)
+        :param Numlike activation: estimated activation of input
+        :param activation_shape: shape of activation in format (batch size,
+                                 number of channels, height, width)
+        :type activation_shape: tuple of 4 integers
+        :param pair of integers poolsize: pool size in format (height, width),
+                                          not equal (1, 1)
+        :param pair of integers stride: stride of avg pool
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
