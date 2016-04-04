@@ -1,7 +1,7 @@
 import numpy
 
-from athenet.algorithm.utils import set_zeros_by_layer_fractions,\
-    set_zeros_by_global_fraction
+from athenet.algorithm.deleting import delete_weights_by_layer_fractions,\
+    delete_weights_by_global_fraction
 
 
 def get_smallest_indicators(layers):
@@ -39,7 +39,7 @@ def sparsify_smallest_on_network(network, zeroed_weights_fraction):
         percentage of weights to be changed to zeros
     """
     indicators = get_smallest_indicators(network.weighted_layers)
-    set_zeros_by_global_fraction(network.weighted_layers,
+    delete_weights_by_global_fraction(network.weighted_layers,
                                  zeroed_weights_fraction, indicators)
 
 
@@ -58,7 +58,7 @@ def sparsify_nearest_to_network_mean(network, zeroed_weights_fraction):
     """
     indicators = get_nearest_to_global_mean_indicators(
         network.weighted_layers)
-    set_zeros_by_global_fraction(network.weighted_layers,
+    delete_weights_by_global_fraction(network.weighted_layers,
                                  zeroed_weights_fraction, indicators)
 
 
@@ -76,7 +76,7 @@ def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
     layers = network.weighted_layers
     indicators = get_smallest_indicators(layers)
     fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
-    set_zeros_by_layer_fractions(layers, fractions, indicators)
+    delete_weights_by_layer_fractions(layers, fractions, indicators)
 
 
 def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
@@ -94,4 +94,4 @@ def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
     layers = network.weighted_layers
     indicators = get_nearest_to_layers_mean_indicators(layers)
     fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
-    set_zeros_by_layer_fractions(layers, fractions, indicators)
+    delete_weights_by_layer_fractions(layers, fractions, indicators)

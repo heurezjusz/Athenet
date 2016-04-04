@@ -2,11 +2,11 @@ import numpy
 import cv2
 
 from athenet.layers.conv import ConvolutionalLayer
-from athenet.algorithm.utils import set_zeros_by_global_fraction
+from athenet.algorithm.deleting import delete_weights_by_layer_fractions
 from athenet.algorithm.sparsify_smallest import get_smallest_indicators
 
 
-def get_noise_indicators(filter, bilateral_filter_args):
+def get_bilateral_noise_indicators(filter, bilateral_filter_args):
     """
     Returns possibility of being a noise .
 
@@ -28,13 +28,42 @@ def get_noise_indicators(filter, bilateral_filter_args):
 
 
 def get_filters_indicators_in_conv_layer(layer, bilateral_filter_args):
-    filter_indicator = lambda filter_3d: \
-        [get_noise_indicators(filter_2d, bilateral_filter_args)
-         for filter_2d in filter_3d]
+    """
+    Return indicators of being a noise for convolutional layer.
+
+    This function, for convolutional layer,
+    return indicators of being a noise
+    computed using bilateral filtering with given arguments
+    for every 2d filter
+
+    :param layer: convolutional layer
+    :param bilateral_filter_args: args for bilateral filtering
+    :type bilateral_filter_args: list or tuple
+    :return numpy.ndarray
+    """
+
+    def filter_indicator(filter_3d):
+        return [
+            get_bilateral_noise_indicators(filter_2d, bilateral_filter_args)
+            for filter_2d in filter_3d]
     return numpy.array([filter_indicator(filter_3d) for filter_3d in layer.W])
 
 
 def get_filters_indicators(layers, bilateral_filter_args):
+    """
+    Returns indicators of being a noise for layers.
+
+    This function, for every layer,
+    returns indicatos of being a noise
+    computed using bilateral filtering with given arguments
+    for every 2d filter in every layer
+
+    :param layers:
+    :type layers: list or numpy.array or tuple
+    :param bilateral_filter_args:args for bilateral filtering
+    :return: numpy.ndarray
+    """
+
     return numpy.array(
         [get_filters_indicators_in_conv_layer(layer, bilateral_filter_args)
          for layer in layers
@@ -53,10 +82,11 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     :param float fraction: fraction of weights to be changes to zeros
     :param bilateral_filter_args: args for bilateral filtering
     """
+
     conv_layers = [layer for layer in network.weighted_layers
                    if isinstance(layer, ConvolutionalLayer)]
     filter_indicators = get_filters_indicators(conv_layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(conv_layers)
-    set_zeros_by_global_fraction(conv_layers, fraction,
+    delete_weights_by_layer_fractions(conv_layers, fraction,
                                  filter_indicators * smallest_indicators)
