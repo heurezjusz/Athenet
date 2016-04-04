@@ -101,16 +101,12 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
     if mode not in ['max', 'avg']:
         raise ValueError("pool mode should be 'max' or 'avg'")
     is_max = mode == 'max'
-    n_batches, n_in, h, w = activation_shape
-    pad_h, pad_w = padding
-    activation = activation.reshape_for_padding(activation_shape, padding)
-    activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
     if is_max:
         res = output.op_d_max_pool(activation, activation_shape,
-                                   poolsize, stride)
+                                   poolsize, stride, padding)
     else:
         res = output.op_d_avg_pool(activation, activation_shape,
-                                   poolsize, stride)
+                                   poolsize, stride, padding)
     return res
 
 

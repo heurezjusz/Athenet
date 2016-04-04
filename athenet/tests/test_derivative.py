@@ -245,8 +245,18 @@ class MaxPoolDerivativeTest(DerivativeTest):
                      [0, 0, 0, 4, 4]]]]))
 
     def test_padding(self):
-        # TODO
-        pass
+        inpl = thv([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inpu = thv([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        iinp = Itv(inpl, inpu)
+        doutl = thv([[[[-1, -2], [-3, -4]]]])
+        doutu = thv([[[[5, 4], [3, 2]]]])
+        idout = Itv(doutl, doutu)
+        shp = (1, 1, 3, 3)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), padding=(1, 1),
+                     stride=(3, 3), mode='max')
+        l, u = din.eval()
+        arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
+        arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
 
 
 class AvgPoolDerivativeTest(DerivativeTest):

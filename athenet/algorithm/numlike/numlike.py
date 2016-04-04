@@ -293,7 +293,8 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def op_d_max_pool(self, activation, activation_shape, poolsize, stride):
+    def op_d_max_pool(self, activation, activation_shape, poolsize, stride,
+                      padding):
         """Returns estimated impact of max pool layer on output of network.
 
         :param Numlike self: estimated impact of output of layer on output
@@ -306,12 +307,14 @@ class Numlike(object):
         :param pair of integers poolsize: pool size in format (height, width),
                                           not equal (1, 1)
         :param pair of integers stride: stride of max pool
+        :param pair of integers padding: padding of max pool
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
         raise NotImplementedError
 
-    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride):
+    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride,
+                      padding):
         """Returns estimated impact of avg pool layer on output of network.
 
         :param Numlike self: estimated impact of output of layer on output
@@ -324,6 +327,7 @@ class Numlike(object):
         :param pair of integers poolsize: pool size in format (height, width),
                                           not equal (1, 1)
         :param pair of integers stride: stride of avg pool
+        :param pair of integers padding: padding of avg pool
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """

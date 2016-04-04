@@ -390,10 +390,10 @@ class Interval(Numlike):
             raise ValueError("lower_val > upper_val in newly created Interval")
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
-                        NEUTRAL_INTERVAL_UPPER
+                        DEFAULT_INTERVAL_LOWER
         if upper_val is None:
-            upper_val = DEFAULT_INTERVAL_LOWER if neutral else \
-                DEFAULT_INTERVAL_UPPER
+            upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
+                        DEFAULT_INTERVAL_UPPER
         lower_array = numpy.ndarray(shp)
         upper_array = numpy.ndarray(shp)
         lower_array.fill(lower_val)
@@ -402,21 +402,28 @@ class Interval(Numlike):
         upper = shared(upper_array)
         return Interval(lower, upper)
 
-    def reshape_for_padding(self, shape, padding):
+    def reshape_for_padding(self, shape, padding, lower_val=None,
+                            upper_val=None):
         """Returns padded Interval.
 
         :param tuple of 4 integers shape: shape of input in format
                                           (batch size, number of channels,
                                            height, width)
         :param pair of integers padding: padding to be applied
+        :param float lower_val: value of lower bound in new fields
+        :param float upper_val: value of upper bound in new fields
         :returns: padded layer_input
         :rtype: Interval
         """
+        if lower_val is None:
+            lower_val = NEUTRAL_INTERVAL_UPPER
+        if upper_val is None:
+            upper_val = NEUTRAL_INTERVAL_UPPER
         n_batches, n_in, h, w = shape
-        padded_low = misc_reshape_for_padding(self.lower, (n_in, h, w),
-                                              n_batches, padding)
-        padded_upp = misc_reshape_for_padding(self.upper, (n_in, h, w),
-                                              n_batches, padding)
+        padded_low = misc_reshape_for_padding(self.lower, (h, w, n_in),
+                                              n_batches, padding, lower_val)
+        padded_upp = misc_reshape_for_padding(self.upper, (h, w, n_in),
+                                              n_batches, padding, upper_val)
         return Interval(padded_low, padded_upp)
 
     def eval(self, eval_map=None):
@@ -617,7 +624,8 @@ class Interval(Numlike):
                          T.switch(upp_lt_zero, 0.0, T.maximum(out_upper, 0.0)))
         return Interval(lower, upper)
 
-    def op_d_max_pool(self, activation, activation_shape, poolsize, stride):
+    def op_d_max_pool(self, activation, activation_shape, poolsize, stride,
+                      padding):
         """Returns estimated impact of max pool layer on output of network.
 
         :param Interval self: estimated impact of output of layer on output
@@ -630,12 +638,20 @@ class Interval(Numlike):
         :param pair of integers poolsize: pool size in format (height, width),
                                           not equal (1, 1)
         :param pair of integers stride: stride of max pool
+        :param pair of integers padding: padding of max pool
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
+        n_batches, n_in, h, w = activation_shape
+        pad_h, pad_w = padding
+        activation = activation.reshape_for_padding(activation_shape, padding,
+                                                    lower_val=-numpy.inf,
+                                                    upper_val=-numpy.inf)
+        activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        h += 2 * pad_h
+        w += 2 * pad_w
         # n_batches, n_in, h, w - number of batches, number of channels,
         #                         image height, image width
-        n_batches, n_in, h, w = activation_shape
         # fh, fw - pool height, pool width
         fh, fw = poolsize
         stride_h, stride_w = stride
@@ -699,9 +715,10 @@ class Interval(Numlike):
                         result[:, :, at_f_h, at_f_w] = \
                             result[:, :, at_f_h, at_f_w] + itv_to_add
 
-        return result
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
-    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride):
+    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride,
+                      padding):
         """Returns estimated impact of avg pool layer on output of network.
 
         :param Interval self: estimated impact of output of layer on output
@@ -713,6 +730,7 @@ class Interval(Numlike):
         :type activation_shape: tuple of 4 integers
         :param pair of integers poolsize: pool size in format (height, width)
         :param pair of integers stride: stride of max pool
+        :param pair of integers padding: padding of avg pool
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
