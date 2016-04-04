@@ -719,7 +719,6 @@ class Interval(Numlike):
 
     def op_d_avg_pool(self, activation, activation_shape, poolsize, stride,
                       padding):
-        # TODO: tests
         """Returns estimated impact of avg pool layer on output of network.
 
         :param Interval self: estimated impact of output of layer on output
@@ -759,16 +758,16 @@ class Interval(Numlike):
                 # position at_w
                 at_out_w = at_w / stride_w
                 output_slice_low = output.lower[:, :, at_out_h, at_out_w]
-                output_slice_low = output_slice_low.dimshuffle('x', 'x', 0, 1)
+                output_slice_low = output_slice_low.dimshuffle(0, 1, 'x', 'x')
                 output_slice_low = T.addbroadcast(output_slice_low, 2, 3)
                 output_slice_upp = output.upper[:, :, at_out_h, at_out_w]
-                output_slice_upp = output_slice_upp.dimshuffle('x', 'x', 0, 1)
+                output_slice_upp = output_slice_upp.dimshuffle(0, 1, 'x', 'x')
                 output_slice_upp = T.addbroadcast(output_slice_upp, 2, 3)
                 result_slice = result[:, :, at_h:at_h + fh, at_w:at_w + fw]
                 new_slice_low = output_slice_low + result_slice.lower
                 new_slice_upp = output_slice_upp + result_slice.upper
-                slice_to_add = Interval(new_slice_low, new_slice_upp)
-                result[:, :, at_h:at_h + fh, at_w:at_w + fw] = slice_to_add
+                new_slice = Interval(new_slice_low, new_slice_upp)
+                result[:, :, at_h:at_h + fh, at_w:at_w + fw] = new_slice
         result = result * shared(1.0 / float(numpy.prod(poolsize)))
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
