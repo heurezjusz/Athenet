@@ -11,7 +11,8 @@ from theano import shared
 
 import numpy
 
-from athenet.utils.misc import convolution, reshape_for_padding
+from athenet.utils.misc import convolution, reshape_for_padding as \
+    misc_reshape_for_padding
 
 NEUTRAL_INTERVAL_LOWER = 0.0
 NEUTRAL_INTERVAL_UPPER = 0.0
@@ -401,6 +402,23 @@ class Interval(Numlike):
         upper = shared(upper_array)
         return Interval(lower, upper)
 
+    def reshape_for_padding(self, shape, padding):
+        """Returns padded Interval.
+
+        :param tuple of 4 integers shape: shape of input in format
+                                          (batch size, number of channels,
+                                           height, width)
+        :param pair of integers padding: padding to be applied
+        :returns: padded layer_input
+        :rtype: Interval
+        """
+        n_batches, n_in, h, w = shape
+        padded_low = misc_reshape_for_padding(self.lower, (n_in, h, w),
+                                              n_batches, padding)
+        padded_upp = misc_reshape_for_padding(self.upper, (n_in, h, w),
+                                              n_batches, padding)
+        return Interval(padded_low, padded_upp)
+
     def eval(self, eval_map=None):
         """Evaluates interval in terms of theano TensorType eval method.
 
@@ -558,10 +576,10 @@ class Interval(Numlike):
         args = (stride, n_groups, image_shape, padding, 1, filter_shape)
         input_lower = self.lower.dimshuffle('x', 0, 1, 2)
         input_upper = self.upper.dimshuffle('x', 0, 1, 2)
-        input_lower_padded = reshape_for_padding(input_lower, image_shape, 1,
-                                                 padding)
-        input_upper_padded = reshape_for_padding(input_upper, image_shape, 1,
-                                                 padding)
+        input_lower_padded = misc_reshape_for_padding(input_lower, image_shape,
+                                                      1, padding)
+        input_upper_padded = misc_reshape_for_padding(input_upper, image_shape,
+                                                      1, padding)
         weights_positive = T.maximum(weights, 0.)
         weights_negative = T.minimum(weights, 0.)
         conv_lower_positive = convolution(input_lower_padded, weights_positive,
@@ -622,8 +640,6 @@ class Interval(Numlike):
         fh, fw = poolsize
         stride_h, stride_w = stride
         output = self
-        output_h = (h - fh) / stride_h + 1
-        output_w = (w - fw) / stride_w + 1
         result = activation.from_shape(activation_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at

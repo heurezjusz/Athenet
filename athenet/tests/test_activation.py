@@ -602,7 +602,7 @@ class NormActivationTest(ActivationTest):
         aae(l[49, 0, 0], 0.1991, places=2)
         aae(l[51, 0, 0], 0.1991, places=2)
 
-    def test_bitoniicity_and_extremas_interval(self):
+    def test_bitonicity_and_extremas_interval(self):
         shp = (5, 1, 1)
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
         iinp = Itv(tinpl, tinpu)

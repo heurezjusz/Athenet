@@ -78,7 +78,7 @@ class NumlikeTest(unittest.TestCase):
         _ = Numlike().amax()
 
     @raises(NotImplementedError)
-    def test__hape(self):
+    def test_shape(self):
         _ = Numlike().reshape((1, 2, 3))
 
     @raises(NotImplementedError)
@@ -110,8 +110,45 @@ class NumlikeTest(unittest.TestCase):
         _ = Numlike.from_shape((3, 4), neutral=False)
 
     @raises(NotImplementedError)
+    def test_reshape_for_padding(self):
+        _ = Numlike().reshape_for_padding((1, 2, 3, 4), (2, 2))
+
+    @raises(NotImplementedError)
     def test_eval(self):
         _ = Numlike().eval()
+
+    @raises(NotImplementedError)
+    def test_op_relu(self):
+        _ = Numlike().op_relu()
+
+    @raises(NotImplementedError)
+    def test_op_softmax(self):
+        _ = Numlike().op_softmax(5)
+
+    @raises(NotImplementedError)
+    def test_op_norm(self):
+        _ = Numlike().op_norm((3, 3, 3, 3), 1, 1, 1, 1)
+
+    @raises(NotImplementedError)
+    def test_op_conv(self):
+        _ = Numlike().op_conv(Numlike(), (3, 3, 3), (3, 3, 3), Numlike(),
+                              (1, 1), (2, 2), 1)
+
+    @raises(NotImplementedError)
+    def test_op_d_relu(self):
+        _ = Numlike().op_d_relu(Numlike())
+
+    @raises(NotImplementedError)
+    def test_op_d_max_pool(self):
+        _ = Numlike().op_d_max_pool(Numlike(), (2, 2, 2, 2), (3, 3), (3, 3))
+
+    @raises(NotImplementedError)
+    def test_op_d_avg_pool(self):
+        _ = Numlike().op_d_avg_pool(Numlike(), (2, 2, 2, 2), (3, 3), (3, 3))
+
+    @raises(NotImplementedError)
+    def test_derest_output(self):
+        _ = Numlike.derest_output(3)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

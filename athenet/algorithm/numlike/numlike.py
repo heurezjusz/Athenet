@@ -203,6 +203,18 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def reshape_for_padding(self, shape, padding):
+        """Returns padded Numlike.
+
+        :param tuple of 4 integers shape: shape of input in format
+                                          (batch size, number of channels,
+                                           height, width)
+        :param pair of integers padding: padding to be applied
+        :returns: padded layer_input
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         raise NotImplementedError

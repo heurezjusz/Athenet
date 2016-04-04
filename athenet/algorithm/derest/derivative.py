@@ -7,7 +7,6 @@ Every entity in batches store impact on different output of network.
 """
 
 from athenet.algorithm.numlike import Numlike, assert_numlike
-from athenet.utils.misc import reshape_for_padding
 
 # TODO: All functions below will be implemented.
 
@@ -104,14 +103,13 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
     is_max = mode == 'max'
     n_batches, n_in, h, w = activation_shape
     pad_h, pad_w = padding
-    padded_activation = reshape_for_padding(activation, (n_in, h, w),
-                                            n_batches, padding)
+    activation = activation.reshape_for_padding(activation_shape, padding)
     activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
     if is_max:
-        res = output.op_d_max_pool(padded_activation, activation_shape,
+        res = output.op_d_max_pool(activation, activation_shape,
                                    poolsize, stride)
     else:
-        res = output.op_d_avg_pool(padded_activation, activation_shape,
+        res = output.op_d_avg_pool(activation, activation_shape,
                                    poolsize, stride)
     return res
 

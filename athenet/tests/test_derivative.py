@@ -225,8 +225,24 @@ class MaxPoolDerivativeTest(DerivativeTest):
                    ]]))
 
     def test_stride(self):
-        # TODO
-        pass
+        tinpl = theano.shared(np.arange(25).reshape((1, 1, 5, 5)))
+        tinpu = theano.shared(np.arange(25).reshape((1, 1, 5, 5)) + 2)
+        iinp = Itv(tinpl, tinpu)
+        idout = ithv([[[[-1, 2], [-3, 4]]]])
+        shp = (1, 1, 5, 5)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), stride=(3, 3),
+                     mode='max')
+        l, u = din.eval()
+        arae(l, A([[[[0, 0, 0, 0, 0],
+                     [-1, -1, 0, 0, 0],
+                     [0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0],
+                     [-3, -3, 0, 0, 0]]]]))
+        arae(u, A([[[[0, 0, 0, 0, 0],
+                     [0, 0, 0, 2, 2],
+                     [0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0],
+                     [0, 0, 0, 4, 4]]]]))
 
     def test_padding(self):
         # TODO
