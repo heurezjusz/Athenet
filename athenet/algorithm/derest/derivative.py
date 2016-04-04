@@ -77,8 +77,8 @@ def d_norm(output, activation):
 
 
 def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
-           padding=(0, 0), mode="max"):
-    # TODO: all
+           padding=(0, 0), mode='max'):
+    # TODO: avg_pool tests
     """Returns estimated impact of pool layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output

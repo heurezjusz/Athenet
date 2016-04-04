@@ -260,8 +260,19 @@ class MaxPoolDerivativeTest(DerivativeTest):
 
 
 class AvgPoolDerivativeTest(DerivativeTest):
-    pass
 
+    def test_simple(self):
+        inpl = thv([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inpu = thv([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        iinp = Itv(inpl, inpu)
+        doutl = thv([[[[-1, -2], [-3, -4]]]])
+        doutu = thv([[[[5, 4], [3, 2]]]])
+        idout = Itv(doutl, doutu)
+        shp = (1, 1, 3, 3)
+        din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='avg')
+        l, u = din.eval()
+        arae(l, A([[[[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]]]]) / 4.0)
+        arae(u, A([[[[5, 9, 4], [8, 14, 6], [3, 5, 2]]]]) / 4.0)
 
 class SoftmaxDerivativeTest(DerivativeTest):
 
