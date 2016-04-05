@@ -1,7 +1,6 @@
 import unittest
-from random import random
-
 import numpy as np
+from random import random
 from nose.tools import assert_equal, assert_true
 
 from athenet.algorithm.sparsify_smallest import sparsify_smallest_on_layers,\
@@ -46,7 +45,6 @@ class SparsifySmallestIndicatorsTest(unittest.TestCase):
 
 
 class SparsifySmallestTest(unittest.TestCase):
-    epsilon = 10 ** (-5)
 
     def setUp(self):
         self.network = get_random_network_mock()

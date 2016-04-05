@@ -1,7 +1,7 @@
 import numpy
 
 
-def delete_weights_in_layer_by_fraction(layer, fraction,
+def _delete_weights_in_layer_by_fraction(layer, fraction,
                                         importance_indicator):
     if fraction == 0:
         return
@@ -34,8 +34,8 @@ def delete_weights_by_layer_fractions(layers, fractions,
 
     for layer, fraction, importance_indicator \
             in zip(layers, fractions, importance_indicators):
-        delete_weights_in_layer_by_fraction(layer, fraction,
-                                            importance_indicator)
+        _delete_weights_in_layer_by_fraction(layer, fraction,
+                                             importance_indicator)
 
 
 def delete_weights_by_global_fraction(layers, zeroed_weights_fraction,

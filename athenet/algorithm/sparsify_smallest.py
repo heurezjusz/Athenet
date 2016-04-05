@@ -16,8 +16,7 @@ def get_smallest_indicators(layers):
     :param iterable layers: layers to get indicators for
     :return: indicators
     """
-
-    return numpy.array([1 - abs(layer.W) for layer in layers])
+    return numpy.array([1. / abs(layer.W) for layer in layers])
 
 
 def get_nearest_to_global_mean_indicators(layers):
@@ -37,12 +36,12 @@ def get_nearest_to_global_mean_indicators(layers):
     weights = numpy.concatenate(
         [layer.W.flatten() for layer in layers])
     mean = numpy.mean(weights)
-    return numpy.array([abs(mean - layer.W) for layer in layers])
+    return numpy.array([1. / abs(mean - layer.W) for layer in layers])
 
 
 def _get_nearest_to_layer_mean_indicators(layer):
     mean = numpy.mean(layer.W)
-    return abs(mean - layer.W)
+    return 1. / abs(mean - layer.W)
 
 
 def get_nearest_to_layers_mean_indicators(layers):
