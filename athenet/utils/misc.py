@@ -94,3 +94,51 @@ def zero_fraction(network):
         n_non_zero += numpy.count_nonzero(param)
     n_zero = n_fields - n_non_zero
     return (1.0 * n_zero) / (1.0 * n_fields)
+
+
+def count_zeros_in_layer(layer):
+    all_weights = layer.W.size
+    return all_weights - numpy.count_nonzero(layer.W), all_weights
+
+
+def count_zeros(network):
+    """Returns zeros in weights of Network.
+
+    Biases are not considered.
+
+    :param network: Network for which we count zeros.
+    :return: List of tuples (number of weights being zero, number of weights)
+        for each layer.
+    """
+    return [count_zeros_in_layer(layer) for layer in network.weighted_layers]
+
+len_prev = 0
+
+
+def overwrite(text='', length=None):
+    """Write text in a current line, overwriting previously written text.
+
+    Previously written text also needs to be written using this function for
+    it to work properly. Otherwise optional argument length can be given to
+    specify length of a previous text.
+
+    :param text: Text to be written.
+    :param length: Length of a previous text.
+    """
+    global len_prev
+    if length is None:
+        length = len_prev
+    print '\r' + ' '*length,
+    print '\r' + text,
+    len_prev = len(text)
+
+
+def cudnn_available():
+    """Check if cuDNN is available.
+
+    :return: True, if cuDNN is available, False otherwise.
+    """
+    try:
+        return theano.sandbox.cuda.dnn_available()
+    except:
+        return False

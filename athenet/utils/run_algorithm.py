@@ -6,7 +6,23 @@ import gzip
 import copy
 
 from athenet.utils import save_data_to_pickle, load_data_from_pickle, \
-    zero_fraction
+    count_zeros
+from athenet.utils.results import Results
+
+
+def get_error_rate(network):
+    if network.data_loader.test_data_available:
+        error_rate = 1.0 - network.test_accuracy()
+    elif network.data_loader.val_data_available:
+        error_rate = 1.0 - network.val_accuracy()
+    else:
+        raise Exception('test data and valid data not in Network')
+
+
+def run_test(network, algorithm, config):
+    algorithm(network, config)
+    zeros = count_zeros(network)
+    return zeros, get_error_rate(network)
 
 
 def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
@@ -25,36 +41,21 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     :verbose: If True, then progress of tests is being printed.
     :return: Dictionary {config: algorithm(neural_network, config)}.
     """
-    results = {}
-    if results_pkl:
-        try:
-            results = load_data_from_pickle(results_pkl)
-        except:
-            pass
+    save = results_pkl is not None
+    layers = neural_network.weighted_layers
+    results = Results(error_rate=get_error_rate(neural_network),
+                      weighted_layers=layers, weights=[100 for layer in layers],
+                      file=results_pkl)
     config_l = filter(lambda config: config not in results, config_l)
     n_of_cases = len(config_l)
     n_of_cases_passed = 0
     if verbose:
         print 'Cases to run:', n_of_cases
     for config in config_l:
-        transformed_net = copy.deepcopy(neural_network)
-        zeros_before = zero_fraction(transformed_net)
-        algorithm(transformed_net, config)
-        zeros_after = zero_fraction(transformed_net)
-        zeroed_fraction = zeros_after - zeros_before
-        error_rate = None
-        if transformed_net.data_loader.test_data_available:
-            error_rate = 1.0 - transformed_net.test_accuracy()
-        elif transformed_net.data_loader.val_data_available:
-            error_rate = 1.0 - transformed_net.val_accuracy()
-        else:
-            raise Exception('test data and valid data not in Network')
-        results[config] = (zeroed_fraction, error_rate)
+        results.add_new_test_result(config, run_test(copy.deepcopy(neural_network), algorithm, config), save)
         n_of_cases_passed += 1
         if verbose:
             print 'Cases passed:', n_of_cases_passed, '/', n_of_cases
-        if results_pkl:
-            save_data_to_pickle(results, results_pkl)
     if verbose:
         print 'Algorithm run successfully'
     return results
