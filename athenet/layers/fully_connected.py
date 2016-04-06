@@ -10,13 +10,13 @@ from athenet.layers import WeightedLayer
 
 class FullyConnectedLayer(WeightedLayer):
     """Fully connected layer."""
-    def __init__(self, n_out, n_in=None):
+    def __init__(self, n_out, n_in=None, input_layer_name=None, name='fc'):
         """Create fully connected layer.
 
-        n_out: Number of output neurons.
-        n_in: Number of input neurons.
+        :param integer n_out: Number of output neurons.
+        :param integer n_in: Number of input neurons.
         """
-        super(FullyConnectedLayer, self).__init__()
+        super(FullyConnectedLayer, self).__init__(input_layer_name, name)
         self._n_in = None
         self.W_shared = None
 
@@ -25,12 +25,11 @@ class FullyConnectedLayer(WeightedLayer):
 
     @property
     def n_in(self):
-        """Return number of input neurons."""
+        """Number of input neurons."""
         return self._n_in
 
     @n_in.setter
     def n_in(self, value):
-        """Set number of input neurons."""
         if not value or self._n_in == value:
             return
 
@@ -49,8 +48,6 @@ class FullyConnectedLayer(WeightedLayer):
         b_value = np.zeros((self.n_out,), dtype=theano.config.floatX)
         self.b_shared = theano.shared(b_value, borrow=True)
 
-        self.params = [self.W_shared, self.b_shared]
-
     @property
     def input_shape(self):
         return self.n_in
@@ -61,26 +58,25 @@ class FullyConnectedLayer(WeightedLayer):
 
     @property
     def output_shape(self):
-        """Return output shape."""
         return self.n_out
 
     def _reshape_input(self, raw_layer_input):
-        """Return input in the format that is suitable for this layer.
+        """Return input in the correct format for fully connected layer.
 
-        raw_layer_input: Input in the format (n_in, n_out) or compatible.
+        :param raw_layer_input: Input in the format (n_batches, n_in) or
+                                compatible.
+        :type raw_layer_input: pair of integers
         """
         return raw_layer_input.flatten(2)
 
     def _get_output(self, layer_input):
         """Return layer's output.
 
-        layer_input: Layer input.
+        :param layer_input: Input in the format (n_batches, n_in).
+        :return: Layer output.
         """
         return T.dot(self.input, self.W_shared) + self.b_shared
 
-    def get_output_shape(self, input_shape):
-        """Return output shape.
-
-        input_shape: Input shape.
-        """
-        return input_shape
+    def set_params(self, params):
+        self.W = params[0]
+        self.b = params[1]

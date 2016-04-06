@@ -51,7 +51,8 @@ coverage.xml
 *.log
 
 # Sphinx documentation
-docs/_build/
+docs/build/
+docs/source/athenet*
 
 # PyBuilder
 target/
@@ -61,3 +62,6 @@ data/
 
 # Binary data files
 bin/
+
+# Pycharm
+.idea/

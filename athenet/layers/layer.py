@@ -1,60 +1,76 @@
 """Layer and WeightedLayer."""
 
+import numpy as np
+
+import theano
+
 
 class Layer(object):
     """Network layer."""
-    def __init__(self):
+    def __init__(self, input_layer_name=None, name='layer'):
+        """Create layer.
+
+        :param input_layer_name: Optional name of input layer. If None, then
+                                 :class:`Network` will set preceding layer as
+                                 input layer.
+        :param name: Optional name of layer. If set, it can later be used as
+                     `input_layer_name` for another layer.
+        """
         self.output = None
         self.train_output = None
         self.cost = None
         self._input_shape = None
-
         self._input = None
         self._train_input = None
         self._input_layer = None
+        self.batch_size = None
+
+        self.name = name
+        self.input_layer_name = input_layer_name
 
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for given layer.
 
-        raw_layer_input: Layer input.
+        :param raw_layer_input: Layer input.
+        :return: Reshaped input.
         """
         return raw_layer_input
 
     def _get_output(self, layer_input):
         """Return layer's output.
 
-        layer_input: Layer input.
+        :param layer_input: Layer input.
+        :return: Layer output.
         """
         return layer_input
 
     def _get_train_output(self, layer_input):
         """Return layer's output used for training.
 
-        layer_input: Layer input.
+        :param layer_input: Layer input.
+        :return: Layer train output.
         """
         return self._get_output(layer_input)
 
     @property
     def input(self):
-        """Return layer input."""
+        """Layer input."""
         return self._input
 
     @input.setter
     def input(self, value):
-        """Set layer input."""
         self._input = self._reshape_input(value)
         self.output = self._get_output(self.input)
 
     @property
     def train_input(self):
-        """Return layer input used for training."""
+        """Layer input used for training."""
         if self._train_input:
             return self._train_input
         return self._input
 
     @train_input.setter
     def train_input(self, value):
-        """Set layer input used for training."""
         self._train_input = self._reshape_input(value)
         self.train_output = self._get_train_output(self.train_input)
 
@@ -68,17 +84,14 @@ class Layer(object):
 
     @property
     def output_shape(self):
-        """Return output shape."""
         return self.input_shape
 
     @property
     def input_layer(self):
-        """Return input layer."""
         return self._input_layer
 
     @input_layer.setter
     def input_layer(self, input_layer):
-        """Set input layer."""
         self._input_layer = input_layer
         self.input_shape = input_layer.output_shape
 
@@ -88,45 +101,55 @@ class Layer(object):
 
 class WeightedLayer(Layer):
     """Layer with weights and biases."""
-    def __init__(self):
-        """Create weighted layer.
-
-        weights: Array of weights's values
-        biases: Array of biases' values
-        """
-        super(WeightedLayer, self).__init__()
+    def __init__(self, input_layer_name=None, name='weight_layer'):
+        """Create weighted layer."""
+        super(WeightedLayer, self).__init__(input_layer_name, name)
         self.W_shared = None
         self.b_shared = None
-        self.params = None
+        self.W_velocity = None
+        self.b_velocity = None
 
     @property
     def W(self):
-        """Return copy of the layer's weights.
-
-        return: Array of weights' values
-        """
+        """Copy of layer's weights."""
         return self.W_shared.get_value()
 
     @W.setter
     def W(self, value):
-        """Set the layer's weights.
-
-        value: Array of weights' values
-        """
         self.W_shared.set_value(value)
 
     @property
     def b(self):
-        """Return copy of the layer's biases.
-
-        return: Array of biases' values
-        """
+        """Copy of the layer's biases."""
         return self.b_shared.get_value()
 
     @b.setter
     def b(self, value):
-        """Set the layer's biases.
-
-       value: Array of biases' values
-        """
         self.b_shared.set_value(value)
+
+    def set_params(self, params):
+        """Set layer's weights and biases.
+
+        :param params: Weights and biases. Exact format depends on layer type.
+        """
+        pass
+
+    def alloc_velocity(self):
+        """Create velocity tensors for weights and biases.
+
+        Velocity tensors have the same size as corresponding weights and biases
+        tensors, so note that creating velocities results in doubling size of
+        the layer.
+        Velocity tensors should be freed after training to save device memory.
+        """
+        self.W_velocity = theano.shared(
+            np.zeros_like(self.W, dtype=theano.config.floatX),
+            borrow=True)
+        self.b_velocity = theano.shared(
+            np.zeros_like(self.b, dtype=theano.config.floatX),
+            borrow=True)
+
+    def free_velocity(self):
+        """Remove velocity tensors."""
+        self.W_velocity = None
+        self.b_velocity = None

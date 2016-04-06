@@ -7,13 +7,15 @@ import gzip
 import urllib
 import numpy
 
+import theano
+
 from athenet.utils import BIN_DIR, DATA_DIR
 
 
 def load_data_from_pickle(filename):
     """Load data from pickle file.
 
-    :filename: File with pickled data, may be gzipped.
+    :param filename: File with pickled data, may be gzipped.
     :return: Data loaded from file.
     """
     try:
@@ -29,8 +31,8 @@ def load_data_from_pickle(filename):
 def save_data_to_pickle(data, filename):
     """Saves data to gzipped pickle file.
 
-    :data: Data to be saved.
-    :filename: Name of file to save data.
+    :param data: Data to be saved.
+    :param filename: Name of file to save data.
     """
     with gzip.open(filename, 'wb') as f:
         pickle.dump(data, f)
@@ -39,31 +41,38 @@ def save_data_to_pickle(data, filename):
 def load_data(filename, url=None):
     """Load data from file, download file if it doesn't exist.
 
-    :filename: File with pickled data, may be gzipped.
-    :url: Url for downloading file.
+    :param filename: File with pickled data, may be gzipped.
+    :param url: Url for downloading file.
     :return: Unpickled data.
     """
     if not os.path.isfile(filename):
         if not url:
             return None
-        else:
-            directory = os.path.dirname(filename)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-
-            print 'Downloading ' + os.path.basename(filename) + '...',
-            sys.stdout.flush()
-            urllib.urlretrieve(url, filename)
-            print 'Done'
+        download_file(filename, url)
 
     data = load_data_from_pickle(filename)
     return data
 
 
+def download_file(filename, url):
+    """Download file from given url.
+
+    :param filename: Name of a file to be downloaded.
+    :param url: Url for downloading file.
+    """
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    print 'Downloading ' + os.path.basename(filename) + '...',
+    sys.stdout.flush()
+    urllib.urlretrieve(url, filename)
+    print 'Done'
+
+
 def get_data_path(name):
     """Return absolute path to the data file.
 
-    :name: Name of the file.
+    :param name: Name of the file.
     :return: Full path to the file.
     """
     return os.path.join(DATA_DIR, name)
@@ -72,7 +81,7 @@ def get_data_path(name):
 def get_bin_path(name):
     """Return absolute path to the binary data file.
 
-    :name: Name of the file.
+    :param name: Name of the file.
     :return: Full path to the file.
     """
     return os.path.join(BIN_DIR, name)
@@ -83,7 +92,7 @@ def zero_fraction(network):
 
     Biases are not considered.
 
-    :network: Network for which we count fraction of zeros.
+    :param network: Network for which we count fraction of zeros.
     :return: Fraction of zeros.
     """
     params = [layer.W for layer in network.weighted_layers]

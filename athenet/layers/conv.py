@@ -4,7 +4,6 @@ import numpy as np
 
 import theano
 import theano.tensor as T
-from theano.tensor.nnet import conv
 
 from athenet.layers import WeightedLayer
 
@@ -12,40 +11,37 @@ from athenet.layers import WeightedLayer
 class ConvolutionalLayer(WeightedLayer):
     """Convolutional layer."""
     def __init__(self, filter_shape, image_shape=None, stride=(1, 1),
-                 padding=(0, 0), n_groups=1, batch_size=1):
+                 padding=(0, 0), n_groups=1, input_layer_name=None,
+                 name='conv'):
         """Create convolutional layer.
 
-        filter_shape: Filter shape in the format
-                      (filter height, filter width, number of filters).
-        image_shape: Image shape in the format
-                     (image height, image width, number of channels).
-        stride: Tuple representing interval at which to apply the filters.
-        padding: Tuple representing number of zero-valued pixels to add on
-                 each side of the input.
-        n_groups: Number of groups which input and output channels will be
-                  split into. Two channels are connected only if they belong
-                  to the same group.
-        batch_size: Minibatch size.
+        :param filter_shape: Filter shape in the format
+                             (filter height, filter width, number of filters).
+        :param image_shape: Image shape in the format
+                            (image height, image width, number of channels).
+        :param stride: Pair representing interval at which to apply the
+                       filters.
+        :param padding: Pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :param n_groups: Number of groups input and output channels will be
+                         split into. Two channels are connected only if they
+                         belong to the same group.
         """
-        super(ConvolutionalLayer, self).__init__()
+        super(ConvolutionalLayer, self).__init__(input_layer_name, name)
         self._image_shape = None
 
         self.filter_shape = filter_shape
         self.stride = stride
         self.padding = padding
         self.n_groups = n_groups
-        self.batch_size = batch_size
-
         self.image_shape = image_shape
 
     @property
     def image_shape(self):
-        """Return image shape."""
         return self._image_shape
 
     @image_shape.setter
     def image_shape(self, value):
-        """Set image shape."""
         if not value or self._image_shape == value:
             return
         self._image_shape = value
@@ -65,10 +61,8 @@ class ConvolutionalLayer(WeightedLayer):
         )
         self.W_shared = theano.shared(W_value, borrow=True)
 
-        b_values = np.zeros((n_filters,), dtype=theano.config.floatX)
-        self.b_shared = theano.shared(b_values, borrow=True)
-
-        self.params = [self.W_shared, self.b_shared]
+        b_value = np.zeros((n_filters,), dtype=theano.config.floatX)
+        self.b_shared = theano.shared(b_value, borrow=True)
 
     @property
     def input_shape(self):
@@ -80,7 +74,6 @@ class ConvolutionalLayer(WeightedLayer):
 
     @property
     def output_shape(self):
-        """Return output shape."""
         image_h, image_w, n_channels = self.image_shape
         pad_h, pad_w = self.padding
         image_h += 2 * pad_h
@@ -95,29 +88,32 @@ class ConvolutionalLayer(WeightedLayer):
     def _reshape_input(self, raw_layer_input):
         """Return input in the correct format for convolutional layer.
 
-        raw_layer_input: Input in the format (batch size, number of channels,
-                                              image height, image width) or
-                         compatible.
+        :param raw_layer_input: Input in the format
+                                (batch size, number of channels,
+                                 image height, image width).
         """
-        h, w, n_channels = self.image_shape
-        conv_image_shape = (self.batch_size, n_channels, h, w)
-        reshaped_input = raw_layer_input.reshape(conv_image_shape)
+        if self.padding == (0, 0):
+            return raw_layer_input
 
+        h, w, n_channels = self.image_shape
         pad_h, pad_w = self.padding
         h_in = h + 2*pad_h
         w_in = w + 2*pad_w
-        shape = (self.batch_size, n_channels, h_in, w_in)
 
-        val = np.zeros(shape=shape, dtype=theano.config.floatX)
-        extra_pixels = T.alloc(val, shape[0], shape[1], shape[2], shape[3])
+        extra_pixels = T.alloc(
+            np.array(0., dtype=theano.config.floatX),
+            raw_layer_input.shape[0], n_channels, h_in, w_in)
         extra_pixels = T.set_subtensor(
-            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], reshaped_input)
+            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], raw_layer_input)
         return extra_pixels
 
     def _get_output(self, layer_input):
         """Return layer's output.
 
-        layer_input: Layer input.
+        :param layer_input: Input in the format
+                            (batch size, number of channels,
+                             image height, image width).
+        :return: Layer output.
         """
         n_channels = self.image_shape[2]
         n_filters = self.filter_shape[2]
@@ -125,25 +121,30 @@ class ConvolutionalLayer(WeightedLayer):
         n_group_channels = n_channels / self.n_groups
         n_group_filters = n_filters / self.n_groups
 
-        h, w = self.image_shape[0:2]
-        pad_h, pad_w = self.padding
-        group_image_shape = (self.batch_size, n_group_channels,
-                             h + 2*pad_h, w + 2*pad_w)
+        if self.batch_size is None:
+            group_input_shape = None
+            group_filter_shape = None
+        else:
+            h, w = self.image_shape[0:2]
+            pad_h, pad_w = self.padding
+            group_input_shape = (self.batch_size, n_group_channels,
+                                 h + 2*pad_h, w + 2*pad_w)
 
-        h, w = self.filter_shape[0:2]
-        group_filter_shape = (n_group_filters, n_group_channels, h, w)
+            h, w = self.filter_shape[0:2]
+            group_filter_shape = (n_group_filters, n_group_channels, h, w)
 
-        conv_outputs = []
-        for i in xrange(self.n_groups):
-            conv_outputs += [conv.conv2d(
-                input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
-                                 :, :],
-                filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
-                                      :, :, :],
-                filter_shape=group_filter_shape,
-                image_shape=group_image_shape,
-                subsample=self.stride
-            )]
-
+        conv_outputs = [T.nnet.conv2d(
+            input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
+                             :, :],
+            filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
+                                  :, :, :],
+            input_shape=group_input_shape,
+            filter_shape=group_filter_shape,
+            subsample=self.stride,
+        ) for i in xrange(self.n_groups)]
         conv_output = T.concatenate(conv_outputs, axis=1)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
+
+    def set_params(self, params):
+        self.W = params[0]
+        self.b = params[1]
