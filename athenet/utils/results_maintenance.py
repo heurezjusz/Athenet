@@ -20,20 +20,6 @@ def merge_pickles(out_pkl, in_pkl1, in_pkl2):
     save_data_to_pickle(pkl1, out_pkl)
 
 
-def get_zeros_fraction(network_data, chosen_layers=None):
-    if not chosen_layers:
-        chosen_layers = [True for layer in network_data]
-
-    zeros, weights = sum([layer for layer in zip(network_data, chosen_layers) if chosen_layers])
-    return float(zeros) / weights
-
-def get_zeros_in_network_fraction(zeros_data, network):
-    return get_zeros_fraction(zeros_data)
-
-def get_zeros_in_conv_layer_fraction(zeros_data, network):
-    pass
-
-
 def plot_2d_results(results, xlabel='fraction of zero-filled weights',
                     ylabel='error rate', xlog=False, ylog=False, title=None):
     """Create 2d plot of results given by sparsifying algorithm.

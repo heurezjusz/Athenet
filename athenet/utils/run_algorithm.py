@@ -1,12 +1,8 @@
 """Function for running algorithm on network for multiple cases. """
 
-import os
-import cPickle as pickle
-import gzip
 import copy
 
-from athenet.utils import save_data_to_pickle, load_data_from_pickle, \
-    count_zeros
+from athenet.utils import count_zeros
 from athenet.utils.results import Results
 
 
@@ -17,6 +13,7 @@ def get_error_rate(network):
         error_rate = 1.0 - network.val_accuracy()
     else:
         raise Exception('test data and valid data not in Network')
+    return error_rate
 
 
 def run_test(network, algorithm, config):
@@ -43,16 +40,21 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     """
     save = results_pkl is not None
     layers = neural_network.weighted_layers
-    results = Results(error_rate=get_error_rate(neural_network),
-                      weighted_layers=layers, weights=[100 for layer in layers],
-                      file=results_pkl)
-    config_l = filter(lambda config: config not in results, config_l)
+    results = Results(
+        error_rate=get_error_rate(neural_network),
+        weighted_layers=[layer.__class__.__name__ for layer in layers],
+        weights=[layer.W.size for layer in layers],
+        file=results_pkl
+    )
+    config_l = results.get_new_test_configs(config_l)
     n_of_cases = len(config_l)
     n_of_cases_passed = 0
     if verbose:
         print 'Cases to run:', n_of_cases
     for config in config_l:
-        results.add_new_test_result(config, run_test(copy.deepcopy(neural_network), algorithm, config), save)
+        test_result = run_test(copy.deepcopy(neural_network),
+                               algorithm, config)
+        results.add_new_test_result(config, test_result, save)
         n_of_cases_passed += 1
         if verbose:
             print 'Cases passed:', n_of_cases_passed, '/', n_of_cases
