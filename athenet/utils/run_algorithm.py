@@ -7,6 +7,12 @@ from athenet.utils.results import Results
 
 
 def get_error_rate(network):
+    """
+    Returns error rate in given network
+
+    :param Network network:network to check
+    :return float: error rate in network
+    """
     if network.data_loader.test_data_available:
         error_rate = 1.0 - network.test_accuracy()
     elif network.data_loader.val_data_available:
@@ -17,6 +23,15 @@ def get_error_rate(network):
 
 
 def run_test(network, algorithm, config):
+    """
+    Runs algorithm in given network and return number of zeros and error rate
+     in this network after running an algorithm
+
+    :param Network network: network
+    :param function algorithm: algorithm changing network
+    :param float or tuple config: parameters for algorithm
+    :return tuple(int, float): number of zeros and error rate
+    """
     algorithm(network, config)
     zeros = count_zeros(network)
     return zeros, get_error_rate(network)
@@ -33,10 +48,9 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     :param config_l: List of configs to be passed to algorithm. For every
                      config algorithm is being executed once.
     :param results_pkl: File where results of algorithm are saved online and
-                        from where they are initially loaded. Stores dictionary
-                        {config: algorithm(neural_network, config)}.
+                        from where they are initially loaded.
     :param verbose: If True, then progress of tests is being printed.
-    :return: Dictionary {config: algorithm(neural_network, config)}.
+    :return: Results
     """
     save = results_pkl is not None
     layers = neural_network.weighted_layers
