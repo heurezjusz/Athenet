@@ -7,40 +7,95 @@ import theano
 import theano.tensor as T
 
 from athenet.layers import WeightedLayer, ConvolutionalLayer
+from athenet.utils import overwrite, save_data_to_pickle
+
+
+class TrainConfig(object):
+    """Training configuration.
+
+    :n_epochs: Number of epochs.
+    :batch_size: Number of minibatches (optional, can also be set in Network
+                 class instance).
+    :learning_rate: Learning rate.
+    :momentum: Momentum. Default 0.
+    :weight_decay: Weight decay. Default 0.
+    :val_interval: Specifies number of ``val_interval_units`` between each
+                   validation accuracy testing. Default 1.
+    :val_interval_units: 'epochs' or 'batches'. Default 'epochs'.
+    :lr_decay: Learning rate decay.
+    :lr_decay_interval: Learning rate decay interval. If not None, then
+                        learning rate will be multiplied by ``lr_decay`` after
+                        each ``lr_decay_interval`` training units of type
+                        ``lr_decay_interval_units``.
+    :lr_decay_interval_units: 'epochs' or 'batches'. Default 'epochs'.
+    :lr_decay_threshold: Threshold value for standard deviation of accuracy.
+                         If None, then learning rate will be reduced when
+                         standard deviation of accuracy is below threshold.
+    :lr_decay_val_range: Number of previous iterations' accuracies to include
+                         in standard deviation. Default 4.
+    """
+    def __init__(self):
+        self.n_epochs = None
+        self.batch_size = None
+
+        self.learning_rate = None
+        self.momentum = 0.
+        self.weight_decay = 0.
+
+        self.val_interval = 1
+        self.val_interval_units = 'epochs'
+
+        self.lr_decay = None
+        self.lr_decay_interval = None
+        self.lr_decay_interval_units = 'epochs'
+
+        self.lr_decay_threshold = None
+        self.lr_decay_val_range = 4
+
+    def __str__(self):
+        output = '{} epochs, minibatch size = {}, learning rate = {}'\
+                 .format(self.n_epochs, self.batch_size, self.learning_rate)
+        if self.momentum:
+            output += ', momentum = {}'.format(self.momentum)
+        if self.weight_decay:
+            output += ', weight_decay = {}'.format(self.weight_decay)
+        if self.lr_decay_interval is not None or \
+                self.lr_decay_threshold is not None:
+            output += '\nLearning rate decay = {}: '.format(self.lr_decay)
+            if self.lr_decay_interval is not None:
+                output += ', interval = {} {}'.format(
+                    self.lr_decay_interval, self.lr_decay_interval_units)
+            if self.lr_decay_threshold is not None:
+                output += ', threshold = {}, validation range = {}'.format(
+                    self.lr_decay_threshold, self.lr_decay_val_range)
+        return output
 
 
 class Network(object):
-    """Neural network."""
+    """Neural network.
 
-    verbosity = 0
-
-    # Early stopping parameters
-    initial_patience = 10000
-    patience_increase = 2
-
+    :verbosity: Level of network's verbosity. Integer value between 0 and 3.
+                Default 1.
+    """
     def __init__(self, layers):
         """Create neural network.
 
-        layers: List of network's layers.
+        :layers: List of network's layers.
         """
-        self._data_accuracy = None
-        self._test_data_accuracy = None
-        self._val_data_accuracy = None
         self._batch_size = None
         self._data_loader = None
-
-        self.params = None
-        self.output = None
-        self.answer = None
-        self.train_output = None
+        self.answers = None
         self.get_output = None
+        self._accuracy = None
+        self._accuracy_config = None
 
+        self.snapshot_name = 'network'
+        self.snapshot_interval = 0
+        self.verbosity = 1
         self._batch_index = T.lscalar()
-        self._top_range = T.iscalar()
-
+        self._input = T.tensor4()
+        self._correct_answers = T.ivector()
         self.layers = layers
-        self.input = T.tensor4()
-        self.correct_answer = T.ivector()
 
         self.weighted_layers = [layer for layer in self.layers
                                 if isinstance(layer, WeightedLayer)]
@@ -51,7 +106,7 @@ class Network(object):
 
     @property
     def data_loader(self):
-        """Instance of class athenet.utils.DataLoader."""
+        """Instance of :class:`athenet.data_loader.DataLoader`."""
         return self._data_loader
 
     @data_loader.setter
@@ -59,7 +114,6 @@ class Network(object):
         self._data_loader = value
         if value:
             self.data_loader.batch_size = self.batch_size
-        self._update()
 
     @property
     def batch_size(self):
@@ -70,68 +124,22 @@ class Network(object):
     def batch_size(self, value):
         if self._batch_size == value:
             return
-
         self._batch_size = value
         if self.data_loader:
             self.data_loader.batch_size = value
 
         for layer in self.convolutional_layers:
             layer.batch_size = self.batch_size
-        self.layers[0].input = self.input
+        self.layers[0].input = self._input
         for i in xrange(1, len(self.layers)):
             self.layers[i].input_layer = self.layers[i-1]
 
-        self.params = []
-        for layer in self.weighted_layers:
-            self.params += layer.params
-
-        self.output = self.layers[-1].output
-        self.train_output = self.layers[-1].train_output
-        self.answer = T.argsort(-self.output, axis=1)
-
-        expanded = self.correct_answer.dimshuffle(0, 'x')
-        expanded = expanded.repeat(self._top_range, axis=1)
-        eq = T.eq(expanded, self.answer[:, :self._top_range])
-        self._data_accuracy = T.any(eq, axis=1).mean()
-
+        output = self.layers[-1].output
+        self.answers = T.argsort(-output, axis=1)
         self.get_output = theano.function(
-            inputs=[self.input],
-            outputs=[self.output.flatten(1), self.answer.flatten(1)]
+            inputs=[self._input],
+            outputs=[output.flatten(1), self.answers.flatten(1)]
         )
-
-        self._update()
-
-    def _val_batch_accuracy(self, batch_index, top_range):
-        self.data_loader.load_val_data(batch_index)
-        return self._val_data_accuracy(batch_index, top_range)
-
-    def _test_batch_accuracy(self, batch_index, top_range):
-        self.data_loader.load_test_data(batch_index)
-        return self._test_data_accuracy(batch_index, top_range)
-
-    def _get_accuracy(self, top_range, accuracy_fun, n_batches):
-        return_list = isinstance(top_range, list)
-        if not return_list:
-            top_range = [top_range]
-
-        interval = n_batches / 10
-        if interval == 0:
-            interval = 1
-        accuracies = []
-        for top in top_range:
-            batch_accuracies = []
-            for batch_index in xrange(n_batches):
-                accuracy = accuracy_fun(batch_index, top)
-                batch_accuracies += [accuracy]
-                if self.verbosity >= 2 or \
-                        (self.verbosity >= 1 and batch_index % interval == 0):
-                    print 'Minibatch {} top-{} accuracy: {:.1f}%'.format(
-                        batch_index, top, 100*accuracy)
-            accuracies += [np.mean(batch_accuracies)]
-
-        if not return_list:
-            return accuracies[0]
-        return accuracies
 
     def test_accuracy(self, top_range=1):
         """Return network's accuracy on the test data.
@@ -143,9 +151,7 @@ class Network(object):
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
-        return self._get_accuracy(top_range,
-                                  self._test_batch_accuracy,
-                                  self.data_loader.n_test_batches)
+        return self._get_accuracy(top_range, 'test_data')
 
     def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
@@ -157,9 +163,55 @@ class Network(object):
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
-        return self._get_accuracy(top_range,
-                                  self._val_batch_accuracy,
-                                  self.data_loader.n_val_batches)
+        return self._get_accuracy(top_range, 'validation_data')
+
+    def _get_accuracy(self, top_range, data_type):
+        return_list = isinstance(top_range, list)
+        if not return_list:
+            top_range = [top_range]
+        max_top_range = max(top_range)
+
+        expanded = self._correct_answers.dimshuffle(0, 'x')
+        expanded = expanded.repeat(max_top_range, axis=1)
+        eq = T.eq(expanded, self.answers[:, :max_top_range])
+
+        # Compile new function only if top range or data type has changed
+        if self._accuracy_config != [top_range, data_type]:
+            self._accuracy = theano.function(
+                inputs=[self._batch_index],
+                outputs=[T.any(eq[:, :top], axis=1).mean()
+                         for top in top_range],
+                givens={
+                    self._input:
+                        self.data_loader.input(self._batch_index, data_type),
+                    self._correct_answers:
+                        self.data_loader.output(self._batch_index, data_type)
+                },
+            )
+            self._accuracy_config = [top_range, data_type]
+
+        n_batches = self.data_loader.n_batches(data_type)
+        accuracy = np.zeros(shape=(n_batches, len(top_range)))
+        interval = n_batches/10
+        if interval == 0:
+            interval = 1
+        for batch_index in xrange(n_batches):
+            self.data_loader.load_data(batch_index, data_type)
+            accuracy[batch_index, :] = np.asarray(self._accuracy(batch_index))
+            if self.verbosity >= 3 or \
+                    (self.verbosity >= 2 and batch_index % interval == 0):
+                partial_accuracy = accuracy[:batch_index+1, :].mean(axis=0)
+                text = ''
+                for a in partial_accuracy:
+                    text += ' {:.2f}%'.format(100*a)
+                overwrite('{}/{} minibatches accuracy:{}'
+                          .format(batch_index+1, n_batches, text))
+        overwrite()
+
+        accuracy = accuracy.mean(axis=0).tolist()
+        if not return_list:
+            return accuracy[0]
+        return accuracy
 
     def get_params(self):
         """Return list of network's weights and biases.
@@ -180,6 +232,13 @@ class Network(object):
             layer.W = p[0]
             layer.b = p[1]
 
+    def save_to_file(self, filename):
+        """Save network's weights to file.
+
+        :filename:Name of the file.
+        """
+        save_data_to_pickle(self.get_params(), filename)
+
     def evaluate(self, net_input):
         """Return network output for a given input.
 
@@ -197,97 +256,146 @@ class Network(object):
         net_input = np.resize(net_input, (1, n_channels, height, width))
         return self.get_output(net_input)
 
-    def train(self, learning_rate=0.1, n_epochs=100, batch_size=None):
-        """Train and test the network.
+    def _convert_to_batches(self, interval, units):
+        if interval is None:
+            return None
+        if units == 'epochs':
+            return int(interval * self.data_loader.n_train_batches)
+        return interval
 
-        :learning_rate: Learning rate.
-        :n_epochs: Number of epochs.
-        :batch_size: Size of minibatch to be set. If None then batch size that
-                     is currenty set will be used.
+    def _decrease_learning_rate(self, lr, lr_decay):
+        new_lr = np.float32(lr.get_value() * lr_decay)
+        lr.set_value(new_lr)
+        return new_lr
+
+    def train(self, config):
+        """Train the network.
+
+        :config: Instance of TrainConfig.
         """
-        if not self.data_loader:
+        if self.data_loader is None:
             raise Exception('data loader is not set')
         if not self.data_loader.train_data_available:
-            raise Exception('train data are not available')
+            raise Exception('training data not available')
+        if config.batch_size is not None:
+            self.batch_size = config.batch_size
 
-        self.batch_size = batch_size
+        val_interval = self._convert_to_batches(config.val_interval,
+                                                config.val_interval_units)
+        lr_decay_interval = self._convert_to_batches(
+            config.lr_decay_interval,
+            config.lr_decay_interval_units)
 
-        # set cost function for the last layer
-        self.layers[-1].set_cost(self.correct_answer)
+        self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
+        lr = theano.shared(np.array(config.learning_rate,
+                                    dtype=theano.config.floatX))
+        weights = [layer.W_shared for layer in self.weighted_layers]
+        biases = [layer.b_shared for layer in self.weighted_layers]
+        weights_grad = T.grad(cost, weights)
+        biases_grad = T.grad(cost, biases)
 
-        grad = T.grad(cost, self.params)
-        updates = [(param, param - learning_rate*derivative)
-                   for param, derivative in zip(self.params, grad)]
+        if config.momentum:
+            momentum = theano.shared(np.array(config.momentum,
+                                              dtype=theano.config.floatX))
+            for layer in self.weighted_layers:
+                layer.alloc_velocity()
+            weights_vel = [layer.W_velocity for layer in self.weighted_layers]
+            biases_vel = [layer.b_velocity for layer in self.weighted_layers]
+
+            weights_vel_updates = [
+                (v, momentum*v - config.weight_decay*lr*w - lr*der)
+                for w, v, der in zip(weights, weights_vel, weights_grad)]
+            biases_vel_updates = [(v, momentum*v - lr*der)
+                                  for v, der in zip(biases_vel, biases_grad)]
+
+            weights_updates = [(w, w + v)
+                               for w, v in zip(weights, weights_vel)]
+            biases_updates = [(b, b + v)
+                              for b, v in zip(biases, biases_vel)]
+            updates = weights_vel_updates + weights_updates + \
+                biases_vel_updates + biases_updates
+        else:
+            weights_updates = [
+                (w, (1. - config.weight_decay*lr)*w - lr*der)
+                for w, der in zip(weights, weights_grad)]
+            biases_updates = [(b, b - lr*der)
+                              for b, der in zip(biases, biases_grad)]
+            updates = weights_updates + biases_updates
 
         train_model = theano.function(
             inputs=[self._batch_index],
             outputs=cost,
             updates=updates,
             givens={
-                self.input: self.data_loader.train_input(self._batch_index),
-                self.correct_answer:
+                self._input:
+                    self.data_loader.train_input(self._batch_index),
+                self._correct_answers:
                     self.data_loader.train_output(self._batch_index)
-            }
+            },
         )
 
-        patience = self.initial_patience
-        val_interval = min(self.data_loader.n_train_batches, patience/2)
-        best_val_accuracy = 0.0
-        epoch = 0
         iteration = 0
-        done_looping = False
-
-        start_time = timeit.default_timer()
-        while epoch < n_epochs and not done_looping:
-            epoch += 1
-            print 'Epoch {}'.format(epoch)
+        if config.lr_decay_threshold is not None:
+            prev_accuracies = np.zeros(config.val_range)
+            pos = 0
+            cycle_finished = False
+        if self.verbosity >= 1:
+            print 'Training:'
+            print config
+            print '{} minibatches per epoch'\
+                  .format(self.data_loader.n_train_batches)
+            start_time = timeit.default_timer()
+        for epoch in xrange(1, config.n_epochs+1):
+            if self.verbosity >= 1:
+                print 'Epoch {}'.format(epoch)
+                epoch_start_time = timeit.default_timer()
             for batch_index in xrange(self.data_loader.n_train_batches):
                 self.data_loader.load_train_data(batch_index)
                 train_model(batch_index)
-                if self.data_loader.val_data_available:
-                    iteration += 1
-                    if iteration % val_interval == 0:
-                        accuracy = self.val_accuracy()
-                        print '\tAccuracy on validation data: {:.2f}%'.format(
-                            100*accuracy)
-                        if accuracy > best_val_accuracy:
-                            patience = max(patience,
-                                           iteration*self.patience_increase)
-                            best_val_accuracy = accuracy
+                iteration += 1
+                if self.snapshot_interval and \
+                        iteration % self.snapshot_interval == 0:
+                    self.save_to_file('{}_iteration_{}.pkl.gz'
+                                      .format(self.snapshot_name, iteration))
+                if lr_decay_interval is not None and \
+                        iteration % lr_decay_interval == 0:
+                    new_lr = self._decrease_learning_rate(lr, config.lr_decay)
+                    if self.verbosity >= 1:
+                        print '\tLearning rate = {:.2f}'.format(new_lr)
 
-                if patience <= iteration:
-                    done_looping = True
-                    break
-        end_time = timeit.default_timer()
-        print 'Training time: {:.1f}s'.format(end_time - start_time)
+                if not self.data_loader.val_data_available or \
+                        iteration % val_interval != 0:
+                    continue  # do not check validation accuracy
+                accuracy = self.val_accuracy()
+                if self.verbosity >= 1:
+                    print '\tAccuracy on validation data: {:.2f}%'\
+                          .format(100*accuracy)
+                if config.lr_decay_threshold is not None:
+                    prev_accuracies[pos] = 100*accuracy
+                    pos = (pos + 1) % config.val_range
+                    if cycle_finished:
+                        lr_val = lr.get_value()
+                        std = prev_accuracies.std() / lr_val
+                        if self.verbosity >= 2:
+                            print '\tstandard deviation = {}'.format(std)
+                        if std < config.lr_decay_threshold:
+                            new_lr = self._decrease_learning_rate(
+                                lr, config.lr_decay)
+                            if self.verbosity >= 1:
+                                print '\tLearning rate = {:.2f}'.format(new_lr)
+                            pos = 0
+                            cycle_finished = False
+                    elif pos == config.val_range - 1:
+                        cycle_finished = True
+            if self.verbosity >= 1:
+                epoch_end_time = timeit.default_timer()
+                print '\tTime: {:.1f}s'.format(
+                    epoch_end_time - epoch_start_time)
 
-    def _update(self):
-        self._val_data_accuracy = None
-        self._test_data_accuracy = None
-        if not self.data_loader:
-            return
-
-        if self.data_loader.val_data_available:
-            self._val_data_accuracy = theano.function(
-                inputs=[self._batch_index, self._top_range],
-                outputs=self._data_accuracy,
-                givens={
-                    self.input:
-                        self.data_loader.val_input(self._batch_index),
-                    self.correct_answer:
-                        self.data_loader.val_output(self._batch_index)
-                }
-            )
-
-        if self.data_loader.test_data_available:
-            self._test_data_accuracy = theano.function(
-                inputs=[self._batch_index, self._top_range],
-                outputs=self._data_accuracy,
-                givens={
-                    self.input:
-                        self.data_loader.test_input(self._batch_index),
-                    self.correct_answer:
-                        self.data_loader.test_output(self._batch_index)
-                }
-            )
+        if self.verbosity >= 1:
+            end_time = timeit.default_timer()
+            print 'Training time: {:.1f}s'.format(end_time - start_time)
+        if config.momentum:
+            for layer in self.weighted_layers:
+                layer.free_velocity()

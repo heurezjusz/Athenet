@@ -48,8 +48,6 @@ class FullyConnectedLayer(WeightedLayer):
         b_value = np.zeros((self.n_out,), dtype=theano.config.floatX)
         self.b_shared = theano.shared(b_value, borrow=True)
 
-        self.params = [self.W_shared, self.b_shared]
-
     @property
     def input_shape(self):
         return self.n_in
