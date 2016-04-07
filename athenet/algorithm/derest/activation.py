@@ -11,8 +11,10 @@ def conv(layer_input, image_shape, weights, filter_shape, biases,
     """Returns estimated activation of convolutional layer.
 
     :param layer_input: input Numlike in input_shp format
-    :param image_shape: shape of input in the format
                 (number of input channels, image height, image width)
+    :param image_shape: image shape in the format (number of input channels,
+                                                   image height,
+                                                   image width)
     :param weights: Weights tensor in format (number of output channels,
                                               number of input channels,
                                               filter height,
@@ -53,11 +55,12 @@ def conv(layer_input, image_shape, weights, filter_shape, biases,
         g_out = n_out / n_groups
         pad_h, pad_w = padding
         stride_h, stride_w = stride
+        # TODO: Should weights be flipped inside or outside conv function?
         # see: flipping kernel
         flipped_weights = weights[:, :, ::-1, ::-1]
         input_type = type(layer_input)
         padded_input_shape = (n_in, h + 2 * pad_h, w + 2 * pad_w)
-        padded_input = input_type.from_shape(padded_input_shape)
+        padded_input = input_type.from_shape(padded_input_shape, neutral=True)
         padded_input[0:n_in, pad_h:(pad_h + h), pad_w:(pad_w + w)] = \
             layer_input
         # setting new n_in, h, w for padded input, now you can forget about

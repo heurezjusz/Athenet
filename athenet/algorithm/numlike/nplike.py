@@ -145,6 +145,9 @@ class Nplike(Numlike):
     def op_d_norm(self, *args):
         return super(Nplike, self).op_d_norm(*args)
 
+    def op_d_conv(self, *args):
+        return super(Nplike, self).op_d_conv(*args)
+
     @staticmethod
     def derest_output(self, *args):
         return super(Nplike, self).derest_output(*args)

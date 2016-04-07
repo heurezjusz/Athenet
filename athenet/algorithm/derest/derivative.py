@@ -11,23 +11,50 @@ from athenet.algorithm.numlike import Numlike, assert_numlike
 # TODO: All functions below will be implemented.
 
 
-def d_conv(activation, output):
+def d_conv(output, activation, activation_shape, filter_shape, weights,
+           stride=(1, 1), padding=(0, 0), n_groups=1):
     # TODO: all
-    """Returns estimated impact of convolutional layer on output of network.
+    # TODO: verify filter flipping (conv and d_conv)
+    """Returns estimated impact of input of convolutional layer on output of
+    network.
 
-    :param Numlike activation: estimated activation of input
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
+    :param Numlike activation: estimated activation of input
+    :param activation_shape in the format (number of batches,
+                                           number of input channels,
+                                           image height,
+                                           image width)
+    :type activation_shape: tuple of 4 integers
+    :param filter_shape: filter shape in the format (number of output channels,
+                                                   filter height,
+                                                   filter width)
+    :type filter_shape: tuple of 3 integers
+    :param weights: Weights tensor in format (number of output channels,
+                                              number of input channels,
+                                              filter height,
+                                              filter width)
+    :type weights: numpy.ndarray or theano tensor
+    :param stride: pair representing interval at which to apply the filters.
+    :type stride: pair of integers
+    :param padding: pair representing number of zero-valued pixels to add on
+                    each side of the input.
+    :type padding: pair of integers
+    :param n_groups: number of groups input and output channels will be split
+                     into, two channels are connected only if they belong to
+                     the same group.
+    :type n_groups: integer
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    assert_numlike(activation)
-    assert_numlike(output)
+    res = output.op_d_conv(activation, activation_shape, filter_shape,
+                           weights, stride, padding, n_groups)
+    return res
 
 
 def d_dropout(output, p_dropout):
-    """Returns estimated impact of dropout layer on output of network.
+    """Returns estimated impact of input of dropout layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
@@ -41,7 +68,8 @@ def d_dropout(output, p_dropout):
 
 
 def d_fully_connected(output, weights, input_shape):
-    """Returns estimated impact of fully connected layer on output of network.
+    """Returns estimated impact of input of fully connected layer on output of
+    network.
 
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
@@ -63,7 +91,7 @@ def d_fully_connected(output, weights, input_shape):
 
 def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):
     # TODO: all
-    """Returns estimated impact of LRN layer on output of network.
+    """Returns estimated impact of input of LRN layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
@@ -89,7 +117,7 @@ def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):
 
 def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
            padding=(0, 0), mode='max'):
-    """Returns estimated impact of pool layer on output of network.
+    """Returns estimated impact of input of pool layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch size, number of channels,
@@ -121,7 +149,7 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
 
 
 def d_softmax(output):
-    """Returns estimated impact of softmax layer on output of network.
+    """Returns estimated impact of input of softmax layer on output of network.
 
     .. warning: Current implementation only consider softmax as the last layer.
 
@@ -136,7 +164,7 @@ def d_softmax(output):
 
 
 def d_relu(output, activation):
-    """Returns estimated impact of relu layer on output of network.
+    """Returns estimated impact of input of relu layer on output of network.
 
     :param Numlike activation: estimated activation of input
     :param Numlike output: estimated impact of output of layer on output

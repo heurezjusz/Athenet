@@ -354,6 +354,43 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def op_d_conv(self, activation, activation_shape, filter_shape, weights,
+                  stride, padding, n_groups):
+        """Returns estimated impact of input of convolutional layer on output
+        of network.
+
+        :param Numlike output: estimated impact of output of layer on output
+                               of network in shape (batch_size,
+                               number of channels, height, width)
+        :param Numlike activation: estimated activation of input
+        :param activation_shape in the format (number of batches,
+                                               number of input channels,
+                                               image height,
+                                               image width)
+        :type activation_shape: tuple of 4 integers
+        :param filter_shape: filter shape in the format
+                             (number of output channels, filter height,
+                              filter width)
+        :type filter_shape: tuple of 3 integers
+        :param weights: Weights tensor in format (number of output channels,
+                                                  number of input channels,
+                                                  filter height,
+                                                  filter width)
+        :type weights: numpy.ndarray or theano tensor
+        :param stride: pair representing interval at which to apply the filters
+        :type stride: pair of integers
+        :param padding: pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :type padding: pair of integers
+        :param n_groups: number of groups input and output channels will be
+                         split into, two channels are connected only if they
+                         belong to the same group.
+        :type n_groups: integer
+        :returns: Estimated impact of input on output of network
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
     @staticmethod
     def derest_output(n_outputs):
         """Generates Numlike of impact of output on output.

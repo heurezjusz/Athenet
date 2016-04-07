@@ -153,6 +153,11 @@ class NumlikeTest(unittest.TestCase):
         _ = Numlike().op_d_norm(Numlike(), (1, 1, 1, 1), 1, 1, 1, 1)
 
     @raises(NotImplementedError)
+    def test_op_d_conv(self):
+        _ = Numlike().op_d_conv(Numlike(), (1, 1, 1), (1, 1, 1), Numlike(),
+                                (1, 1), (1, 1), 1)
+
+    @raises(NotImplementedError)
     def test_derest_output(self):
         _ = Numlike.derest_output(3)
 
