@@ -6,6 +6,7 @@ import theano
 import theano.tensor as T
 
 from athenet.layers import WeightedLayer
+from athenet.utils.misc import convolution, reshape_for_padding
 
 
 class ConvolutionalLayer(WeightedLayer):
@@ -92,57 +93,14 @@ class ConvolutionalLayer(WeightedLayer):
                                 (batch size, number of channels,
                                  image height, image width).
         """
-        if self.padding == (0, 0):
-            return raw_layer_input
-
-        h, w, n_channels = self.image_shape
-        pad_h, pad_w = self.padding
-        h_in = h + 2*pad_h
-        w_in = w + 2*pad_w
-
-        extra_pixels = T.alloc(
-            np.array(0., dtype=theano.config.floatX),
-            raw_layer_input.shape[0], n_channels, h_in, w_in)
-        extra_pixels = T.set_subtensor(
-            extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w], raw_layer_input)
-        return extra_pixels
+        return reshape_for_padding(raw_layer_input, self.image_shape,
+                                   raw_layer_input.shape[0], self.padding)
 
     def _get_output(self, layer_input):
-        """Return layer's output.
-
-        :param layer_input: Input in the format
-                            (batch size, number of channels,
-                             image height, image width).
-        :return: Layer output.
-        """
-        n_channels = self.image_shape[2]
-        n_filters = self.filter_shape[2]
-
-        n_group_channels = n_channels / self.n_groups
-        n_group_filters = n_filters / self.n_groups
-
-        if self.batch_size is None:
-            group_input_shape = None
-            group_filter_shape = None
-        else:
-            h, w = self.image_shape[0:2]
-            pad_h, pad_w = self.padding
-            group_input_shape = (self.batch_size, n_group_channels,
-                                 h + 2*pad_h, w + 2*pad_w)
-
-            h, w = self.filter_shape[0:2]
-            group_filter_shape = (n_group_filters, n_group_channels, h, w)
-
-        conv_outputs = [T.nnet.conv2d(
-            input=self.input[:, i*n_group_channels:(i+1)*n_group_channels,
-                             :, :],
-            filters=self.W_shared[i*n_group_filters:(i+1)*n_group_filters,
-                                  :, :, :],
-            input_shape=group_input_shape,
-            filter_shape=group_filter_shape,
-            subsample=self.stride,
-        ) for i in xrange(self.n_groups)]
-        conv_output = T.concatenate(conv_outputs, axis=1)
+        conv_output = convolution(self.input, self.W_shared, self.stride,
+                                  self.n_groups, self.image_shape,
+                                  self.padding, self.batch_size,
+                                  self.filter_shape)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
 
     def set_params(self, params):
