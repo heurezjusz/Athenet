@@ -354,7 +354,7 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    def op_d_conv(self, activation, activation_shape, filter_shape, weights,
+    def op_d_conv(self, activation_shape, filter_shape, weights,
                   stride, padding, n_groups):
         """Returns estimated impact of input of convolutional layer on output
         of network.
@@ -362,7 +362,6 @@ class Numlike(object):
         :param Numlike output: estimated impact of output of layer on output
                                of network in shape (batch_size,
                                number of channels, height, width)
-        :param Numlike activation: estimated activation of input
         :param activation_shape in the format (number of batches,
                                                number of input channels,
                                                image height,

@@ -129,7 +129,15 @@ class FullyConnectedDerivativeTest(DerivativeTest):
 
 
 class ConvolutionalDerivativeTest(DerivativeTest):
-    pass
+
+    def test_trivial(self):
+        dout = ithv(np.ones((6, 3, 7, 8)))
+        w = thv(np.ones((3, 4, 5)))
+        w = thv([[[[2]]]])
+        din = d_conv(dout, (6, 9, 10, 12), (3, 4, 5), w)
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, np.ones((3, 4, 5)) * 20)
 
 
 class MaxPoolDerivativeTest(DerivativeTest):

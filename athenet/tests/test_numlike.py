@@ -154,7 +154,7 @@ class NumlikeTest(unittest.TestCase):
 
     @raises(NotImplementedError)
     def test_op_d_conv(self):
-        _ = Numlike().op_d_conv(Numlike(), (1, 1, 1), (1, 1, 1), Numlike(),
+        _ = Numlike().op_d_conv((1, 1, 1), (1, 1, 1), Numlike(),
                                 (1, 1), (1, 1), 1)
 
     @raises(NotImplementedError)

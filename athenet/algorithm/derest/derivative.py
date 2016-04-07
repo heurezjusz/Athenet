@@ -11,7 +11,7 @@ from athenet.algorithm.numlike import Numlike, assert_numlike
 # TODO: All functions below will be implemented.
 
 
-def d_conv(output, activation, activation_shape, filter_shape, weights,
+def d_conv(output, activation_shape, filter_shape, weights,
            stride=(1, 1), padding=(0, 0), n_groups=1):
     # TODO: all
     # TODO: verify filter flipping (conv and d_conv)
@@ -21,7 +21,6 @@ def d_conv(output, activation, activation_shape, filter_shape, weights,
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
-    :param Numlike activation: estimated activation of input
     :param activation_shape in the format (number of batches,
                                            number of input channels,
                                            image height,
@@ -48,7 +47,7 @@ def d_conv(output, activation, activation_shape, filter_shape, weights,
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    res = output.op_d_conv(activation, activation_shape, filter_shape,
+    res = output.op_d_conv(activation_shape, filter_shape,
                            weights, stride, padding, n_groups)
     return res
 
