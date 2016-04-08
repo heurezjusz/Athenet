@@ -30,7 +30,7 @@ def ithv(x):
     return Itv(v, v)
 
 
-class DerivativeTest(unittest.TestCase):
+class DerivativeTest2(unittest.TestCase):
 
     def prepare(self):
         self.v = np.arange(24) + 3.0
@@ -50,6 +50,9 @@ class DerivativeTest(unittest.TestCase):
         for i in range(sz):
             a[i] = self.s()
         return a.reshape(shp)
+
+class DerivativeTest(object):
+    pass
 
 
 class FullyConnectedDerivativeTest(DerivativeTest):
@@ -128,16 +131,50 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         arae(l, A([[117, 144], [39, 48]]))
 
 
-class ConvolutionalDerivativeTest(DerivativeTest):
+class ConvolutionalDerivativeTest(DerivativeTest2):
 
-    def test_trivial(self):
-        dout = ithv(np.ones((6, 3, 7, 8)))
-        w = thv(np.ones((3, 4, 5)))
-        w = thv([[[[2]]]])
-        din = d_conv(dout, (6, 9, 10, 12), (3, 4, 5), w)
+    def test_dims(self):
+        dout = ithv(np.ones((1, 2, 2, 4)))
+        w = thv(np.ones((2, 1, 3, 4)))
+        w = w[:, :, ::-1, ::-1]
+        din = d_conv(dout, (1, 1, 4, 7), (2, 3, 4), w)
         l, u = din.eval()
         arae(l, u)
-        arae(l, np.ones((3, 4, 5)) * 20)
+        arae(l, A([[[[2, 4, 6, 8, 6, 4, 2],
+                     [4, 8, 12, 16, 12, 8, 4],
+                     [4, 8, 12, 16, 12, 8, 4],
+                     [2, 4, 6, 8, 6, 4, 2]]]]))
+
+    def test_case(self):
+        dout = ithv(A([[[[4, 8], [2, 3]]]]))
+        w = thv(A([[[[2, 3, 0], [5, 7, 0], [0, 0, 0]]]]))
+        w = w[:, :, ::-1, ::-1]
+        din = d_conv(dout, (1, 1, 2, 2), (1, 3, 3), w, padding=(1, 1))
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[[[80, 65], [29, 21]]]]))
+
+    def test_all_dims(self):
+        dout = ithv(A([[[[2, 3], [5, 7]], [[0.2, 0.3], [0.5, 0.7]]]]))
+        w = thv(A([[[[1, 0, 2], [0, 4, 0], [3, 0, 0]],
+                    [[0, 0, 0], [0, 9, 10], [0, 11, 12]]],
+                   [[[5, 0, 6], [0, 0, 0], [7, 0, 8]],
+                    [[13, 15, 0], [0, 0, 0], [14, 16, 0]]]]))
+        w = w[:, :, ::-1, ::-1]
+        din = d_conv(dout, (1, 2, 2, 2), (2, 3, 3), w, padding=(1, 1))
+        l, u = din.eval()
+        arae(l, u)
+        arae(l, A([[[[18.5, 25], [31.1, 29.6],],
+                    [[34.6, 57.5], [74.4, 174.8]]]]))
+
+    def test_interval(self):
+        # TODO: this
+        doutl = thv(A([[[[-2, -3], [-4, 5]]]]))
+        doutu = thv(A([[[[-1, -2], [1, 6]]]]))
+        dout = Itv(doutl, doutu)
+        w = thv([[[[-1, 1], [-2, 3]]]])
+        din = d_conv(dout, (1, 1, 3, 3), (1, 2, 2), w)
+        l, u = din.eval()
 
 
 class MaxPoolDerivativeTest(DerivativeTest):

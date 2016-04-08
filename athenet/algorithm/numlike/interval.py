@@ -802,9 +802,9 @@ class Interval(Numlike):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
-        :param Interval output: estimated impact of output of layer on output
-                               of network in shape (batch_size,
-                               number of channels, height, width)
+        :param Interval self: estimated impact of output of layer on output
+                              of network in shape (number of batches,
+                              number of channels, height, width)
         :param activation_shape in the format (number of batches,
                                                number of input channels,
                                                image height,
@@ -818,7 +818,7 @@ class Interval(Numlike):
                                                   number of input channels,
                                                   filter height,
                                                   filter width)
-        :type weights: theano.tensor
+        :type weights: theano.tensor4
         :param stride: pair representing interval at which to apply the filters
         :type stride: pair of integers
         :param padding: pair representing number of zero-valued pixels to add
@@ -836,21 +836,54 @@ class Interval(Numlike):
         # n_out, fh, fw - number of output channels, filter height, filter
         # width
         n_out, fh, fw = filter_shape
+        pad_h, pad_w = padding
+        output = self
+        if stride == (1, 1):
+            weights = weights[:, :, ::-1, ::-1]
+            rev_weights = weights.dimshuffle(1, 0, 2, 3)
+            rev_weights_neg = T.minimum(rev_weights, 0.0)
+            rev_weights_pos = T.maximum(rev_weights, 0.0)
+            rev_h = h + 2 * pad_h - fh + 1
+            rev_w = w + 2 * pad_w - fw + 1
+            rev_n_out = n_in
+            rev_image_shape = (rev_h, rev_w, n_out)
+            rev_filter_shape = (fh, fw, rev_n_out)
+            rev_pad_h = fh - 1 - pad_h
+            rev_pad_w = fw - 1 - pad_w
+            rev_padding = (rev_pad_h, rev_pad_w)
+            output_lower = \
+                misc_reshape_for_padding(output.lower, rev_image_shape,
+                                         n_batches, rev_padding)
+            output_upper = \
+                misc_reshape_for_padding(output.upper, rev_image_shape,
+                                         n_batches, rev_padding)
+            res_low_pos = convolution(output_lower, rev_weights_pos, stride,
+                                      n_groups, rev_image_shape,
+                                      rev_padding, n_batches, rev_filter_shape)
+            res_low_neg = convolution(output_lower, rev_weights_neg, stride,
+                                      n_groups, rev_image_shape,
+                                      rev_padding, n_batches, rev_filter_shape)
+            res_upp_pos = convolution(output_upper, rev_weights_pos, stride,
+                                      n_groups, rev_image_shape,
+                                      rev_padding, n_batches, rev_filter_shape)
+            res_upp_neg = convolution(output_upper, rev_weights_neg, stride,
+                                      n_groups, rev_image_shape,
+                                      rev_padding, n_batches, rev_filter_shape)
+            lower = res_low_pos + res_upp_neg
+            upper = res_upp_pos + res_low_neg
+            result = Interval(lower, upper)
+            return result
         # g_in - number of input channels per group
         g_in = n_in / n_groups
         # g_out - number of output channels per group
         g_out = n_out / n_groups
-        pad_h, pad_w = padding
         stride_h, stride_w = stride
+        h += 2 * pad_h
+        w += 2 * pad_w
+        padded_input_shape = (n_batches, n_in, h, w)
+        result = output.from_shape(padded_input_shape, neutral=True)
         # see: flipping kernel
         weights = weights[:, :, ::-1, ::-1]
-        # make shape of flipped weights (n_in, n_out, h, w)
-        padded_input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
-        # setting new n_in, h, w for padded input, now you can forget about
-        # padding
-        _, n_in, h, w = padded_input_shape
-        output = self
-        result = output.from_shape(padded_input_shape, neutral=True)
         weights_neg = T.minimum(weights, 0.0)
         weights_pos = T.maximum(weights, 0.0)
         for at_g in xrange(0, n_groups):
@@ -871,12 +904,12 @@ class Interval(Numlike):
                     # weights slice that impacts on (at_out_h, at_out_w) in
                     # output
                     weights_pos_slice = \
-                        weights_pos[:, at_out_from:at_out_to, :, :]
+                        weights_pos[at_out_from:at_out_to, :, :, :]
                     weights_pos_slice = \
                         weights_pos_slice.dimshuffle('x', 0, 1, 2, 3)
                     weights_pos_slice = T.addbroadcast(weights_pos_slice, 0)
                     weights_neg_slice = \
-                        weights_neg[:, at_out_from:at_out_to, :, :]
+                        weights_neg[at_out_from:at_out_to, :, :, :]
                     weights_neg_slice = \
                         weights_neg_slice.dimshuffle('x', 0, 1, 2, 3)
                     weights_neg_slice = T.addbroadcast(weights_neg_slice, 0)
@@ -906,7 +939,7 @@ class Interval(Numlike):
                     # output
                     result[:, at_in_from:at_in_to, at_h:(at_h + fh),
                            at_w:(at_w + fw)] += res_slice
-        # remove paddding
+        # remove padding
         result = result[:, :, pad_h:(h - pad_h), pad_w:(w - pad_w)]
         return result
 
