@@ -94,11 +94,9 @@ class ConvolutionalLayer(WeightedLayer):
                                  image height, image width).
         """
         return reshape_for_padding(raw_layer_input, self.image_shape,
-                                   self.batch_size, self.padding)
+                                   raw_layer_input.shape[0], self.padding)
 
     def _get_output(self, layer_input):
-        # By default, Theano doesn't use cuDNN convolutions if
-        # subsample != (1, 1), so we need to call it manually
         conv_output = convolution(self.input, self.W_shared, self.stride,
                                   self.n_groups, self.image_shape,
                                   self.padding, self.batch_size,
