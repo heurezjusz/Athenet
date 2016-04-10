@@ -4,8 +4,17 @@ from athenet.utils.misc import save_data_to_pickle, load_data_from_pickle
 
 
 class Results(object):
+    """
+    Test results, obtained on one network and using one algorithm
+    """
 
     def __init__(self, error_rate, weighted_layers, weights, file=None):
+        """
+        :param float error_rate: error rate in original network
+        :param list of strings weighted_layers: network's weighted layers types
+        :param list of ints weights: number of weights in weighted layers
+        :param string file: file from which load already done tests
+        """
         self.error_rate = error_rate
         self.weighted_layers = numpy.array(weighted_layers)
         self.weights = numpy.array(weights)
