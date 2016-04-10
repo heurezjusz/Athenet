@@ -43,7 +43,7 @@ class Results(object):
 
         assert loaded_data.error_rate == self.error_rate
         assert numpy.array_equal(loaded_data.weighted_layers,
-                                     self.weighted_layers)
+                                 self.weighted_layers)
         assert numpy.array_equal(loaded_data.weights, self.weights)
         self.tests = dict(self.tests, **loaded_data.tests)
 
@@ -83,7 +83,7 @@ class Results(object):
 
     def _sum_zeros(self, layers=None):
         return numpy.array([self._sum_zeros_in_test(test, layers)
-                for test in self.tests.itervalues()])
+                            for test in self.tests.itervalues()])
 
     def get_zeros_fraction(self, layers=None):
         """
@@ -117,4 +117,3 @@ class Results(object):
         """
         fully_connected_layers = self.weighted_layers == "FullyConnectedLayer"
         return self.get_zeros_fraction(fully_connected_layers)
-

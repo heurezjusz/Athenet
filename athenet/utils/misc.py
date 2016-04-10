@@ -118,7 +118,8 @@ def count_zeros(network):
     :param network: Network for which we count zeros.
     :return: List of number of weights being zero for each layer.
     """
-    return numpy.array([count_zeros_in_layer(layer) for layer in network.weighted_layers])
+    return numpy.array([count_zeros_in_layer(layer)
+                        for layer in network.weighted_layers])
 
 len_prev = 0
 

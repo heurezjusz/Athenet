@@ -18,7 +18,7 @@ def get_error_rate(network):
     elif network.data_loader.val_data_available:
         error_rate = 1.0 - network.val_accuracy()
     else:
-        raise Exception('test data and valid data not in Network')
+        raise Exception('test data and validation data not in Network')
     return error_rate
 
 
