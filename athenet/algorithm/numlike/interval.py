@@ -365,7 +365,10 @@ class Interval(Numlike):
 
     @property
     def T(self):
-        """Tensor transposition like in numpy.ndarray."""
+        """Tensor transposition like in numpy.ndarray.
+
+        :rtype: Interval
+        """
         return Interval(self.lower.T,
                         self.upper.T)
 
