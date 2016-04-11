@@ -13,7 +13,7 @@ config.n_epochs = 10
 config.batch_size = 300
 config.learning_rate = 0.1
 config.val_interval = 1
-config.val_units = 'epochs'
+config.val_interval_units = 'epochs'
 
 network.train(config)
 print 'Accuracy on test data: {:.2f}%'.format(100*network.test_accuracy())

@@ -6,7 +6,8 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from athenet.layers import WeightedLayer, ConvolutionalLayer
+from athenet.layers import WeightedLayer, ConvolutionalLayer, InceptionLayer, \
+    FullyConnectedLayer
 from athenet.utils import overwrite, save_data_to_pickle
 
 
@@ -72,15 +73,11 @@ class TrainConfig(object):
 
 
 class Network(object):
-    """Neural network.
-
-    :verbosity: Level of network's verbosity. Integer value between 0 and 3.
-                Default 1.
-    """
+    """Neural network."""
     def __init__(self, layers):
         """Create neural network.
 
-        :layers: List of network's layers.
+        :param layers: List of network's layers.
         """
         self._batch_size = None
         self._data_loader = None
@@ -93,15 +90,26 @@ class Network(object):
         self.snapshot_interval = 0
         self.verbosity = 1
         self._batch_index = T.lscalar()
-        self._input = T.tensor4()
+        if isinstance(layers[0], FullyConnectedLayer):
+            self._input = T.matrix()
+        elif isinstance(layers[0], ConvolutionalLayer):
+            self._input = T.tensor4()
+        else:
+            raise Exception('{} is not supported as input layer'.format(
+                type(layers[0])))
         self._correct_answers = T.ivector()
         self.layers = layers
 
         self.weighted_layers = [layer for layer in self.layers
-                                if isinstance(layer, WeightedLayer)]
+                                if isinstance(layer, WeightedLayer) or
+                                isinstance(layer, InceptionLayer)]
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
+        self.layers_dict = {}
+        for layer in self.layers:
+            if layer.name is not None:
+                self.layers_dict[layer.name] = layer
         self.batch_size = 1
 
     @property
@@ -128,11 +136,19 @@ class Network(object):
         if self.data_loader:
             self.data_loader.batch_size = value
 
-        for layer in self.convolutional_layers:
+        for layer in self.layers:
             layer.batch_size = self.batch_size
         self.layers[0].input = self._input
-        for i in xrange(1, len(self.layers)):
-            self.layers[i].input_layer = self.layers[i-1]
+        self.layers[0].train_input = self._input
+        for layer, prev_layer in zip(self.layers[1:], self.layers[:-1]):
+            if layer.input_layer_name is None:
+                layer.input_layer = prev_layer
+            elif isinstance(layer.input_layer_name, list):
+                layer.input_layers = [
+                    self.layers_dict[layer_name]
+                    for layer_name in layer.input_layer_names]
+            else:
+                layer.input_layer = self.layers_dict[layer.input_layer_name]
 
         output = self.layers[-1].output
         self.answers = T.argsort(-output, axis=1)
@@ -144,10 +160,10 @@ class Network(object):
     def test_accuracy(self, top_range=1):
         """Return network's accuracy on the test data.
 
-        :top_range: Number or list representing top ranges to be used.
-                    Network's answer is considered correct if correct answer
-                    is among top_range most probable answers given by the
-                    network.
+        :param top_range: Number or list representing top ranges to be used.
+                          Network's answer is considered correct if correct
+                          answer is among top_range most probable answers given
+                          by the network.
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
@@ -156,10 +172,10 @@ class Network(object):
     def val_accuracy(self, top_range=1):
         """Return network's accuracy on the validation data.
 
-        :top_range: Number or list representing top ranges to be used.
-                    Network's answer is considered correct if correct answer
-                    is among top_range most probable answers given by the
-                    network.
+        :param top_range: Number or list representing top ranges to be used.
+                          Network's answer is considered correct if correct
+                          answer is among top_range most probable answers given
+                          by the network.
         :return: Number or list representing network accuracy for given top
                  ranges.
         """
@@ -226,16 +242,15 @@ class Network(object):
     def set_params(self, params):
         """Set network's weights and biases.
 
-        :params: List of pairs (W, b).
+        :param params: List of pairs (W, b).
         """
-        for p, layer in zip(params, self.weighted_layers):
-            layer.W = p[0]
-            layer.b = p[1]
+        for layer, p in zip(self.weighted_layers, params):
+            layer.set_params(p)
 
     def save_to_file(self, filename):
         """Save network's weights to file.
 
-        :filename:Name of the file.
+        :param filename: Name of the file.
         """
         save_data_to_pickle(self.get_params(), filename)
 
@@ -245,7 +260,7 @@ class Network(object):
         Batch size must be equal 1 to use this method. If it isn't, it will be
         set to 1.
 
-        :net_input: Input for the network.
+        :param net_input: Input for the network.
         :return: A pair consisting of list of probabilities for every answer
                  index and list of answer indexes sorted by their
                  probabilities descending.
@@ -271,7 +286,7 @@ class Network(object):
     def train(self, config):
         """Train the network.
 
-        :config: Instance of TrainConfig.
+        :param config: Instance of :class:`TrainConfig`.
         """
         if self.data_loader is None:
             raise Exception('data loader is not set')
@@ -289,7 +304,7 @@ class Network(object):
         self.layers[-1].set_cost(self._correct_answers)
         cost = self.layers[-1].cost
         lr = theano.shared(np.array(config.learning_rate,
-                                    dtype=theano.config.floatX))
+                           dtype=theano.config.floatX))
         weights = [layer.W_shared for layer in self.weighted_layers]
         biases = [layer.b_shared for layer in self.weighted_layers]
         weights_grad = T.grad(cost, weights)

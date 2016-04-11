@@ -20,7 +20,7 @@ def alexnet(trained=True, weights_filename=ALEXNET_FILENAME, weights_url=None):
     beta = 0.75
     k = 1
 
-    alexnet = Network([
+    net = Network([
         ConvolutionalLayer(image_shape=(227, 227, 3),
                            filter_shape=(11, 11, 96),
                            stride=(4, 4)),
@@ -64,5 +64,5 @@ def alexnet(trained=True, weights_filename=ALEXNET_FILENAME, weights_url=None):
         Softmax()
     ])
     if trained:
-        alexnet.set_params(weights)
-    return alexnet
+        net.set_params(weights)
+    return net

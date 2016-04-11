@@ -43,7 +43,7 @@ class DataLoader(object):
     def n_batches(self, data_type):
         """Return number of minibatches for given data type.
 
-        :data_type: Instance of DataType.
+        :param data_type: Instance of DataType.
         :return: Number of batches.
         """
         if data_type == 'training_data':
@@ -57,8 +57,8 @@ class DataLoader(object):
     def input(self, batch_index, data_type):
         """Return input data for given data type.
 
-        :batch_index: Minibatch index.
-        :data_type: Instance of DataType.
+        :param batch_index: Minibatch index.
+        :param data_type: Instance of DataType.
         :return: Input data.
         """
         if data_type == 'training_data':
@@ -72,8 +72,8 @@ class DataLoader(object):
     def output(self, batch_index, data_type):
         """Return output data for given data type.
 
-        :batch_index: Minibatch index.
-        :data_type: Instance of DataType.
+        :param batch_index: Minibatch index.
+        :param data_type: Instance of DataType.
         :return: Output data.
         """
         if data_type == 'training_data':
@@ -87,8 +87,8 @@ class DataLoader(object):
     def load_data(self, batch_index, data_type):
         """Load data for given data type.
 
-        :batch_index: Minibatch index.
-        :data_type: Instance of DataType.
+        :param batch_index: Minibatch index.
+        :param data_type: Instance of DataType.
         """
         if data_type == 'training_data':
             self.load_train_data(batch_index)
@@ -100,7 +100,7 @@ class DataLoader(object):
     def train_input(self, batch_index):
         """Return minibatch of training data input.
 
-        :batch_index: Symbolic variable representing minibatch index.
+        :param batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of training data input.
         """
         raise NotImplementedError()
@@ -108,7 +108,7 @@ class DataLoader(object):
     def train_output(self, batch_index):
         """Return minibatch of training data output.
 
-        :batch_index: Symbolic variable representing minibatch index.
+        :param batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of training data output.
         """
         raise NotImplementedError()
@@ -116,7 +116,7 @@ class DataLoader(object):
     def val_input(self, batch_index):
         """Return minibatch of validation data input.
 
-        :batch_index: Symbolic variable representing minibatch index.
+        :param batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of validation data input.
         """
         raise NotImplementedError()
@@ -124,7 +124,7 @@ class DataLoader(object):
     def val_output(self, batch_index):
         """Return minibatch of validation data output.
 
-        :batch_index: Symbolic variable representing minibatch index.
+        :param batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of validation data output.
         """
         raise NotImplementedError()
@@ -132,7 +132,7 @@ class DataLoader(object):
     def test_input(self, batch_index):
         """Return minibatch of testing data input.
 
-        :batch_index: Symbolic variable representing minibatch index.
+        :param batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of testing data input.
         """
         raise NotImplementedError()
@@ -140,7 +140,7 @@ class DataLoader(object):
     def test_output(self, batch_index):
         """Return minibatch of testing data output.
 
-        :batch_index: Symbolic variable representing minibatch index.
+        :param batch_index: Symbolic variable representing minibatch index.
         :return: Minibatch of testing data output.
         """
         raise NotImplementedError()
@@ -148,20 +148,20 @@ class DataLoader(object):
     def load_train_data(self, batch_index):
         """Assure that train data are loaded into memory.
 
-        :batch_index: Index of minibatch to be loaded.
+        :param batch_index: Index of minibatch to be loaded.
         """
         pass
 
     def load_val_data(self, batch_index):
         """Assure that validation data are loaded into memory.
 
-        :batch_index: Index of minibatch to be loaded.
+        :param batch_index: Index of minibatch to be loaded.
         """
         pass
 
     def load_test_data(self, batch_index):
         """Assure that test data are loaded into memory.
 
-        :batch_index: Index of minibatch to be loaded.
+        :param batch_index: Index of minibatch to be loaded.
         """
         pass

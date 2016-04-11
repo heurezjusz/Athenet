@@ -29,8 +29,8 @@ def count_statistics(network):
     """For given neural network, returns lists of numbers of edges, weights and
     neurons per layer.
 
-    :network - neural network in which edges, weights and layers will be
-               counted.
+    :param network: neural network in which edges, weights and layers will be
+                    counted.
 
     For n layers, list of edges and weights are of length n and list of neurons
     is of length (n + 1). List of edges tells how many connections are between
