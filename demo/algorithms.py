@@ -74,7 +74,7 @@ network = get_network(args.network)
 ok()
 
 print "generating results..."
-results = run_algorithm(network, algorithm, dataset)
+results = run_algorithm(network, algorithm, dataset, verbose=True)
 ok()
 
 for config in dataset:
