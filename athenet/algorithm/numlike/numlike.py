@@ -165,7 +165,7 @@ class Numlike(object):
         raise NotImplementedError
 
     def sum(self, axis=None, dtype=None, keepdims=False):
-        """Vector operation like in numpy.ndarray.
+        """Sum of array elements over a given axis like in numpy.ndarray.
 
         :param axis: axis along which this function sums
         :param numeric type or None dtype: just like dtype argument in
@@ -186,7 +186,7 @@ class Numlike(object):
 
     @property
     def T(self):
-        """Vector operation like in numpy.ndarray.
+        """Tensor transposition like in numpy.ndarray.
 
         :rtype: Numlike
         """
