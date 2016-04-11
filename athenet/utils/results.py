@@ -8,16 +8,16 @@ class Results(object):
     Test results, obtained on one network and using one algorithm
     """
 
-    def __init__(self, error_rate, weighted_layers, weights, file=None):
+    def __init__(self, error_rate, weighted_layers, number_of_weights, file=None):
         """
         :param float error_rate: error rate in original network
         :param list of strings weighted_layers: network's weighted layers types
-        :param list of ints weights: number of weights in weighted layers
+        :param list of ints number_of_weights: number of weights in weighted layers
         :param string file: file from which load already done tests
         """
         self.error_rate = error_rate
         self.weighted_layers = numpy.array(weighted_layers)
-        self.weights = numpy.array(weights)
+        self.number_of_weights = numpy.array(number_of_weights)
         self.tests = {}
 
         self.file = file
@@ -30,7 +30,7 @@ class Results(object):
 
         :param tuple of int config: parameters used to test network
         :param tuple(list, float) result:
-            list of zeros in every layers and error_rate in tested network
+            list of number of zeros in every layers and error_rate in tested network
         :param bool save: whenever save it  to file
         """
         self.tests[config] = result
@@ -53,7 +53,8 @@ class Results(object):
         assert loaded_data.error_rate == self.error_rate
         assert numpy.array_equal(loaded_data.weighted_layers,
                                  self.weighted_layers)
-        assert numpy.array_equal(loaded_data.weights, self.weights)
+        assert numpy.array_equal(loaded_data.number_of_weights,
+                                 self.number_of_weights)
         self.tests = dict(self.tests, **loaded_data.tests)
 
     def save_to_file(self, file=None):
@@ -79,10 +80,10 @@ class Results(object):
         """
         return [config for config in configs if config not in self.tests]
 
-    def _get_weights(self, layers=None):
+    def _get_number_of_weights(self, layers=None):
         if layers is not None:
-            return self.weights[layers]
-        return self.weights
+            return self.number_of_weights[layers]
+        return self.number_of_weights
 
     @staticmethod
     def _sum_zeros_in_test((zeros, error_rate), layers=None):
@@ -103,8 +104,8 @@ class Results(object):
             fractions of zeros and error rate for every test
         """
         results = self._sum_zeros(layers)
-        weights = sum(self._get_weights(layers))
-        return [(float(zeros) / weights, error_rate)
+        number_of_weights = sum(self._get_number_of_weights(layers))
+        return [(float(zeros) / number_of_weights, error_rate)
                 for zeros, error_rate in results]
 
     def get_zeros_fraction_in_conv_layers(self):
