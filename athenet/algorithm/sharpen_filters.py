@@ -34,7 +34,7 @@ def _get_bilateral_noise_indicators(filter, bilateral_filter_args):
 
 
 def _get_filters_indicators_in_layer_with_filters(layer,
-                                                 bilateral_filter_args):
+                                                  bilateral_filter_args):
     """
     Return indicators of being a noise for layer containing filters.
 
@@ -73,10 +73,11 @@ def get_filters_indicators(layers, bilateral_filter_args):
     :return: numpy.ndarray
     """
 
-    return numpy.array(
-        [_get_filters_indicators_in_layer_with_filters(layer, bilateral_filter_args)
-         for layer in layers
-         if len(layer.W.shape) == 4])  # only for layers with filters
+    return numpy.array([
+        _get_filters_indicators_in_layer_with_filters(layer,
+                                                      bilateral_filter_args)
+        for layer in layers
+        if len(layer.W.shape) == 4])  # only for layers with filters
 
 
 def sharpen_filters(network, (fraction, bilateral_filter_args)):
@@ -92,7 +93,7 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     """
 
     layers = [layer for layer in network.weighted_layers
-                   if len(layer.W.shape) == 4]  # only for layers with filters
+              if len(layer.W.shape) == 4]  # only for layers with filters
     filter_indicators = get_filters_indicators(layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(layers)

@@ -2,7 +2,7 @@ import numpy
 
 
 def _delete_weights_in_layer_by_fraction(layer, fraction,
-                                        importance_indicator):
+                                         importance_indicator):
     if fraction == 0:
         return
 
