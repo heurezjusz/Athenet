@@ -267,8 +267,7 @@ class Network(object):
         """
         self.batch_size = 1
         net_input = np.asarray(net_input, dtype=theano.config.floatX)
-        n_channels, height, width = net_input.shape
-        net_input = np.resize(net_input, (1, n_channels, height, width))
+        net_input = np.resize(net_input, (1,)+net_input.shape)
         return self.get_output(net_input)
 
     def _convert_to_batches(self, interval, units):
