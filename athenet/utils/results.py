@@ -98,7 +98,7 @@ class Results(object):
         """
         Counts fraction of zeros on layers for every test
 
-        :param list or tuple of bools layers: wchich layers considers
+        :param list or tuple of bools layers: which layers to consider
         :return list of tuples(float, float):
             fractions of zeros and error rate for every test
         """
