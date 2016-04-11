@@ -8,11 +8,14 @@ class Results(object):
     Test results, obtained on one network and using one algorithm
     """
 
-    def __init__(self, error_rate, weighted_layers, number_of_weights, file=None):
+    def __init__(self, error_rate, weighted_layers,
+                 number_of_weights, file=None):
         """
         :param float error_rate: error rate in original network
-        :param list of strings weighted_layers: network's weighted layers types
-        :param list of ints number_of_weights: number of weights in weighted layers
+        :param list of strings weighted_layers:
+            network's weighted layers types
+        :param list of ints number_of_weights:
+            number of weights in weighted layers
         :param string file: file from which load already done tests
         """
         self.error_rate = error_rate
@@ -30,7 +33,8 @@ class Results(object):
 
         :param tuple of int config: parameters used to test network
         :param tuple(list, float) result:
-            list of number of zeros in every layers and error_rate in tested network
+            list of number of zeros in every layers
+            and error_rate in tested network
         :param bool save: whenever save it  to file
         """
         self.tests[config] = result
