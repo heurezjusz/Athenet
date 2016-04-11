@@ -107,6 +107,22 @@ def zero_fraction(network):
     return (1.0 * n_zero) / (1.0 * n_fields)
 
 
+def count_zeros_in_layer(layer):
+    return layer.W.size - numpy.count_nonzero(layer.W)
+
+
+def count_zeros(network):
+    """
+    Returns zeros in weights of Network.
+
+    Biases are not considered.
+
+    :param network: Network for which we count zeros.
+    :return: List of number of weights being zero for each layer.
+    """
+    return numpy.array([count_zeros_in_layer(layer)
+                        for layer in network.weighted_layers])
+
 len_prev = 0
 
 
