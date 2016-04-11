@@ -17,14 +17,15 @@ def delete_weights_by_layer_fractions(layers, fractions,
     """
     Change weights in layer to zeros.
 
-    This function, for given order of weights,
-    changes the given fraction of the smallest weights to zeros or,
+    This function, for every layer,
+    changes the given fraction of weights to zeros or,
     if that is not possible, takes the ceiling of such number.
+    Weights to be changed are those with bigger indicators.
 
-    :param WeightedLayer layer: layer for sparsifying
-    :param float or list or numpy.array zeroed_weights_fraction:
+    :param WeightedLayer layers: layers for sparsifying
+    :param float or list or numpy.array fractions:
         fraction of weights to be changed to zeros
-    :param order: order of weights
+    :param importance_indicators: indicators for each weight for deleting
     """
 
     try:
@@ -38,23 +39,22 @@ def delete_weights_by_layer_fractions(layers, fractions,
                                              importance_indicator)
 
 
-def delete_weights_by_global_fraction(layers, zeroed_weights_fraction,
+def delete_weights_by_global_fraction(layers, fraction,
                                       importance_indicators):
     """
     Change weights in network to zeros.
 
-    This function, for given order of weights,
-    change the given fraction of the smallest to zeros or,
+    This function, for all layers at once,
+    change the given fraction of weights to zeros or,
     if that is not possible, takes the ceiling of such number.
+    Weights to be changed are those with bigger indicators.
 
-    :param Network network: network for sparsifying
-    :param float zeroed_weights_fraction:
-        fraction of weights to be changed to zeros
-    :param order: order of weights
-    :type order: function
+    :param WeightedLayer layers: layers for sparsifying
+    :param float fraction: fraction of weights to be changed to zeros
+    :param importance_indicators: indicators for each weight for deleting
     """
 
-    if zeroed_weights_fraction == 0:
+    if fraction == 0:
         return
 
     flattened_importance_indicators = numpy.concatenate(
@@ -62,9 +62,9 @@ def delete_weights_by_global_fraction(layers, zeroed_weights_fraction,
          for layer_importance_indicators in importance_indicators])
 
     percentile = numpy.percentile(flattened_importance_indicators,
-                                  (1 - zeroed_weights_fraction) * 100)
+                                  (1 - fraction) * 100)
 
-    for layer, ord in zip(layers, importance_indicators):
+    for layer, indicator in zip(layers, importance_indicators):
         weights = layer.W
-        weights[ord >= percentile] = 0
+        weights[indicator >= percentile] = 0
         layer.W = weights

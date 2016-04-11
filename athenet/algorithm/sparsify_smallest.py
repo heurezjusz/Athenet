@@ -115,8 +115,8 @@ def sparsify_smallest_on_layers(network, zeroed_weights_fraction):
 
     layers = network.weighted_layers
     indicators = get_smallest_indicators(layers)
-    fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
-    delete_weights_by_layer_fractions(layers, fractions, indicators)
+    delete_weights_by_layer_fractions(layers, zeroed_weights_fraction,
+                                      indicators)
 
 
 def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
@@ -134,5 +134,5 @@ def sparsify_nearest_to_layer_mean(network, zeroed_weights_fraction):
 
     layers = network.weighted_layers
     indicators = get_nearest_to_layers_mean_indicators(layers)
-    fractions = numpy.ones(len(layers)) * zeroed_weights_fraction
-    delete_weights_by_layer_fractions(layers, fractions, indicators)
+    delete_weights_by_layer_fractions(layers, zeroed_weights_fraction,
+                                      indicators)
