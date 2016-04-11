@@ -19,8 +19,8 @@ class MNISTDataLoader(DataLoader):
     def __init__(self, filename=MNIST_filename, url=MNIST_origin):
         """Create MNIST data loader.
 
-        :filename: Name of a file with MNIST data.
-        :url: Url for downloading MNIST data.
+        :param filename: Name of a file with MNIST data.
+        :param url: Url for downloading MNIST data.
         """
         super(MNISTDataLoader, self).__init__()
 
@@ -41,7 +41,7 @@ class MNISTDataLoader(DataLoader):
     def _mnist_shared_dataset(self, data):
         """Create shared variables from given data.
 
-        :data: Data consisting of pairs (input, output).
+        :param data: Data consisting of pairs (input, output).
         :return: Shared variables created from data.
         """
         data_in, data_out = data
