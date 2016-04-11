@@ -57,7 +57,7 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     results = Results(
         error_rate=get_error_rate(neural_network),
         weighted_layers=[layer.__class__.__name__ for layer in layers],
-        weights=[layer.W.size for layer in layers],
+        number_of_weights=[layer.W.size for layer in layers],
         file=results_pkl
     )
     config_l = results.get_new_test_configs(config_l)
