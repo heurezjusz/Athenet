@@ -482,5 +482,28 @@ class IntervalTest(unittest.TestCase):
         assert_equal(i2l, 1)
         assert_equal(i2u, 3)
 
+    def test_op_relu(self):
+        inpl = np.array([[[-3, -1, 1]]])
+        inpu = np.array([[[-2, 3, 2]]])
+        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
+        iinp = Interval(tinpl, tinpu)
+        res = iinp.op_relu()
+        d = {tinpl: inpl, tinpu: inpu}
+        rl, ru = res.eval(d)
+        arae(rl, np.array([[[0, 0, 1]]]))
+        arae(ru, np.array([[[0, 3, 2]]]))
+
+    def test_derest_output(self):
+        o1 = Interval.derest_output(1)
+        o4 = Interval.derest_output(4)
+        l1, u1 = o1.eval()
+        l4, u4 = o4.eval()
+        arae(l1, u1)
+        arae(l4, u4)
+        arae(l1, np.array([[1]]))
+        arae(l4, np.array([[1, 0, 0, 0], [0, 1, 0, 0],
+                           [0, 0, 1, 0], [0, 0, 0, 1]]))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
