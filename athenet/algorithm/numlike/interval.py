@@ -344,7 +344,7 @@ class Interval(Numlike):
                         self.upper.flatten())
 
     def sum(self, axis=None, dtype=None, keepdims=False):
-        """Tensor sum operation like in numpy.ndarray.
+        """Sum of array elements over a given axis like in numpy.ndarray.
 
         :param integer or None axis: axis along which this function sums
         :param type or None dtype: just like dtype argument in
