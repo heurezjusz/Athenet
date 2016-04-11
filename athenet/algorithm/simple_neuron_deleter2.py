@@ -89,10 +89,10 @@ def simple_neuron_deleter2(network, config):
     for val, neuron_id, column_layer_id, row_layer_id in considered_neurons:
         if deleted_in_general >= p * neurons_in_general:
             break
-        if deleted_for_layer[row_layer_id] + 1 > \
-                layer_limit * neurons_for_layer[row_layer_id]:
+        if deleted_for_layer[column_layer_id] + 1 > \
+                layer_limit * neurons_for_layer[column_layer_id]:
             continue
         delete_column(network.layers[column_layer_id], neuron_id)
         delete_row(network.layers[row_layer_id], neuron_id)
-        deleted_for_layer[row_layer_id] += 1
+        deleted_for_layer[column_layer_id] += 1
         deleted_in_general += 1
