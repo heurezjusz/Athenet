@@ -68,7 +68,8 @@ class Nplike(Numlike):
     def dot(self, other):
         """Dot product of self and other.
 
-        :param numpy.ndarray other: second argument of product"""
+        :param numpy.ndarray other: second argument of product
+        """
         return Nplike(numpy.dot(self.value, other))
 
     def max(self, other):
@@ -96,7 +97,6 @@ class Nplike(Numlike):
         :param type or None dtype: just like dtype argument in
                                    theano.tensor.sum
         :param Boolean keepdims: Whether to keep squashed dimensions of size 1
-
         """
         s = self.value.sum(axis=axis, dtype=dtype, keepdims=keepdims)
         if isinstance(s, numpy.ndarray):
