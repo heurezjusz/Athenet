@@ -12,4 +12,4 @@ def assert_numlike(value):
     if type(value).__module__ == theano.tensor.__name__:
         return
     print value, type(value)
-    raise ValueError("layer_input must be Numlike.")
+    raise ValueError("value must be Numlike.")
