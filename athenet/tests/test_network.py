@@ -77,7 +77,7 @@ class TestTrainingProcess(TestCase):
         for i in xrange(2):
             for j in xrange(2):
                 for k in xrange(2):
-                    data_in.append([[[1. * i, 1. * j, 1. * k]]])
+                    data_in.append([1. * i, 1. * j, 1. * k])
                     data_out.append([i ^ j ^ k])
         net.data_loader = DummyDataLoader(data_in, data_out)
         net.verbosity = 0
@@ -93,8 +93,8 @@ class TestTrainingProcess(TestCase):
         for i in xrange(2):
             for j in xrange(2):
                 for k in xrange(2):
-                    raw = net.evaluate([[[i, j, k]]])[0]
-                    out = net.evaluate([[[i, j, k]]])[1]
+                    raw = net.evaluate([i, j, k])[0]
+                    out = net.evaluate([i, j, k])[1]
                     self.assertTrue(raw[out[0]] > raw[out[1]])
                     if out[0] == i ^ j ^ k:
                         correct += 1.
