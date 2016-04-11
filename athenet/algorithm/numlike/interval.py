@@ -34,10 +34,8 @@ class Interval(Numlike):
     def __init__(self, lower, upper):
         """Creates interval.
 
-        :param lower: lower bound of Interval to be set
-        :param upper: upper bound of Interval to be set
-        :type lower: numpy.ndarray or theano variable
-        :type upper: numpy.ndarray or theano variable
+        :param theano tensor lower: lower bound of Interval to be set
+        :param theano tensor upper: upper bound of Interval to be set
 
         .. note:: lower must be lower than upper. It is not being checked.
         """
@@ -223,11 +221,10 @@ class Interval(Numlike):
         >>> import numpy
         >>> a = numpy.array([-1])
         >>> b = numpy.array([1])
-        >>> i = Interval(-1, 1)
+        >>> i = Interval(a, b)
         >>> s = i.square()
         >>> s.eval()
-        >>> (numpy.ndarray([0]), numpy.ndarray([1]))
-
+        (array([0]), array([1]))
         """
         lsq = self.lower * self.lower
         usq = self.upper * self.upper
@@ -283,12 +280,26 @@ class Interval(Numlike):
                                                      multiplied
         :rtype: Interval
         """
+<<<<<<< HEAD
         # After first results, might be changed to save more memory / time
         lower_dot = self.lower * other.T
         upper_dot = self.upper * other.T
         lower_res = T.minimum(lower_dot, upper_dot)
         upper_res = T.maximum(lower_dot, upper_dot)
         return Interval(lower_res.sum(axis=1), upper_res.sum(axis=1))
+=======
+        lower = self.lower
+        upper = self.upper
+        other_negative = T.minimum(other, 0.0)
+        other_positive = T.maximum(other, 0.0)
+        lower_pos_dot = T.dot(lower, other_positive)
+        lower_neg_dot = T.dot(lower, other_negative)
+        upper_pos_dot = T.dot(upper, other_positive)
+        upper_neg_dot = T.dot(upper, other_negative)
+        res_lower = lower_pos_dot + upper_neg_dot
+        res_upper = upper_pos_dot + lower_neg_dot
+        return Interval(res_lower, res_upper)
+>>>>>>> interval_extension
 
     def max(self, other):
         """Returns interval such that for any numbers (x, y) in a pair of
@@ -342,7 +353,11 @@ class Interval(Numlike):
                         self.upper.flatten())
 
     def sum(self, axis=None, dtype=None, keepdims=False):
+<<<<<<< HEAD
         """Vector operation like in numpy.ndarray.
+=======
+        """Sum of array elements over a given axis like in numpy.ndarray.
+>>>>>>> interval_extension
 
         :param integer or None axis: axis along which this function sums
         :param type or None dtype: just like dtype argument in
@@ -363,7 +378,11 @@ class Interval(Numlike):
 
     @property
     def T(self):
+<<<<<<< HEAD
         """Vector operation like in numpy.ndarray."""
+=======
+        """Tensor transposition like in numpy.ndarray."""
+>>>>>>> interval_extension
         return Interval(self.lower.T,
                         self.upper.T)
 
@@ -384,10 +403,17 @@ class Interval(Numlike):
             raise ValueError("lower_val > upper_val in newly created Interval")
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
+<<<<<<< HEAD
                         NEUTRAL_INTERVAL_UPPER
         if upper_val is None:
             upper_val = DEFAULT_INTERVAL_LOWER if neutral else \
                 DEFAULT_INTERVAL_UPPER
+=======
+                        DEFAULT_INTERVAL_LOWER
+        if upper_val is None:
+            upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
+                        DEFAULT_INTERVAL_UPPER
+>>>>>>> interval_extension
         lower_array = numpy.ndarray(shp)
         upper_array = numpy.ndarray(shp)
         lower_array.fill(lower_val)

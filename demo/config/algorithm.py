@@ -1,4 +1,4 @@
-from athenet.sparsifying import sparsify_smallest_on_network
+from athenet.algorithm import sparsify_smallest_on_network
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
 from athenet.models import lenet
 from athenet.data_loader import MNISTDataLoader
