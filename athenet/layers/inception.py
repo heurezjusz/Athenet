@@ -86,3 +86,6 @@ class InceptionLayer(Layer):
     def set_params(self, params):
         for layer, p in zip(self.convolutional_layers, params):
             layer.set_params(p)
+
+    def get_params(sef, params):
+        return [layer.params for layer in self.convolutional_layers]

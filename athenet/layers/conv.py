@@ -102,7 +102,3 @@ class ConvolutionalLayer(WeightedLayer):
                                   self.padding, self.batch_size,
                                   self.filter_shape)
         return conv_output + self.b_shared.dimshuffle('x', 0, 'x', 'x')
-
-    def set_params(self, params):
-        self.W = params[0]
-        self.b = params[1]
