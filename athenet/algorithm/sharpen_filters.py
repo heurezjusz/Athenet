@@ -37,7 +37,7 @@ def _get_filters_indicators_in_layer_with_filters(layer,
     """
     Return indicators of being a noise for layer containing filters.
 
-    This function, for convolutional layer,
+    This function, for layer with filters,
     return indicators of being a noise
     computed using bilateral filtering with given arguments
     for every 2d filter
@@ -62,7 +62,7 @@ def get_filters_indicators(layers, bilateral_filter_args):
     Returns indicators of being a noise for layers.
 
     This function, for every layer,
-    returns indicatos of being a noise
+    returns indicators of being a noise
     computed using bilateral filtering with given arguments
     for every 2d filter in every layer
 
@@ -76,7 +76,7 @@ def get_filters_indicators(layers, bilateral_filter_args):
         _get_filters_indicators_in_layer_with_filters(layer,
                                                       bilateral_filter_args)
         for layer in layers
-        if len(layer.W.shape) == 4])  # only for layers with filters
+        if len(layer.W.shape) == 4])  # only layers with 3d filters
 
 
 def sharpen_filters(network, (fraction, bilateral_filter_args)):
@@ -91,8 +91,7 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     :param tuple bilateral_filter_args: args for filter algorithm
     """
 
-    layers = [layer for layer in network.weighted_layers
-              if len(layer.W.shape) == 4]  # only for layers with filters
+    layers = [layer for layer in network.convolutional_layers]
     filter_indicators = get_filters_indicators(layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(layers)

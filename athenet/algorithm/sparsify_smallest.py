@@ -9,6 +9,7 @@ def _to_indicators(weights):
     max_value = numpy.amax(weights)
     return 1. - weights/max_value
 
+
 def get_smallest_indicators(layers):
     """
     Return indicators of smallest weights in layers.
