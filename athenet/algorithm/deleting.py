@@ -32,7 +32,7 @@ def delete_weights_by_layer_fractions(layers, fractions,
     try:
         iter(fractions)
     except TypeError:
-        fractions = [fractions for i in layers]
+        fractions = [fractions for _ in layers]
 
     for layer, fraction, importance_indicator \
             in zip(layers, fractions, importance_indicators):

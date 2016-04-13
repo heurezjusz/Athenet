@@ -5,7 +5,7 @@ from athenet.algorithm.deleting import delete_weights_by_layer_fractions
 from athenet.algorithm.sparsify_smallest import get_smallest_indicators
 
 
-def _get_bilateral_noise_indicators(filter, bilateral_filter_args):
+def _get_bilateral_noise_indicators(filter_2d, bilateral_filter_args):
     """
     Returns possibility of being a noise .
 
@@ -13,18 +13,17 @@ def _get_bilateral_noise_indicators(filter, bilateral_filter_args):
     computes possibility of being a noise for every value in filters,
     which is computed using bilateral filtering with given arguments
 
-    :param numpy.ndarray filter: 2D filter
+    :param numpy.ndarray filter_2d: 2D filter
     :param bilateral_filter_args: args for bilateral filtering
     :type bilateral_filter_args: list or tuple
     :return numpy.ndarray with [0,1] values
     """
-    assert len(filter.shape) == 2
+    assert len(filter_2d.shape) == 2
 
-    min = numpy.amin(filter)
-    max = numpy.amax(filter)
-
-    filter_as_image = numpy.array((filter - min)/(max - min) * 255,
-                                  dtype=numpy.uint8)
+    filter_as_image = numpy.array(
+        (filter_2d - numpy.amin(filter_2d))/numpy.ptp(filter_2d) * 255,
+        dtype=numpy.uint8
+    )
 
     sharpened_filter = cv2.bilateralFilter(filter_as_image,
                                            *bilateral_filter_args)
@@ -69,7 +68,7 @@ def get_filters_indicators(layers, bilateral_filter_args):
 
     :param layers:
     :type layers: list or numpy.array or tuple
-    :param bilateral_filter_args:args for bilateral filtering
+    :param tuple bilateral_filter_args:args for bilateral filtering
     :return: numpy.ndarray
     """
 
@@ -89,7 +88,7 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     and which possibility of being a noise is greater than min_noise_value,
 
     :param Network network: network for sparsifying
-    :param tuple args: args for filter algorithm
+    :param tuple bilateral_filter_args: args for filter algorithm
     """
 
     layers = [layer for layer in network.weighted_layers
