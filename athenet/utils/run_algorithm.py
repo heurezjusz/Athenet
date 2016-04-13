@@ -1,12 +1,40 @@
 """Function for running algorithm on network for multiple cases. """
 
-import os
-import cPickle as pickle
-import gzip
 import copy
 
-from athenet.utils import save_data_to_pickle, load_data_from_pickle, \
-    zero_fraction
+from athenet.utils import count_zeros
+from athenet.utils.results import Results
+
+
+def get_error_rate(network):
+    """
+    Returns error rate in given network
+
+    :param Network network:network to check
+    :return float: error rate in network
+    """
+    if network.data_loader.test_data_available:
+        error_rate = 1.0 - network.test_accuracy()
+    elif network.data_loader.val_data_available:
+        error_rate = 1.0 - network.val_accuracy()
+    else:
+        raise Exception('test data and validation data not in Network')
+    return error_rate
+
+
+def run_test(network, algorithm, config):
+    """
+    Runs algorithm in given network and return number of zeros and error rate
+     in this network after running an algorithm
+
+    :param Network network: network
+    :param function algorithm: algorithm changing network
+    :param float or tuple config: parameters for algorithm
+    :return tuple(int, float): number of zeros and error rate
+    """
+    algorithm(network, config)
+    zeros = count_zeros(network)
+    return zeros, get_error_rate(network)
 
 
 def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
@@ -20,41 +48,30 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     :param config_l: List of configs to be passed to algorithm. For every
                      config algorithm is being executed once.
     :param results_pkl: File where results of algorithm are saved online and
-                        from where they are initially loaded. Stores dictionary
-                        {config: algorithm(neural_network, config)}.
+                        from where they are initially loaded.
     :param verbose: If True, then progress of tests is being printed.
-    :return: Dictionary {config: algorithm(neural_network, config)}.
+    :return: Results
     """
-    results = {}
-    if results_pkl:
-        try:
-            results = load_data_from_pickle(results_pkl)
-        except:
-            pass
-    config_l = filter(lambda config: config not in results, config_l)
+    save = results_pkl is not None
+    layers = neural_network.weighted_layers
+    results = Results(
+        error_rate=get_error_rate(neural_network),
+        weighted_layers=[layer.__class__.__name__ for layer in layers],
+        number_of_weights=[layer.W.size for layer in layers],
+        file=results_pkl
+    )
+    config_l = results.get_new_test_configs(config_l)
     n_of_cases = len(config_l)
     n_of_cases_passed = 0
     if verbose:
         print 'Cases to run:', n_of_cases
     for config in config_l:
-        transformed_net = copy.deepcopy(neural_network)
-        zeros_before = zero_fraction(transformed_net)
-        algorithm(transformed_net, config)
-        zeros_after = zero_fraction(transformed_net)
-        zeroed_fraction = zeros_after - zeros_before
-        error_rate = None
-        if transformed_net.data_loader.test_data_available:
-            error_rate = 1.0 - transformed_net.test_accuracy()
-        elif transformed_net.data_loader.val_data_available:
-            error_rate = 1.0 - transformed_net.val_accuracy()
-        else:
-            raise Exception('test data and valid data not in Network')
-        results[config] = (zeroed_fraction, error_rate)
+        test_result = run_test(copy.deepcopy(neural_network),
+                               algorithm, config)
+        results.add_new_test_result(config, test_result, save)
         n_of_cases_passed += 1
         if verbose:
             print 'Cases passed:', n_of_cases_passed, '/', n_of_cases
-        if results_pkl:
-            save_data_to_pickle(results, results_pkl)
     if verbose:
         print 'Algorithm run successfully'
     return results

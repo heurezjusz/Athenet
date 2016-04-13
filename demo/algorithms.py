@@ -65,7 +65,7 @@ print "parsing arguments..."
 datasets_available = len(datasets[args.algorithm])
 if args.dataset >= datasets_available or args.dataset < 0:
     sys.exit("Invalid choise of dataset. Please choose the numer between"
-             " 0 and " + str(datasets_available))
+             " 0 and " + str(datasets_available - 1))
 dataset = datasets[args.algorithm][args.dataset]
 algorithm = algorithms[args.algorithm]
 ok()
@@ -75,7 +75,7 @@ network = get_network(args.network)
 ok()
 
 print "generating results..."
-results = run_algorithm(network, algorithm, dataset)
+results = run_algorithm(network, algorithm, dataset, verbose=True)
 ok()
 
 for config in dataset:

@@ -1,20 +1,20 @@
-"""Testing athenet.algorithm.numlike.numlike.Numlike class with its methods.
+"""Testing athenet.algorithm.numlike.Numlike class with its methods.
 """
 
 import numpy as np
 import unittest
 from nose.tools import raises
-from athenet.algorithm.numlike.numlike import Numlike
+from athenet.algorithm.numlike import Numlike
 
 
 class NumlikeTest(unittest.TestCase):
 
     def test_init(self):
-        n = Numlike()
+        _ = Numlike()
 
     @raises(NotImplementedError)
     def test_getitem(self):
-        a = Numlike()[0]
+        _ = Numlike()[0]
 
     @raises(NotImplementedError)
     def test_setitem(self):
@@ -22,73 +22,96 @@ class NumlikeTest(unittest.TestCase):
 
     @raises(NotImplementedError)
     def test_shape(self):
-        shp = Numlike().shape()
+        _ = Numlike().shape()
 
     @raises(NotImplementedError)
     def test_add(self):
-        res = Numlike() + Numlike()
-
-    @raises(NotImplementedError)
-    def test_radd(self):
-        res = 1.0 + Numlike()
+        _ = Numlike() + Numlike()
 
     @raises(NotImplementedError)
     def test_sub(self):
-        res = Numlike() - 1.0
-
-    @raises(NotImplementedError)
-    def test_rsub(self):
-        res = 1.0 - Numlike()
+        _ = Numlike() - 1.0
 
     @raises(NotImplementedError)
     def test_mul(self):
-        res = Numlike() * 3.0
-
-    @raises(NotImplementedError)
-    def test_rmul(self):
-        res = 3.0 * Numlike()
+        _ = Numlike() * 3.0
 
     @raises(NotImplementedError)
     def test_div(self):
-        res = Numlike() / 5.0
+        _ = Numlike() / 5.0
+
+    @raises(NotImplementedError)
+    def test_rdiv(self):
+        _ = 5.0 / Numlike()
 
     @raises(NotImplementedError)
     def test_reciprocal(self):
-        res = Numlike().reciprocal()
+        _ = Numlike().reciprocal()
 
     @raises(NotImplementedError)
     def test_neg(self):
-        res = Numlike().neg()
+        _ = Numlike().neg()
 
     @raises(NotImplementedError)
     def test_exp(self):
-        res = Numlike().exp()
+        _ = Numlike().exp()
 
     @raises(NotImplementedError)
     def test_square(self):
-        res = Numlike().square()
+        _ = Numlike().square()
 
     @raises(NotImplementedError)
     def test_power(self):
-        res = Numlike().power(3.0)
+        _ = Numlike().power(3.0)
 
     @raises(NotImplementedError)
     def test_dot(self):
         w = np.array([[1, 2], [3, 4]])
-        res = Numlike().dot(w)
+        _ = Numlike().dot(w)
 
     @raises(NotImplementedError)
     def test_max(self):
-        res = Numlike().max(Numlike())
+        _ = Numlike().max(Numlike())
 
     @raises(NotImplementedError)
-    def test_reshape(self):
-        res = Numlike().reshape((1, 2, 3))
+    def test_amax(self):
+        _ = Numlike().amax()
+
+    @raises(NotImplementedError)
+    def test__hape(self):
+        _ = Numlike().reshape((1, 2, 3))
 
     @raises(NotImplementedError)
     def test_flatten(self):
-        res = Numlike().flatten()
+        _ = Numlike().flatten()
+
+    @raises(NotImplementedError)
+    def test_sum(self):
+        _ = Numlike().sum(0)
+
+    @raises(NotImplementedError)
+    def test_abs(self):
+        _ = Numlike().abs()
+
+    @raises(NotImplementedError)
+    def test_T(self):
+        _ = Numlike().T
+
+    @raises(NotImplementedError)
+    def test_from_shape1(self):
+        _ = Numlike.from_shape((3, 4))
+
+    @raises(NotImplementedError)
+    def test_from_shape2(self):
+        _ = Numlike.from_shape((3, 4), neutral=True)
+
+    @raises(NotImplementedError)
+    def test_from_shape3(self):
+        _ = Numlike.from_shape((3, 4), neutral=False)
+
+    @raises(NotImplementedError)
+    def test_eval(self):
+        _ = Numlike().eval()
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
-
