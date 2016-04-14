@@ -85,7 +85,7 @@ class TestLayers(TestCase):
         layer = LRN(4)
         self.assertEqual(layer.local_range, 5)
         self.assertEqual(layer.k, 1)
-        self.assertEqual(layer.alpha, 0.0002)
+        self.assertEqual(layer.alpha, 0.0001)
         self.assertEqual(layer.beta, 0.75)
 
         output = eval_tensor_on_layer(layer, in_data)
