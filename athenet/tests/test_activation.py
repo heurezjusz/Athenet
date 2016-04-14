@@ -14,6 +14,7 @@ from athenet.algorithm.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
 
+
 A = np.array
 
 

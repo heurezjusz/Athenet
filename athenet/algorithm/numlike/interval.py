@@ -5,6 +5,7 @@ This module contains Interval class and auxiliary objects.
 """
 
 from numlike import Numlike
+import theano
 from theano import function
 from theano import tensor as T
 from theano import shared
@@ -796,7 +797,177 @@ class Interval(Numlike):
         :param float beta: local range normalization beta argument
         :rtype: Interval
         """
-        pass
+        if beta != 0.75:
+            raise NotImplementedError("d_norm: beta != 0.75")
+        if local_range % 2 == 0:
+            local_range += 1
+        output = self
+        lower = activation.lower
+        upper = activation.upper
+        half = local_range / 2
+        sq_low = T.sqr(lower)
+        sq_upp = T.sqr(upper)
+        bs, n_channels, h, w = activation_shape
+        extra_channels_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
+        extra_channels_upp = T.alloc(0, bs, n_channels + 2 * half, h, w)
+        T.set_subtensor(extra_channels_low[:, half:half + n_channels, :, :],
+                        sq_low)
+        T.set_subtensor(extra_channels_upp[:, half:half + n_channels, :, :],
+                        sq_upp)
+        neigh_sum_low = T.zeros_like(lower, dtype=theano.config.floatX)
+        neigh_sum_upp = T.zeros_like(upper, dtype=theano.config.floatX)
+        for i in xrange(local_range):
+            if i != half:
+                neigh_sum_low += extra_channels_low[:, i:i + n_channels, :, :]
+                neigh_sum_upp += extra_channels_upp[:, i:i + n_channels, :, :]
+        # impact of middle element in local_range on output
+        c_low = neigh_sum_low * alpha + k
+        c_upp = neigh_sum_upp * alpha + k
+        t_low = 0.5 * alpha * sq_low
+        t_upp = 0.5 * alpha * sq_upp
+        extr_t = T.dscalar(1.0 / 3.0)
+        extr_c = T.dscalar(5.0)
+
+        def is_above_line(arg_x, arg_y, arg_coefficient):
+            return T.gt(arg_y, arg_x * arg_coefficient)
+
+        def norm_fun(arg_t, arg_c):
+            return (arg_c - arg_t) / T.power((arg_c + 2.0 * arg_t), 1.75)
+
+        junction_t1 = T.and_(T.neg(is_above_line(c_low, t_low, extr_t)),
+                             is_above_line(c_low, t_upp, extr_t))
+        junction_t2 = T.and_(T.neg(is_above_line(c_low, t_low, extr_t)),
+                             is_above_line(c_upp, t_low, extr_t))
+        junction_t3 = T.and_(T.neg(is_above_line(c_low, t_upp, extr_t)),
+                             is_above_line(c_upp, t_upp, extr_t))
+        junction_t4 = T.and_(T.neg(is_above_line(c_upp, t_low, extr_t)),
+                             is_above_line(c_upp, t_upp, extr_t))
+        junction_c1 = T.and_(T.neg(is_above_line(c_low, t_low, extr_c)),
+                             is_above_line(c_low, t_upp, extr_c))
+        junction_c2 = T.and_(T.neg(is_above_line(c_low, t_low, extr_c)),
+                             is_above_line(c_upp, t_low, extr_c))
+        junction_c3 = T.and_(T.neg(is_above_line(c_low, t_upp, extr_c)),
+                             is_above_line(c_upp, t_upp, extr_c))
+        junction_c4 = T.and_(T.neg(is_above_line(c_upp, t_low, extr_c)),
+                             is_above_line(c_upp, t_upp, extr_c))
+        pt_t1 = norm_fun(c_low / extr_t, c_low)
+        pt_t2 = norm_fun(t_low, t_low * extr_t)
+        pt_t3 = norm_fun(t_upp, t_upp * extr_t)
+        pt_t4 = norm_fun(c_upp / extr_t, c_upp)
+        pt_c1 = norm_fun(c_low / extr_c, c_low)
+        pt_c2 = norm_fun(t_low, t_low * extr_c)
+        pt_c3 = norm_fun(t_upp, t_upp * extr_c)
+        pt_c4 = norm_fun(c_upp / extr_c, c_upp)
+        pt_r1 = norm_fun(t_low, c_low)
+        pt_r2 = norm_fun(t_upp, c_low)
+        pt_r3 = norm_fun(t_low, c_upp)
+        pt_r4 = norm_fun(t_upp, c_upp)
+        res_low = pt_r1
+        res_upp = pt_r1
+        for pts_r in [pt_r2, pt_r3, pt_r4]:
+            res_low = T.minimum(res_low, pts_r)
+            res_upp = T.maximum(res_upp, pts_r)
+        for pt, jct in [(pt_t1, junction_t1), (pt_t2, junction_t2),
+                        (pt_t3, junction_t3), (pt_t4, junction_t4),
+                        (pt_c1, junction_c1), (pt_c2, junction_c2),
+                        (pt_c3, junction_c3), (pt_c4, junction_c4)]:
+            res_low = T.switch(jct, T.minimum(res_low, pt), res_low)
+            res_upp = T.switch(jct, T.maximum(res_upp, pt), res_upp)
+        mid_impact = Interval(res_low, res_upp) * output
+
+        # impact of neighbours of middle element in local_range on output
+        neigh_impact_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
+        neigh_impact_upp = T.alloc(0, bs, n_channels + 2 * half, h, w)
+        extra_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
+        extra_upp = T.alloc(0, bs, n_channels + 2 * half, h, w)
+        T.set_subtensor(extra_channels_low[:, half:half + n_channels, :, :],
+                        lower)
+        T.set_subtensor(extra_channels_upp[:, half:half + n_channels, :, :],
+                        upper)
+
+        def norm_fun(arg_xs, arg_ys, arg_cs):
+            return (-1.5 / alpha ** 0.75) * arg_xs * arg_ys / \
+                   T.power(arg_cs + T.sqr(arg_xs) + T.sqr(arg_ys), 1.75)
+
+        for i in xrange(local_range):
+            if i != half:
+                neigh_low = extra_channels_low[:, i:i + n_channels, :, :]
+                neigh_upp = extra_channels_upp[:, i:i + n_channels, :, :]
+                xs_low = lower
+                xs_upp = upper
+                xs = Interval(xs_low, xs_upp)
+                ys_low = extra_low[:, i:i + n_channels, :, :]
+                ys_upp = extra_upp[:, i:i + n_channels, :, :]
+                ys = Interval(ys_low, ys_upp)
+                sums_low = neigh_sum_low - neigh_low
+                sums_upp = neigh_sum_upp - neigh_upp
+                sums = Interval(sums_low, sums_upp)
+                c = sums + shared(k / alpha)
+                p_min = T.sqrt(c.lower / 1.5)
+                in_range_min = T.and_(T.and_(T.le(xs.lower, p_min),
+                                             T.le(p_min, xs.upper)),
+                                      T.and_(T.le(ys.lower, p_min),
+                                             T.le(p_min, ys.upper)))
+                corner = (xs.lower, ys.lower)
+                corners = [(xs.lower, ys.upper), (xs.upper, ys.lower),
+                           (xs.upper, ys.upper)]
+                r_low = norm_fun(corner[0], corner[1], c.lower)
+                for xs_arg, ys_arg in corners:
+                    r_low = T.minimum(r_low, norm_fun(xs_arg, ys_arg, c.lower))
+                r_upp = norm_fun(corner[0], corner[1], c.upper)
+                for xs_arg, ys_arg in corners:
+                    r_upp = T.maximum(r_upp, norm_fun(xs_arg, ys_arg, c.upper))
+
+                # Find possible minima on edges of range. Find where
+                # derivative on edge is equal to 0. If's check whether the
+                # minimum is on edge or out of it.
+
+                def minima_func(v):
+                    return T.sqrt((T.sqr(v) + c.lower) / 2.5)
+
+                min_x_for_low_y = minima_func(ys.lower)
+                min_x_for_upp_y = minima_func(ys.upper)
+                min_y_for_low_x = minima_func(xs.lower)
+                min_y_for_upp_x = minima_func(xs.upper)
+                in_range_minima_x_low = \
+                    T.and_(T.lt(ys.lower, min_y_for_low_x),
+                           T.lt(min_y_for_low_x, ys.upper))
+                in_range_minima_x_upp = \
+                    T.and_(T.lt(ys.lower, min_y_for_upp_x),
+                           T.lt(min_y_for_upp_x, ys.upper))
+                in_range_minima_y_low = \
+                    T.and_(T.lt(xs.lower, min_x_for_low_y),
+                           T.lt(min_x_for_low_y, xs.upper))
+                in_range_minima_y_upp = \
+                    T.and_(T.lt(xs.lower, min_x_for_upp_y),
+                           T.lt(min_x_for_upp_y, xs.upper))
+                r_low = T.switch(in_range_minima_x_low,
+                                 T.minimum(r_low, min_y_for_low_x),
+                                 r_low)
+                r_low = T.switch(in_range_minima_x_upp,
+                                 T.minimum(r_low, min_y_for_upp_x),
+                                 r_low)
+                r_low = T.switch(in_range_minima_y_low,
+                                 T.minimum(r_low, min_x_for_low_y),
+                                 r_low)
+                r_low = T.switch(in_range_minima_y_upp,
+                                 T.minimum(r_low, min_x_for_upp_y),
+                                 r_low)
+                in_range_min_low = norm_fun(p_min, p_min, c.lower)
+                r_low = T.switch(in_range_min,
+                                 in_range_min_low,
+                                 r_low)
+                T.inc_subtensor(neigh_impact_low[:, i:i + n_channels, :, :],
+                                r_low)
+                T.inc_subtensor(neigh_impact_upp[:, i:i + n_channels, :, :],
+                                r_upp)
+            neigh_impact_low = \
+                neigh_impact_low[:, half:half + n_channels, :, :]
+            neigh_impact_upp = \
+                neigh_impact_upp[:, half:half + n_channels, :, :]
+            neigh_impact = Interval(neigh_impact_low, neigh_impact_upp)
+            impact = mid_impact + neigh_impact
+            return impact
 
     def op_d_conv(self, activation_shape, filter_shape, weights,
                   stride, padding, n_groups):

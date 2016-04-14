@@ -121,33 +121,6 @@ class Nplike(Numlike):
     def eval(self):
         return self.value
 
-    def op_relu(self):
-        return super(Nplike, self).op_relu()
-
-    def op_softmax(self, arg):
-        return super(Nplike, self).op_softmax(arg)
-
-    def op_norm(self, *args):
-        return super(Nplike, self).op_norm(*args)
-
-    def op_conv(self, *args):
-        return super(Nplike, self).op_conv(*args)
-
-    def op_d_relu(self, *args):
-        return super(Nplike, self).op_d_relu(*args)
-
-    def op_d_max_pool(self, *args):
-        return super(Nplike, self).op_d_max_pool(*args)
-
-    def op_d_avg_pool(self, *args):
-        return super(Nplike, self).op_d_avg_pool(*args)
-
-    def op_d_norm(self, *args):
-        return super(Nplike, self).op_d_norm(*args)
-
-    def op_d_conv(self, *args):
-        return super(Nplike, self).op_d_conv(*args)
-
     @staticmethod
     def derest_output(self, *args):
         return super(Nplike, self).derest_output(*args)

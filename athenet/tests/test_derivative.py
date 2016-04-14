@@ -131,7 +131,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         arae(l, A([[117, 144], [39, 48]]))
 
 
-class ConvolutionalDerivativeTest(DerivativeTest2):
+class ConvolutionalDerivativeTest(DerivativeTest):
 
     def test_dims(self):
         dout = ithv(np.ones((1, 2, 2, 4)))
@@ -425,9 +425,12 @@ class SoftmaxDerivativeTest(DerivativeTest):
         arae(l, A([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 
 
-class NormDerivativeTest(DerivativeTest):
-    pass
+class NormDerivativeTest(DerivativeTest2):
 
+    alpha = 0.00002
+    beta = 0.75
+    k = 1.0
+    n = 5
 
 class DropoutDerivativeTest(DerivativeTest):
 

@@ -8,8 +8,12 @@ from athenet.algorithm.numlike.interval import Interval, \
     DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER
 import numpy as np
 from numpy.testing import assert_array_equal, assert_array_almost_equal as arae
+import theano
 import theano.tensor as T
 from theano import function
+
+
+A = np.array
 
 
 class IntervalTest(unittest.TestCase):
@@ -33,7 +37,7 @@ class IntervalTest(unittest.TestCase):
         z = u + l
         f = function([x, y], z)
         res_z = f([[1, 2], [3, 4]], [[10, 20], [30, 40]])
-        res = np.array([[11., 22.], [33., 44.]])
+        res = A([[11., 22.], [33., 44.]])
         assert_array_equal(res_z, res)
 
     def test_getitem(self):
@@ -43,7 +47,7 @@ class IntervalTest(unittest.TestCase):
         l0, l1, l2 = i0.lower, i1.lower, i2.lower
         u0, u1, u2 = i0.upper, i1.upper, i2.upper
         f = function([x, y], [l0, l1, l2, u0, u1, u2])
-        ex_x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        ex_x = A([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         ex_y = ex_x * 10
         [rl0, rl1, rl2, ru0, ru1, ru2] = f(ex_x, ex_y)
         assert_equal(rl0, 1)
@@ -59,12 +63,12 @@ class IntervalTest(unittest.TestCase):
         i2 = Interval(z, w)
         i1[:, 1:3] = i2
         f = function([x, y, z, w], [i1.lower, i1.upper])
-        ex_x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        ex_z = np.array([[20, 30], [50, 60], [80, 90]])
+        ex_x = A([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        ex_z = A([[20, 30], [50, 60], [80, 90]])
         ex_y = 100 * ex_x
         ex_w = 100 * ex_z
         l, u = f(ex_x, ex_y, ex_z, ex_w)
-        rl = np.array([[1., 20., 30.], [4., 50., 60.], [7., 80., 90.]])
+        rl = A([[1., 20., 30.], [4., 50., 60.], [7., 80., 90.]])
         ru = rl * 100
         assert_array_equal(l, rl)
         assert_array_equal(u, ru)
@@ -72,7 +76,7 @@ class IntervalTest(unittest.TestCase):
     def test_shape(self):
         x, y = T.dmatrices('x', 'y')
         i1 = Interval(x, y)
-        ex_x = np.array([[2, 3], [5, 6], [8, 9]])
+        ex_x = A([[2, 3], [5, 6], [8, 9]])
         shp = i1.shape
         rshp = shp.eval({x: ex_x})
         assert_equal(len(rshp), 2)
@@ -84,7 +88,7 @@ class IntervalTest(unittest.TestCase):
         x, y, z, w = T.dmatrices('x', 'y', 'z', 'w')
         i1 = Interval(x, y)
         i2 = Interval(z, w)
-        l1 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        l1 = A([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         u1 = l1 * 10 + 1
         l2 = l1 * 10 + 2
         u2 = l1 * 10 + 3
@@ -134,7 +138,7 @@ class IntervalTest(unittest.TestCase):
         negl, negu = neg.lower, neg.upper
         expl, expu = exp.lower, exp.upper
         sql, squ = sq.lower, sq.upper
-        l = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=float)
+        l = A([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
         u = l + 10.0
         f = function([x, y], [recl, recu, negl, negu, expl, expu, sql, squ])
         rrecl, rrecu, rnegl, rnegu, rexpl, rexpu, rsql, rsqu = f(l, u)
@@ -161,36 +165,36 @@ class IntervalTest(unittest.TestCase):
         i1 = Interval(l1, u1)
         i2 = Interval(l2, u2)
         r1 = i1 / i2
-        v1l = np.array([3.0, -4.0, 3.0, -4.0, -4.0, -4.0])
-        v1u = np.array([4.0, -3.0, 4.0, -3.0, 3.0, 3.0])
-        v2l = np.array([5.0, 5.0, -6.0, -6.0, 5.0, -6.0])
-        v2u = np.array([6.0, 6.0, -5.0, -5.0, 6.0, -5.0])
+        v1l = A([3.0, -4.0, 3.0, -4.0, -4.0, -4.0])
+        v1u = A([4.0, -3.0, 4.0, -3.0, 3.0, 3.0])
+        v2l = A([5.0, 5.0, -6.0, -6.0, 5.0, -6.0])
+        v2u = A([6.0, 6.0, -5.0, -5.0, 6.0, -5.0])
         d12 = {l1: v1l, l2: v2l, u1: v1u, u2: v2u}
         res1 = r1.eval(d12)
         ll = 3.0 / 5.0
         lu = 3.0 / 6.0
         ul = 4.0 / 5.0
-        ans1l = np.array([lu, -ul, -ul, lu, -ul, -ll])
-        ans1u = np.array([ul, -lu, -lu, ul, ll, ul])
-        vl = np.array([-4.0, -4.0, 3.0])
-        vu = np.array([-3.0, 3.0, 4.0])
+        ans1l = A([lu, -ul, -ul, lu, -ul, -ll])
+        ans1u = A([ul, -lu, -lu, ul, ll, ul])
+        vl = A([-4.0, -4.0, 3.0])
+        vu = A([-3.0, 3.0, 4.0])
         v = 7.0
         d1 = {l1: vl, u1: vu}
         r2 = i1 / v
         res2 = r2.eval(d1)
         l = 3.0 / 7.0
         u = 4.0 / 7.0
-        ans2l = np.array([-u, -u, l])
-        ans2u = np.array([-l, l, u])
-        vl = np.array([-4.0, 3.0])
-        vu = np.array([-3.0, 4.0])
+        ans2l = A([-u, -u, l])
+        ans2u = A([-l, l, u])
+        vl = A([-4.0, 3.0])
+        vu = A([-3.0, 4.0])
         d1 = {l1: vl, u1: vu}
         r3 = v / i1
         res3 = r3.eval(d1)
         l = 7.0 / 3.0
         u = 7.0 / 4.0
-        ans3l = np.array([-l, u])
-        ans3u = np.array([-u, l])
+        ans3l = A([-l, u])
+        ans3u = A([-u, l])
         arae(res1[0], ans1l)
         arae(res1[1], ans1u)
         arae(res2[0], ans2l)
@@ -202,12 +206,12 @@ class IntervalTest(unittest.TestCase):
         # power
         x, y = T.vectors('x', 'y')
         itv = Interval(x, y)
-        v1l = np.array([-3, -2, -1, -2, 0.5, 0.5, 1, 2])
-        v1u = np.array([-2, -1, -0.5, -0.5, 2, 1, 2, 3])
-        v2l = np.array([1, 2])
-        v2u = np.array([3, 4])
-        v3l = np.array([-2., -2., -2., -1., -1., -1., -0.5, -0.5, -0.5])
-        v3u = np.array([0.5, 1., 2., 0.5, 1., 2., 0.5, 1., 2.])
+        v1l = A([-3, -2, -1, -2, 0.5, 0.5, 1, 2])
+        v1u = A([-2, -1, -0.5, -0.5, 2, 1, 2, 3])
+        v2l = A([1, 2])
+        v2u = A([3, 4])
+        v3l = A([-2., -2., -2., -1., -1., -1., -0.5, -0.5, -0.5])
+        v3u = A([0.5, 1., 2., 0.5, 1., 2., 0.5, 1., 2.])
         v1 = (v1l, v1u)
         v2 = (v2l, v2u)
         v3 = (v3l, v3u)
@@ -248,21 +252,21 @@ class IntervalTest(unittest.TestCase):
         res1 = map(make_res1, functions1)
         res2 = map(make_res2, functions2)
         res3 = map(make_res3, functions3)
-        ans1l = [np.array([4., 1., 0.25, 0.25, 0.25, 0.25, 1., 4.]),
-                 np.array([-27., -8., -1., -8., 0.125, 0.125, 1., 8.])]
-        ans1u = [np.array([9., 4., 1., 4., 4., 1., 4., 9.]),
-                 np.array([-8., -1., -0.125, -0.125, 8., 1., 8., 27.])]
+        ans1l = [A([4., 1., 0.25, 0.25, 0.25, 0.25, 1., 4.]),
+                 A([-27., -8., -1., -8., 0.125, 0.125, 1., 8.])]
+        ans1u = [A([9., 4., 1., 4., 4., 1., 4., 9.]),
+                 A([-8., -1., -0.125, -0.125, 8., 1., 8., 27.])]
         ans1l = [np.reciprocal(ans1u[1]), np.reciprocal(ans1u[0])] + ans1l
         ans1u = [np.reciprocal(ans1l[3]), np.reciprocal(ans1l[2])] + ans1u
-        ans2l = [np.array([1., 4.]), np.array([1., 2. ** 2.5])]
-        ans2u = [np.array([9., 16.]), np.array([3. ** 2.5, 4. ** 2.5])]
+        ans2l = [A([1., 4.]), A([1., 2. ** 2.5])]
+        ans2u = [A([9., 16.]), A([3. ** 2.5, 4. ** 2.5])]
         ans2l = [np.reciprocal(ans2u[1])] + [np.reciprocal(ans2u[0])] + ans2l
         ans2u = [np.reciprocal(ans2l[3])] + [np.reciprocal(ans2l[2])] + ans2u
-        ans3l = [np.array([0.] * 9),
-                 np.array([-8., -8., -8., -1., -1., -1., -0.125, -0.125,
+        ans3l = [A([0.] * 9),
+                 A([-8., -8., -8., -1., -1., -1., -0.125, -0.125,
                           -0.125])]
-        ans3u = [np.array([4., 4., 4., 1., 1., 4., 0.25, 1., 4.]),
-                 np.array([0.125, 1., 8., 0.125, 1., 8., 0.125, 1., 8.])]
+        ans3u = [A([4., 4., 4., 1., 1., 4., 0.25, 1., 4.]),
+                 A([0.125, 1., 8., 0.125, 1., 8., 0.125, 1., 8.])]
         for i in range(4):
             arae(res1[i][0], ans1l[i])
             arae(res1[i][1], ans1u[i])
@@ -273,14 +277,14 @@ class IntervalTest(unittest.TestCase):
             arae(res3[i][1], ans3u[i])
 
     def test_dot(self):
-        inpl = np.array([[[0, 1]]])
-        inpu = np.array([[[2, 3]]])
-        w = np.array([[4, -5, 6], [7, 8, 9]])
-        b = np.array([1, 3, 5])
-        crl = np.array([0 * 4 + 1 * 7 + 1,
+        inpl = A([[[0, 1]]])
+        inpu = A([[[2, 3]]])
+        w = A([[4, -5, 6], [7, 8, 9]])
+        b = A([1, 3, 5])
+        crl = A([0 * 4 + 1 * 7 + 1,
                         2 * (-5) + 1 * 8 + 3,
                         0 * 6 + 1 * 9 + 5])
-        cru = np.array([2 * 4 + 3 * 7 + 1,
+        cru = A([2 * 4 + 3 * 7 + 1,
                         0 * (-5) + 3 * 8 + 3,
                         2 * 6 + 3 * 9 + 5])
         tinpl, tinpu = T.tensor3s('inpl', 'inpu')
@@ -293,10 +297,10 @@ class IntervalTest(unittest.TestCase):
         arae(ru, cru)
 
     def test_max(self):
-        al = np.array([[1, 2], [3, 4]])
-        au = np.array([[2, 2], [4, 7]])
-        bl = np.array([[0, 3], [3, -4]])
-        bu = np.array([[2, 4], [3, -3]])
+        al = A([[1, 2], [3, 4]])
+        au = A([[2, 2], [4, 7]])
+        bl = A([[0, 3], [3, -4]])
+        bu = A([[2, 4], [3, -3]])
         alt, aut, blt, but = T.dmatrices('alt', 'aut', 'blt', 'but')
         ai = Interval(alt, aut)
         bi = Interval(blt, but)
@@ -305,14 +309,14 @@ class IntervalTest(unittest.TestCase):
         res = ci.eval(d)
         rl = res[0]
         ru = res[1]
-        ansl = np.array([[1, 3], [3, 4]])
-        ansu = np.array([[2, 4], [4, 7]])
+        ansl = A([[1, 3], [3, 4]])
+        ansu = A([[2, 4], [4, 7]])
         arae(rl, ansl)
         arae(ru, ansu)
 
     def test_amax(self):
-        al = np.array([[1, 2], [3, 4]])
-        au = np.array([[2, 2], [4, 7]])
+        al = A([[1, 2], [3, 4]])
+        au = A([[2, 2], [4, 7]])
         alt, aut = T.dmatrices('alt', 'aut')
         ai = Interval(alt, aut)
         ci = ai.amax(axis=1, keepdims=True)
@@ -320,14 +324,14 @@ class IntervalTest(unittest.TestCase):
         res = ci.eval(d)
         rl = res[0]
         ru = res[1]
-        ansl = np.array([[2], [4]])
-        ansu = np.array([[2], [7]])
+        ansl = A([[2], [4]])
+        ansu = A([[2], [7]])
         arae(rl, ansl)
         arae(ru, ansu)
 
     def test_reshape(self):
         tl, tu = T.dmatrices('l', 'u')
-        xl = np.array([[1, 2, 3], [4, 5, 6]])
+        xl = A([[1, 2, 3], [4, 5, 6]])
         xu = xl + 3
         i = Interval(tl, tu)
         i1 = i.reshape((1, 6))
@@ -382,12 +386,12 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(v1, u4)
 
     def test_sum(self):
-        vl = np.array([[[-3, 2],
+        vl = A([[[-3, 2],
                        [5, 6]],
                        [[1, -1],
                        [9, 8]]])
         n = 10
-        vu = np.array([[[n, n],
+        vu = A([[[n, n],
                         [n, n]],
                        [[n, n],
                         [n, n]]])
@@ -406,19 +410,19 @@ class IntervalTest(unittest.TestCase):
         l4, _ = res4.eval(d)
         l5, _ = res5.eval(d)
         l6, _ = res6.eval(d)
-        arae(l1, np.array([[-2, 1], [14, 14]]))
-        arae(l2, np.array([[2, 8], [10, 7]]))
-        arae(l3, np.array([[-1, 11], [0, 17]]))
-        arae(l4, np.array([[[-2, 1], [14, 14]]]))
-        arae(l5, np.array([[[2, 8]], [[10, 7]]]))
-        arae(l6, np.array([[[-1], [11]], [[0], [17]]]))
+        arae(l1, A([[-2, 1], [14, 14]]))
+        arae(l2, A([[2, 8], [10, 7]]))
+        arae(l3, A([[-1, 11], [0, 17]]))
+        arae(l4, A([[[-2, 1], [14, 14]]]))
+        arae(l5, A([[[2, 8]], [[10, 7]]]))
+        arae(l6, A([[[-1], [11]], [[0], [17]]]))
 
     def test_abs(self):
-        vl = np.array([[[-3, 2],
+        vl = A([[[-3, 2],
                         [5, 6]],
                        [[1, -1],
                         [9, 8]]])
-        vu = np.array([[[-2, 3],
+        vu = A([[[-2, 3],
                         [5, 7]],
                        [[1, 1],
                         [9, 9]]])
@@ -427,25 +431,25 @@ class IntervalTest(unittest.TestCase):
         itv = Interval(tvl, tvu)
         res = itv.abs()
         l, u = res.eval(d)
-        arae(l, np.array([[[2, 2], [5, 6]],
+        arae(l, A([[[2, 2], [5, 6]],
                           [[1, 0], [9, 8]]]))
-        arae(u, np.array([[[3, 3], [5, 7]],
+        arae(u, A([[[3, 3], [5, 7]],
                           [[1, 1], [9, 9]]]))
 
     def test_T(self):
-        vl = np.array([[1, 2], [3, 4]])
-        vu = np.array([[5, 6], [7, 8]])
+        vl = A([[1, 2], [3, 4]])
+        vu = A([[5, 6], [7, 8]])
         tvl, tvu = T.matrices('tvl', 'tvu')
         d = {tvl: vl, tvu: vu}
         itv = Interval(tvl, tvu)
         res = itv.T
         l, u = res.eval(d)
-        arae(l, np.array([[1, 3], [2, 4]]))
-        arae(u, np.array([[5, 7], [6, 8]]))
+        arae(l, A([[1, 3], [2, 4]]))
+        arae(u, A([[5, 7], [6, 8]]))
 
     def test_from_shape(self):
         shp = (3, 4)
-        np_shp = np.array([3, 4])
+        np_shp = A([3, 4])
         i = Interval.from_shape(shp, neutral=True)
         assert_array_equal(i.shape.eval(), np_shp)
         assert_array_equal(i.lower.shape.eval(), np_shp)
@@ -463,10 +467,10 @@ class IntervalTest(unittest.TestCase):
 
     def test_eval(self):
         txl, txu, tyl, tyu = T.dmatrices('xl', 'xu', 'yl', 'yu')
-        xl = np.array([[1, 2], [3, 4]])
-        xu = np.array([[2, 4], [6, 9]])
-        yl = np.array([[-1, -5], [0, 3]])
-        yu = np.array([[4, 2], [0, 3]])
+        xl = A([[1, 2], [3, 4]])
+        xu = A([[2, 4], [6, 9]])
+        yl = A([[-1, -5], [0, 3]])
+        yu = A([[4, 2], [0, 3]])
         ix = Interval(txl, txu)
         iy = Interval(tyl, tyu)
         iz = ix + iy
@@ -483,15 +487,15 @@ class IntervalTest(unittest.TestCase):
         assert_equal(i2u, 3)
 
     def test_op_relu(self):
-        inpl = np.array([[[-3, -1, 1]]])
-        inpu = np.array([[[-2, 3, 2]]])
+        inpl = A([[[-3, -1, 1]]])
+        inpu = A([[[-2, 3, 2]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
         iinp = Interval(tinpl, tinpu)
         res = iinp.op_relu()
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, np.array([[[0, 0, 1]]]))
-        arae(ru, np.array([[[0, 3, 2]]]))
+        arae(rl, A([[[0, 0, 1]]]))
+        arae(ru, A([[[0, 3, 2]]]))
 
     def test_derest_output(self):
         o1 = Interval.derest_output(1)
@@ -500,8 +504,8 @@ class IntervalTest(unittest.TestCase):
         l4, u4 = o4.eval()
         arae(l1, u1)
         arae(l4, u4)
-        arae(l1, np.array([[1]]))
-        arae(l4, np.array([[1, 0, 0, 0], [0, 1, 0, 0],
+        arae(l1, A([[1]]))
+        arae(l4, A([[1, 0, 0, 0], [0, 1, 0, 0],
                            [0, 0, 1, 0], [0, 0, 0, 1]]))
 
 
