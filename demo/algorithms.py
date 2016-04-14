@@ -16,8 +16,8 @@ from athenet.utils import run_algorithm, plot_2d_results
 
 
 parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
-                  description="Runs chosen algorithm on chosen type of network"
-                  " and prints results.")
+                                 description="Runs chosen algorithm on chosen "
+                                 "type of network and prints results.")
 
 parser.add_argument("-a", "--algorithm",
                     help="Chooses algorithm of which result will be "
