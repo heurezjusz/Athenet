@@ -521,6 +521,7 @@ class Interval(Numlike):
         :type input_shape: tuple of 3 integers
         :rtype: Interval
         """
+        alpha /= local_range
         k_array = numpy.array([k])
         alpha_array = numpy.array([alpha])
         lower = self.lower

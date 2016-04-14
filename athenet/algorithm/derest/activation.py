@@ -20,8 +20,8 @@ def conv(layer_input, image_shape, weights, filter_shape, biases,
                                               filter height,
                                               filter width)
     :param filter_shape: filter shape in the format (number of output channels,
-                                                   filter height,
-                                                   filter width)
+                                                     filter height,
+                                                     filter width)
     :param biases: biases in convolution
     :param stride: pair representing interval at which to apply the filters.
     :param padding: pair representing number of zero-valued pixels to add on
@@ -55,13 +55,12 @@ def conv(layer_input, image_shape, weights, filter_shape, biases,
         g_out = n_out / n_groups
         pad_h, pad_w = padding
         stride_h, stride_w = stride
-        # TODO: Should weights be flipped inside or outside conv function?
         # see: flipping kernel
         flipped_weights = weights[:, :, ::-1, ::-1]
         input_type = type(layer_input)
         padded_input_shape = (n_in, h + 2 * pad_h, w + 2 * pad_w)
         padded_input = input_type.from_shape(padded_input_shape, neutral=True)
-        padded_input[0:n_in, pad_h:(pad_h + h), pad_w:(pad_w + w)] = \
+        padded_input[:, pad_h:(pad_h + h), pad_w:(pad_w + w)] = \
             layer_input
         # setting new n_in, h, w for padded input, now you can forget about
         # padding
@@ -78,12 +77,12 @@ def conv(layer_input, image_shape, weights, filter_shape, biases,
             at_out_from = at_g * g_out
             at_out_to = at_out_from + g_out
             for at_h in xrange(0, h - fh + 1, stride_h):
-                # at_out_h - height of output corresponding to filter at
-                # position at_h
+                # at_out_h - output position in height dimension corresponding
+                # to filter at position at_h
                 at_out_h = at_h / stride_h
                 for at_w in xrange(0, w - fw + 1, stride_w):
-                    # at_out_w - height of output corresponding to filter at
-                    # position at_w
+                    # at_out_w - output position in width dimension
+                    # corresponding to filter at position at_w
                     at_out_w = at_w / stride_w
                     # input slice that impacts on (at_out_h, at_out_w) in
                     # output
@@ -131,7 +130,7 @@ def fully_connected(layer_input, weights, biases):
         return (flat_input * weights.T).sum(1) + biases
 
 
-def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.00002,
+def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
          beta=0.75):
     """Returns estimated activation of LRN layer.
 
@@ -160,7 +159,8 @@ def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.00002,
         for i in xrange(local_range):
             local_sums += extra_channels[i:i + n_channels, :, :]
 
-        return layer_input / (local_sums * alpha + k).power(beta)
+        return layer_input / ((
+            local_sums * (alpha / local_range) + k).power(beta))
 
 
 def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
