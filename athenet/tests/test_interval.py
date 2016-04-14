@@ -13,23 +13,24 @@ import theano.tensor as T
 from theano import function
 
 
-A = np.array
+def A(x):
+    return np.array(x, dtype=theano.config.floatX)
 
 
 class IntervalTest(unittest.TestCase):
 
     def test_interval_scalar(self):
-        x, y = T.dscalars('x', 'y')
+        x, y = T.scalars('x', 'y')
         i = Interval(x, y)
         l, u = i.lower, i.upper
         assert_is(x, l)
         assert_is(y, u)
         z = u - l
         f = function([x, y], z)
-        assert_equal(f(1.1, 3.2), 2.1)
+        arae(f(1.1, 3.2), 2.1)
 
     def test_interval_matrix(self):
-        x, y = T.dmatrices('x', 'y')
+        x, y = T.matrices('x', 'y')
         i = Interval(x, y)
         l, u = i.lower, i.upper
         assert_is(x, l)
@@ -41,7 +42,7 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(res_z, res)
 
     def test_getitem(self):
-        x, y = T.dmatrices('x', 'y')
+        x, y = T.matrices('x', 'y')
         i = Interval(x, y)
         i0, i1, i2 = i[0, 0], i[1, 1], i[2, 2]
         l0, l1, l2 = i0.lower, i1.lower, i2.lower
@@ -58,7 +59,7 @@ class IntervalTest(unittest.TestCase):
         assert_equal(ru2, 90)
 
     def test_setitem(self):
-        x, y, z, w = T.dmatrices('x', 'y', 'z', 'w')
+        x, y, z, w = T.matrices('x', 'y', 'z', 'w')
         i1 = Interval(x, y)
         i2 = Interval(z, w)
         i1[:, 1:3] = i2
@@ -74,7 +75,7 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(u, ru)
 
     def test_shape(self):
-        x, y = T.dmatrices('x', 'y')
+        x, y = T.matrices('x', 'y')
         i1 = Interval(x, y)
         ex_x = A([[2, 3], [5, 6], [8, 9]])
         shp = i1.shape
@@ -85,7 +86,7 @@ class IntervalTest(unittest.TestCase):
 
     def test_ops1(self):
         # __add__, __sub__, __mul__,
-        x, y, z, w = T.dmatrices('x', 'y', 'z', 'w')
+        x, y, z, w = T.matrices('x', 'y', 'z', 'w')
         i1 = Interval(x, y)
         i2 = Interval(z, w)
         l1 = A([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -128,7 +129,7 @@ class IntervalTest(unittest.TestCase):
 
     def test_ops2(self):
         # reciprocal, neg, exp, square
-        x, y = T.dmatrices('x', 'y')
+        x, y = T.matrices('x', 'y')
         i = Interval(x, y)
         reciprocal = i.reciprocal()
         neg = i.neg()
@@ -138,8 +139,8 @@ class IntervalTest(unittest.TestCase):
         negl, negu = neg.lower, neg.upper
         expl, expu = exp.lower, exp.upper
         sql, squ = sq.lower, sq.upper
-        l = A([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
-        u = l + 10.0
+        l = A([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        u = l + 10
         f = function([x, y], [recl, recu, negl, negu, expl, expu, sql, squ])
         rrecl, rrecu, rnegl, rnegu, rexpl, rexpu, rsql, rsqu = f(l, u)
         threcl = np.reciprocal(u)
@@ -301,7 +302,7 @@ class IntervalTest(unittest.TestCase):
         au = A([[2, 2], [4, 7]])
         bl = A([[0, 3], [3, -4]])
         bu = A([[2, 4], [3, -3]])
-        alt, aut, blt, but = T.dmatrices('alt', 'aut', 'blt', 'but')
+        alt, aut, blt, but = T.matrices('alt', 'aut', 'blt', 'but')
         ai = Interval(alt, aut)
         bi = Interval(blt, but)
         ci = ai.max(bi)
@@ -317,7 +318,7 @@ class IntervalTest(unittest.TestCase):
     def test_amax(self):
         al = A([[1, 2], [3, 4]])
         au = A([[2, 2], [4, 7]])
-        alt, aut = T.dmatrices('alt', 'aut')
+        alt, aut = T.matrices('alt', 'aut')
         ai = Interval(alt, aut)
         ci = ai.amax(axis=1, keepdims=True)
         d = {alt: al, aut: au}
@@ -330,7 +331,7 @@ class IntervalTest(unittest.TestCase):
         arae(ru, ansu)
 
     def test_reshape(self):
-        tl, tu = T.dmatrices('l', 'u')
+        tl, tu = T.matrices('l', 'u')
         xl = A([[1, 2, 3], [4, 5, 6]])
         xu = xl + 3
         i = Interval(tl, tu)
@@ -353,7 +354,7 @@ class IntervalTest(unittest.TestCase):
 
     def test_flatten(self):
         t1 = T.dvector('t1')
-        t2 = T.dmatrix('t2')
+        t2 = T.matrix('t2')
         t3 = T.tensor3('t3')
         t4 = T.tensor4('t4')
         i1 = Interval(t1, t1)
@@ -364,10 +365,10 @@ class IntervalTest(unittest.TestCase):
         f2 = i2.flatten()
         f3 = i3.flatten()
         f4 = i4.flatten()
-        v1 = np.arange(36)
-        v2 = np.arange(36)
-        v3 = np.arange(36)
-        v4 = np.arange(36)
+        v1 = np.arange(36, dtype=theano.config.floatX)
+        v2 = np.arange(36, dtype=theano.config.floatX)
+        v3 = np.arange(36, dtype=theano.config.floatX)
+        v4 = np.arange(36, dtype=theano.config.floatX)
         v1.resize((36,))
         v2.resize((4, 9))
         v3.resize((2, 2, 9))
@@ -455,18 +456,22 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(i.lower.shape.eval(), np_shp)
         assert_array_equal(i.upper.shape.eval(), np_shp)
         l, u = i.eval()
-        arae(l, np.ones(shp) * NEUTRAL_INTERVAL_LOWER)
-        arae(u, np.ones(shp) * NEUTRAL_INTERVAL_UPPER)
+        arae(l, np.ones(shp, dtype=theano.config.floatX) *
+             NEUTRAL_INTERVAL_LOWER)
+        arae(u, np.ones(shp, dtype=theano.config.floatX) *
+             NEUTRAL_INTERVAL_UPPER)
         i = Interval.from_shape(shp, neutral=False)
         assert_array_equal(i.shape.eval(), np_shp)
         assert_array_equal(i.lower.shape.eval(), np_shp)
         assert_array_equal(i.upper.shape.eval(), np_shp)
         l, u = i.eval()
-        arae(l, np.ones(shp) * DEFAULT_INTERVAL_LOWER)
-        arae(u, np.ones(shp) * DEFAULT_INTERVAL_UPPER)
+        arae(l, np.ones(shp, dtype=theano.config.floatX) *
+             DEFAULT_INTERVAL_LOWER)
+        arae(u, np.ones(shp, dtype=theano.config.floatX) *
+             DEFAULT_INTERVAL_UPPER)
 
     def test_eval(self):
-        txl, txu, tyl, tyu = T.dmatrices('xl', 'xu', 'yl', 'yu')
+        txl, txu, tyl, tyu = T.matrices('xl', 'xu', 'yl', 'yu')
         xl = A([[1, 2], [3, 4]])
         xu = A([[2, 4], [6, 9]])
         yl = A([[-1, -5], [0, 3]])
@@ -489,7 +494,7 @@ class IntervalTest(unittest.TestCase):
     def test_op_relu(self):
         inpl = A([[[-3, -1, 1]]])
         inpu = A([[[-2, 3, 2]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
+        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
         iinp = Interval(tinpl, tinpu)
         res = iinp.op_relu()
         d = {tinpl: inpl, tinpu: inpu}

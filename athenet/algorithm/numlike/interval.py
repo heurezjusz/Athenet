@@ -774,7 +774,7 @@ class Interval(Numlike):
                 new_slice_upp = output_slice_upp + result_slice.upper
                 new_slice = Interval(new_slice_low, new_slice_upp)
                 result[:, :, at_h:at_h + fh, at_w:at_w + fw] = new_slice
-        result = result * shared(1.0 / float(numpy.prod(poolsize)))
+        result = result * shared(1.0 / numpy.prod(poolsize))
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_norm(self, activation, activation_shape, local_range, k, alpha,
