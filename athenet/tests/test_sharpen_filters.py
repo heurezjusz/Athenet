@@ -1,60 +1,44 @@
 import unittest
 import numpy
-from copy import deepcopy
-from nose.tools import assert_false, assert_true
+from nose.tools import assert_equal, assert_false
 
-from athenet.algorithm.sharpen_filters import sharpen_filters_in_layer
-from mocks.mock_network import LayerMock
+from athenet.algorithm.sharpen_filters import get_filters_indicators
+from athenet.tests.utils import get_random_layer_mock, get_random_network_mock
 
 
-class SharpenFiltersTest(unittest.TestCase):
-    shape = (6, 1, 10, 10)
+class SharpenFiltersIndicatorsTest(unittest.TestCase):
+    bilateral_filter_args = (5, 75, 75)
 
-    def get_conv_layer(self, shape=None):
-        if shape is None:
-            shape = self.shape
-        return LayerMock(
-            weights=numpy.random.uniform(low=-1, high=1, size=shape),
-            biases=numpy.random.uniform(low=-1, high=1, size=shape)
+    def test_sharpen_filters_indicators_shape(self):
+        for number_of_layers in [1, 3, 5, 7, 10, 20]:
+            for layers_shape in [(1, 1, 5, 5), (3, 5, 5, 30), (6, 1, 10, 10)]:
+                network = get_random_network_mock(
+                    number_of_layers=number_of_layers,
+                    shape_of_layer=layers_shape
+                )
+                indicators = get_filters_indicators(
+                    layers=network.weighted_layers,
+                    bilateral_filter_args=self.bilateral_filter_args
+                )
+
+                assert_equal(number_of_layers, len(indicators))
+                for layer in xrange(number_of_layers):
+                    assert_equal(layers_shape, indicators[layer].shape)
+
+    def test_sharpen_filters_indicators_in_range(self):
+        layer = get_random_layer_mock((6, 2, 10, 10))
+        indicators = get_filters_indicators(
+            layers=[layer],
+            bilateral_filter_args=self.bilateral_filter_args
         )
 
-    def test_no_change(self):
-        layer = self.get_conv_layer()
-        changed_layer = deepcopy(layer)
-        sharpen_filters_in_layer(changed_layer, (1, 0, (5, 75, 75)))
-        assert_true(numpy.array_equal(layer.W, changed_layer.W))
+        assert_false(numpy.any(indicators > 1))
+        assert_false(numpy.any(indicators < 0))
 
-    def test_all_zeros(self):
-        layer = self.get_conv_layer()
-        sharpen_filters_in_layer(layer, (0, 1, (5, 75, 75)))
-        assert_false(layer.W.any())
-
-    def test_flat_filter(self):
-        layer = LayerMock(
-            weights=numpy.full(self.shape, 0.4),
-            biases=numpy.random.uniform(low=-1, high=1, size=self.shape)
+    def test_sharpen_filters_indicators_on_fully_connected(self):
+        layer = get_random_layer_mock(100)
+        indicators = get_filters_indicators(
+            layers=[layer],
+            bilateral_filter_args=self.bilateral_filter_args
         )
-
-        for min_noise, max_value in [(0.1, 0.2), (0.1, 0.6), (0, 0.2)]:
-            changed_layer = deepcopy(layer)
-            sharpen_filters_in_layer(changed_layer,
-                                     (min_noise, max_value, (5, 75, 75)))
-            assert_true(numpy.array_equal(layer.W, changed_layer.W))
-
-        changed_layer = deepcopy(layer)
-        sharpen_filters_in_layer(changed_layer, (0, 0.6, (5, 75, 75)))
-        assert_false(changed_layer.W.any())
-
-    def test_small_values_in_filters(self):
-        layer = LayerMock(
-            weights=numpy.random.uniform(low=-0.2, high=0.2, size=self.shape),
-            biases=numpy.random.uniform(low=-1, high=1, size=self.shape)
-        )
-
-        changed_layer = deepcopy(layer)
-        sharpen_filters_in_layer(changed_layer, (0.1, 0.1, (5, 75, 75)))
-        assert_true(changed_layer.W.any())
-
-        changed_layer = deepcopy(layer)
-        sharpen_filters_in_layer(changed_layer, (0, 0.3, (5, 75, 75)))
-        assert_false(changed_layer.W.any())
+        assert_equal(len(indicators), 0)
