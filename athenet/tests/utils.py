@@ -3,13 +3,13 @@ from athenet.tests.mock_network import LayerMock, NetworkMock
 
 
 def get_fraction_of_zeros_in_layer(layer):
-    return 1. - numpy.count_nonzero(layer.W.flat) / float(len(layer.W.flat))
+    return 1. - numpy.count_nonzero(layer.W) / float(layer.W.size)
 
 
 def get_fraction_of_zeros_in_network(network):
-    number_of_nonzeros = sum((numpy.count_nonzero(layer.W.flat)
+    number_of_nonzeros = sum((numpy.count_nonzero(layer.W)
                               for layer in network.weighted_layers))
-    number_of_weights = sum((len(layer.W.flat)
+    number_of_weights = sum((layer.W.sizes
                             for layer in network.weighted_layers))
     return 1. - (number_of_nonzeros / float(number_of_weights))
 

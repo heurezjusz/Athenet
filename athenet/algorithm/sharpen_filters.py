@@ -79,7 +79,8 @@ def get_filters_indicators(layers, bilateral_filter_args):
         if len(layer.W.shape) == 4])  # only layers with 3d filters
 
 
-def sharpen_filters(network, (fraction, bilateral_filter_args)):
+def sharpen_filters(network,
+                    (fraction, filters_importance, bilateral_filter_args)):
     """
     Delete weights in network.
 
@@ -88,12 +89,17 @@ def sharpen_filters(network, (fraction, bilateral_filter_args)):
     and which possibility of being a noise is greater than min_noise_value,
 
     :param Network network: network for sparsifying
-    :param tuple bilateral_filter_args: args for filter algorithm
+    :param tuple (fraction, filters_importance, bilateral_filter_args):
+        float fraction: fraction of weights to be changes into zero
+        float filters_importance: how much sharpen filters in the process
+        tuple bilateral_filter_args: args for filter algorithm
     """
 
     layers = [layer for layer in network.convolutional_layers]
     filter_indicators = get_filters_indicators(layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(layers)
-    delete_weights_by_layer_fractions(layers, fraction,
-                                      filter_indicators * smallest_indicators)
+    delete_weights_by_layer_fractions(
+        layers, fraction,
+        (filter_indicators ** filters_importance) * smallest_indicators
+    )
