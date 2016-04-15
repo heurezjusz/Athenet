@@ -13,8 +13,6 @@ from athenet.algorithm.numlike import Numlike, assert_numlike
 
 def d_conv(output, activation_shape, filter_shape, weights,
            stride=(1, 1), padding=(0, 0), n_groups=1):
-    # TODO: all
-    # TODO: verify filter flipping (conv and d_conv)
     """Returns estimated impact of input of convolutional layer on output of
     network.
 
