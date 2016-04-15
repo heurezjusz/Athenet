@@ -650,7 +650,7 @@ class Interval(Numlike):
                   different "1" in every batch, like numpy.eye(n_outputs)
         :rtype: Interval
         """
-        np_matrix = numpy.eye(n_outputs)
+        np_matrix = numpy.eye(n_outputs, dtype=theano.config.floatX)
         th_matrix = shared(np_matrix)
         return Interval(th_matrix, th_matrix)
 
