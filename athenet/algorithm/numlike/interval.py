@@ -82,7 +82,7 @@ class Interval(Numlike):
         """Returns sum of two intervals.
 
         :param other: matrix to be added
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -97,7 +97,7 @@ class Interval(Numlike):
         """Returns difference between two intervals.
 
         :param other: matrix to be subtracted
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -112,7 +112,7 @@ class Interval(Numlike):
         """Returns product of two intervals.
 
         :param other: matrix to be multiplied
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -390,15 +390,17 @@ class Interval(Numlike):
         :param float upper_val: value of upper bound
         """
         if lower_val > upper_val:
-            raise ValueError("lower_val > upper_val in newly created Interval")
+            if lower_val != numpy.inf or upper_val != -numpy.inf:
+                raise ValueError("lower_val > upper_val "
+                                 "in newly created Interval")
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
                         DEFAULT_INTERVAL_LOWER
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
                         DEFAULT_INTERVAL_UPPER
-        lower_array = numpy.ndarray(shp)
-        upper_array = numpy.ndarray(shp)
+        lower_array = numpy.ndarray(shp, dtype=theano.config.floatX)
+        upper_array = numpy.ndarray(shp, dtype=theano.config.floatX)
         lower_array.fill(lower_val)
         upper_array.fill(upper_val)
         lower = shared(lower_array)
@@ -516,42 +518,72 @@ class Interval(Numlike):
                             (n_channels, height, width)
         :param integer local_range: size of local range in local range
                                     normalization
-        :param integer k: local range normalization k argument
-        :param integer alpha: local range normalization alpha argument
-        :param integer beta: local range normalization beta argument
+        :param float k: local range normalization k argument
+        :param float alpha: local range normalization alpha argument
+        :param float beta: local range normalization beta argument
         :type input_shape: tuple of 3 integers
         :rtype: Interval
         """
         alpha /= local_range
-        k_array = numpy.array([k])
-        alpha_array = numpy.array([alpha])
-        lower = self.lower
-        upper = self.upper
         half = local_range / 2
+        x = self
         sq = self.square()
         n_channels, h, w = input_shape
         extra_channels = self.from_shape((n_channels + 2 * half, h, w),
                                          neutral=True)
         extra_channels[half:half + n_channels, :, :] = sq
-        neigh_sums = self.from_shape(input_shape, neutral=True)
+        s = self.from_shape(input_shape, neutral=True)
 
         for i in xrange(local_range):
             if i != half:
-                neigh_sums += extra_channels[i:i + n_channels, :, :]
-        c1 = neigh_sums * alpha_array + k_array
-        c2 = alpha_array
-        extreme = c1 * numpy.array([2.0]) - sq * c2
-        upper_v = T.sqrt(c1.lower * 2.0 / alpha)
-        lower_alpha = alpha * sq.lower
-        upper_alpha = alpha * sq.upper
-        lower1 = lower / T.pow(c1.upper + lower_alpha, beta)
-        lower2 = upper / T.pow(c1.upper + upper_alpha, beta)
-        upper1 = upper / T.pow(c1.lower + upper_alpha, beta)
-        upper2 = lower / T.pow(c1.lower + lower_alpha, beta)
-        res_lower = T.minimum(lower1, lower2)
-        res_upper = T.switch(extreme._has_zero(), upper_v,
-                             T.minimum(upper1, upper2))
-        return Interval(res_lower, res_upper)
+                s += extra_channels[i:i + n_channels, :, :]
+
+        c = s * alpha + k
+
+        def norm((arg_x, arg_c)):
+            return arg_x / T.power(arg_c + alpha * T.sqr(arg_x), beta)
+
+        def in_range((range_), val):
+            return T.and_(T.lt(range_.lower, val), T.lt(val, range_.upper))
+
+        def c_extr_from_x(arg_x):
+            return T.sqr(arg_x) * ((2 * beta - 1) * alpha)
+
+        def x_extr_from_c(arg_c):
+            return T.sqrt(arg_c / ((2 * beta - 1) * alpha))
+
+        res = Interval.from_shape(input_shape, lower_val=numpy.inf,
+                                  upper_val=-numpy.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            res.lower = T.minimum(res.lower, norm(corner))
+            res.upper = T.maximum(res.upper, norm(corner))
+        maybe_extrema = [
+            (shared(0), c.lower), (shared(0), c.upper),
+            (x_extr_from_c(c.lower), c.lower),
+            (x_extr_from_c(c.upper), c.upper),
+            (x_extr_from_c(c.lower) * (-1), c.lower),
+            (x_extr_from_c(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x(x.lower)),
+            (x.upper, c_extr_from_x(x.upper))
+        ]
+        extrema_conds = [
+            in_range(x, maybe_extrema[0][0]),
+            in_range(x, maybe_extrema[1][0]),
+            in_range(x, maybe_extrema[2][0]),
+            in_range(x, maybe_extrema[3][0]),
+            in_range(x, maybe_extrema[4][0]),
+            in_range(x, maybe_extrema[5][0]),
+            in_range(c, maybe_extrema[6][1]),
+            in_range(c, maybe_extrema[7][1])
+        ]
+        for m_extr, cond in zip(maybe_extrema, extrema_conds):
+            res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
+                                 res.lower)
+            res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
+                                 res.lower)
+        return res
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):
