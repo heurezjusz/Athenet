@@ -381,7 +381,7 @@ class Interval(Numlike):
                    upper_val=None):
         """Returns Interval of shape shp with given lower and upper values.
 
-        :param tuple of integers or integer shp : shape of created Interval
+        :param tuple of integers shp : shape of created Interval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
@@ -399,12 +399,8 @@ class Interval(Numlike):
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
                         DEFAULT_INTERVAL_UPPER
-        lower_array = numpy.ndarray(shp, dtype=theano.config.floatX)
-        upper_array = numpy.ndarray(shp, dtype=theano.config.floatX)
-        lower_array.fill(lower_val)
-        upper_array.fill(upper_val)
-        lower = shared(lower_array)
-        upper = shared(upper_array)
+        lower = T.alloc(lower_val, *shp)
+        upper = T.alloc(upper_val, *shp)
         return Interval(lower, upper)
 
     def reshape_for_padding(self, shape, padding, lower_val=None,
@@ -488,12 +484,12 @@ class Interval(Numlike):
                       * _upp endings are for softmax with variables shifted so
                         that input[i].lower() == 0
         """
-        result = Interval.from_shape(input_shp, neutral=True)
+        result = Interval.from_shape((input_shp,), neutral=True)
         for i in xrange(input_shp):
             input_low = (self - self.upper[i]).exp()
             input_upp = (self - self.lower[i]).exp()
-            sum_low = Interval.from_shape(1, neutral=True)
-            sum_upp = Interval.from_shape(1, neutral=True)
+            sum_low = Interval.from_shape((1,), neutral=True)
+            sum_upp = Interval.from_shape((1,), neutral=True)
             for j in xrange(input_shp):
                 if j != i:
                     sum_low = sum_low + input_low[j]
