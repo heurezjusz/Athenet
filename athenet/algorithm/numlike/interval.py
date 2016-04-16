@@ -5,11 +5,15 @@ This module contains Interval class and auxiliary objects.
 """
 
 from numlike import Numlike
+import theano
 from theano import function
 from theano import tensor as T
 from theano import shared
 
 import numpy
+
+from athenet.utils.misc import convolution, reshape_for_padding as \
+    misc_reshape_for_padding
 
 NEUTRAL_INTERVAL_LOWER = 0.0
 NEUTRAL_INTERVAL_UPPER = 0.0
@@ -78,7 +82,7 @@ class Interval(Numlike):
         """Returns sum of two intervals.
 
         :param other: matrix to be added
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -93,7 +97,7 @@ class Interval(Numlike):
         """Returns difference between two intervals.
 
         :param other: matrix to be subtracted
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -108,7 +112,7 @@ class Interval(Numlike):
         """Returns product of two intervals.
 
         :param other: matrix to be multiplied
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -386,20 +390,46 @@ class Interval(Numlike):
         :param float upper_val: value of upper bound
         """
         if lower_val > upper_val:
-            raise ValueError("lower_val > upper_val in newly created Interval")
+            if lower_val != numpy.inf or upper_val != -numpy.inf:
+                raise ValueError("lower_val > upper_val "
+                                 "in newly created Interval")
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
                         DEFAULT_INTERVAL_LOWER
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
                         DEFAULT_INTERVAL_UPPER
-        lower_array = numpy.ndarray(shp)
-        upper_array = numpy.ndarray(shp)
+        lower_array = numpy.ndarray(shp, dtype=theano.config.floatX)
+        upper_array = numpy.ndarray(shp, dtype=theano.config.floatX)
         lower_array.fill(lower_val)
         upper_array.fill(upper_val)
         lower = shared(lower_array)
         upper = shared(upper_array)
         return Interval(lower, upper)
+
+    def reshape_for_padding(self, shape, padding, lower_val=None,
+                            upper_val=None):
+        """Returns padded Interval.
+
+        :param tuple of 4 integers shape: shape of input in format
+                                          (batch size, number of channels,
+                                           height, width)
+        :param pair of integers padding: padding to be applied
+        :param float lower_val: value of lower bound in new fields
+        :param float upper_val: value of upper bound in new fields
+        :returns: padded layer_input
+        :rtype: Interval
+        """
+        if lower_val is None:
+            lower_val = NEUTRAL_INTERVAL_UPPER
+        if upper_val is None:
+            upper_val = NEUTRAL_INTERVAL_UPPER
+        n_batches, n_in, h, w = shape
+        padded_low = misc_reshape_for_padding(self.lower, (h, w, n_in),
+                                              n_batches, padding, lower_val)
+        padded_upp = misc_reshape_for_padding(self.upper, (h, w, n_in),
+                                              n_batches, padding, upper_val)
+        return Interval(padded_low, padded_upp)
 
     def eval(self, eval_map=None):
         """Evaluates interval in terms of theano TensorType eval method.
@@ -425,6 +455,204 @@ class Interval(Numlike):
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
         return rlower, rupper
+
+    def op_relu(self):
+        """Returns result of relu operation on given Interval.
+
+        :rtype: Interval
+        """
+        lower = T.maximum(self.lower, 0.0)
+        upper = T.maximum(self.upper, 0.0)
+        return Interval(lower, upper)
+
+    def op_softmax(self, input_shp):
+        """Returns result of softmax operation on given Interval.
+
+        :param integer input_shp: shape of 1D input
+        :rtype: Interval
+
+        .. note:: Implementation note. Tricks for encountering representation
+                  problems:
+                  Theoretically, softmax(input) == softmax(input.map(x->x+c))
+                  for Real x, y. For floating point arithmetic it is not true.
+                  e.g. in expression:
+
+                  e^x / (e^x + e^y) = 0.0f / (0.0f + 0.0f) = NaN for too little
+                  values of x, y
+                  or
+                  e^x / (e^x + e^y) = +Inf / +Inf = NaN for too hight values of
+                  x, y.
+                  There is used a workaround:
+                      * _low endings are for softmax with variables shifted so
+                        that input[i].upper() == 0
+                      * _upp endings are for softmax with variables shifted so
+                        that input[i].lower() == 0
+        """
+        result = Interval.from_shape(input_shp, neutral=True)
+        for i in xrange(input_shp):
+            input_low = (self - self.upper[i]).exp()
+            input_upp = (self - self.lower[i]).exp()
+            sum_low = Interval.from_shape(1, neutral=True)
+            sum_upp = Interval.from_shape(1, neutral=True)
+            for j in xrange(input_shp):
+                if j != i:
+                    sum_low = sum_low + input_low[j]
+                    sum_upp = sum_upp + input_upp[j]
+            # Could consider evaluation below but it gives wrong answers.
+            # It might be because of arithmetic accuracy.
+            # sum_low = input_low.sum() - input_low[i]
+            # sum_upp = input_upp.sum() - input_upp[i]
+            upper_counter_low = input_low.upper[i]
+            lower_counter_upp = input_upp.lower[i]
+            upper_low = upper_counter_low / \
+                (sum_low[0].lower + upper_counter_low)
+            lower_upp = lower_counter_upp / \
+                (sum_upp[0].upper + lower_counter_upp)
+            result[i] = Interval(lower_upp, upper_low)
+        return result
+
+    def op_norm(self, input_shape, local_range, k, alpha, beta):
+        """Returns estimated activation of LRN layer.
+
+        :param input_shape: shape of Interval in format
+                            (n_channels, height, width)
+        :param integer local_range: size of local range in local range
+                                    normalization
+        :param float k: local range normalization k argument
+        :param float alpha: local range normalization alpha argument
+        :param float beta: local range normalization beta argument
+        :type input_shape: tuple of 3 integers
+        :rtype: Interval
+        """
+        alpha /= local_range
+        half = local_range / 2
+        x = self
+        sq = self.square()
+        n_channels, h, w = input_shape
+        extra_channels = self.from_shape((n_channels + 2 * half, h, w),
+                                         neutral=True)
+        extra_channels[half:half + n_channels, :, :] = sq
+        s = self.from_shape(input_shape, neutral=True)
+
+        for i in xrange(local_range):
+            if i != half:
+                s += extra_channels[i:i + n_channels, :, :]
+
+        c = s * alpha + k
+
+        def norm((arg_x, arg_c)):
+            return arg_x / T.power(arg_c + alpha * T.sqr(arg_x), beta)
+
+        def in_range((range_), val):
+            return T.and_(T.le(range_.lower, val), T.le(val, range_.upper))
+
+        def c_extr_from_x(arg_x):
+            return T.sqr(arg_x) * ((2 * beta - 1) * alpha)
+
+        def x_extr_from_c(arg_c):
+            return T.sqrt(arg_c / ((2 * beta - 1) * alpha))
+
+        res = Interval.from_shape(input_shape, lower_val=numpy.inf,
+                                  upper_val=-numpy.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            res.lower = T.minimum(res.lower, norm(corner))
+            res.upper = T.maximum(res.upper, norm(corner))
+        maybe_extrema = [
+            (shared(0), c.lower), (shared(0), c.upper),
+            (x_extr_from_c(c.lower), c.lower),
+            (x_extr_from_c(c.upper), c.upper),
+            (x_extr_from_c(c.lower) * (-1), c.lower),
+            (x_extr_from_c(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x(x.lower)),
+            (x.upper, c_extr_from_x(x.upper))
+        ]
+        extrema_conds = [
+            in_range(x, maybe_extrema[0][0]),
+            in_range(x, maybe_extrema[1][0]),
+            in_range(x, maybe_extrema[2][0]),
+            in_range(x, maybe_extrema[3][0]),
+            in_range(x, maybe_extrema[4][0]),
+            in_range(x, maybe_extrema[5][0]),
+            in_range(c, maybe_extrema[6][1]),
+            in_range(c, maybe_extrema[7][1])
+        ]
+        for m_extr, cond in zip(maybe_extrema, extrema_conds):
+            res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
+                                 res.lower)
+            res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
+                                 res.lower)
+        return res
+
+    def op_conv(self, weights, image_shape, filter_shape, biases, stride,
+                padding, n_groups):
+        """Returns estimated activation of convolution applied to Interval.
+
+        :param weights: weights tensor in format (number of output channels,
+                                                  number of input channels,
+                                                  filter height,
+                                                  filter width)
+        :param image_shape: shape of input in the format
+                    (number of input channels, image height, image width)
+        :param filter_shape: filter shape in the format
+                             (number of output channels, filter height,
+                              filter width)
+        :param biases: biases in convolution
+        :param stride: pair representing interval at which to apply the filters
+        :param padding: pair representing number of zero-valued pixels to add
+                        on each side of the input.
+        :param n_groups: number of groups input and output channels will be
+                         split into, two channels are connected only if they
+                         belong to the same group.
+        :type image_shape: tuple of 3 integers
+        :type weights: theano.tensor3
+        :type filter_shape: tuple of 3 integers
+        :type biases: theano.vector
+        :type stride: pair of integers
+        :type padding: pair of integers
+        :type n_groups: integer
+        :rtype: Interval
+        """
+        image_shape = (image_shape[1], image_shape[2], image_shape[0])
+        filter_shape = (filter_shape[1], filter_shape[2], filter_shape[0])
+        args = (stride, n_groups, image_shape, padding, 1, filter_shape)
+        input_lower = self.lower.dimshuffle('x', 0, 1, 2)
+        input_upper = self.upper.dimshuffle('x', 0, 1, 2)
+        input_lower_padded = misc_reshape_for_padding(input_lower, image_shape,
+                                                      1, padding)
+        input_upper_padded = misc_reshape_for_padding(input_upper, image_shape,
+                                                      1, padding)
+        weights_positive = T.maximum(weights, 0.)
+        weights_negative = T.minimum(weights, 0.)
+        conv_lower_positive = convolution(input_lower_padded, weights_positive,
+                                          *args)
+        conv_lower_negative = convolution(input_lower_padded, weights_negative,
+                                          *args)
+        conv_upper_positive = convolution(input_upper_padded, weights_positive,
+                                          *args)
+        conv_upper_negative = convolution(input_upper_padded, weights_negative,
+                                          *args)
+        conv_result_lower = conv_lower_positive + conv_upper_negative
+        conv_result_upper = conv_lower_negative + conv_upper_positive
+        _, n_in, h, w = conv_result_lower.shape
+        conv_result_lower_3d = conv_result_lower.reshape((n_in, h, w))
+        conv_result_upper_3d = conv_result_upper.reshape((n_in, h, w))
+        result_interval = Interval(conv_result_lower_3d, conv_result_upper_3d)
+        return result_interval + biases.dimshuffle(0, 'x', 'x')
+
+    @staticmethod
+    def derest_output(n_outputs):
+        """Generates Interval of impact of output on output.
+
+        :param int n_outputs: Number of outputs of network.
+        :returns: 2D square Interval in shape (n_batches, n_outputs) with one
+                  different "1" in every batch, like numpy.eye(n_outputs)
+        :rtype: Interval
+        """
+        np_matrix = numpy.eye(n_outputs, dtype=theano.config.floatX)
+        th_matrix = shared(np_matrix)
+        return Interval(th_matrix, th_matrix)
 
     def __repr__(self):
         """Standard repr method."""
