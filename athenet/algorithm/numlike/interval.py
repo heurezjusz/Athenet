@@ -582,7 +582,7 @@ class Interval(Numlike):
             res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
                                  res.lower)
             res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
-                                 res.lower)
+                                 res.upper)
         return res
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
