@@ -579,9 +579,10 @@ class Interval(Numlike):
             in_range(c, maybe_extrema[7][1])
         ]
         for m_extr, cond in zip(maybe_extrema, extrema_conds):
-            res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
+            norm_res = norm(m_extr)
+            res.lower = T.switch(cond, T.minimum(res.lower, norm_res),
                                  res.lower)
-            res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
+            res.upper = T.switch(cond, T.maximum(res.upper, norm_res),
                                  res.upper)
         return res
 
