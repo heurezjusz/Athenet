@@ -578,7 +578,7 @@ class Interval(Numlike):
             res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
                                  res.lower)
             res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
-                                 res.lower)
+                                 res.upper)
         return res
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
@@ -854,12 +854,8 @@ class Interval(Numlike):
             if i != half:
                 s.lower += extra_channels_low[:, i:i + n_channels, :, :]
                 s.upper += extra_channels_upp[:, i:i + n_channels, :, :]
-        # impact of middle element in local_range on output
         c = s * alpha + k
-        t_low = 0.5 * alpha * sq_low
-        t_upp = 0.5 * alpha * sq_upp
-        extr_t = T.dscalar(1.0 / 3.0)
-        extr_c = T.dscalar(5.0)
+        # impact of middle element in local_range on output
 
         def is_above_line(arg_x, arg_y, arg_coefficient):
             return T.gt(arg_y, arg_x * arg_coefficient)
@@ -872,8 +868,72 @@ class Interval(Numlike):
         def in_range((range_), val):
             return T.and_(T.lt(range_.lower, val), T.lt(val, range_.upper))
 
-        def norm_fun(arg_t, arg_c):
-            return (arg_c - arg_t) / T.power((arg_c + 2.0 * arg_t), 1.75)
+        def c_extr_from_x1(arg_x):
+            return T.sqr(arg_x) * (alpha / 3 * (2 * beta - 1))
+
+        def c_extr_from_x2(arg_x):
+            return T.sqr(arg_x) * (alpha * (2 * beta + 1))
+
+        def x_extr_from_c1(arg_c):
+            return T.sqrt(arg_c / (alpha / 3 * (2 * beta - 1)))
+
+        def x_extr_from_c2(arg_c):
+            return T.sqrt(arg_c / (alpha * (2 * beta + 1)))
+
+        mid_impact = Interval.from_shape(input_shape, lower_val=numpy.inf,
+                                         upper_val=-numpy.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            mid_impact.lower = T.minimum(mid_impact.lower, mid_d_norm(corner))
+            mid_impact.upper = T.maximum(mid_impact.upper, mid_d_norm(corner))
+        mid_maybe_extrema = [
+            (shared(0), c.lower),
+            (shared(0), c.upper),
+            (x_extr_from_c1(c.lower), c.lower),
+            (x_extr_from_c1(c.upper), c.upper),
+            (x_extr_from_c1(c.lower) * (-1), c.lower),
+            (x_extr_from_c1(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x1(x.lower)),
+            (x.upper, c_extr_from_x1(x.upper)),
+            (x_extr_from_c2(c.lower), c.lower),
+            (x_extr_from_c2(c.upper), c.upper),
+            (x_extr_from_c2(c.lower) * (-1), c.lower),
+            (x_extr_from_c2(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x2(x.lower)),
+            (x.upper, c_extr_from_x2(x.upper))
+        ]
+        mid_extrema_conds = [
+            in_range(x, mid_maybe_extrema[0][0]),
+            in_range(x, mid_maybe_extrema[1][0]),
+            in_range(x, mid_maybe_extrema[2][0]),
+            in_range(x, mid_maybe_extrema[3][0]),
+            in_range(x, mid_maybe_extrema[4][0]),
+            in_range(x, mid_maybe_extrema[5][0]),
+            in_range(c, mid_maybe_extrema[6][1]),
+            in_range(c, mid_maybe_extrema[7][1]),
+            in_range(x, mid_maybe_extrema[8][0]),
+            in_range(x, mid_maybe_extrema[9][0]),
+            in_range(x, mid_maybe_extrema[10][0]),
+            in_range(x, mid_maybe_extrema[11][0]),
+            in_range(c, mid_maybe_extrema[12][1]),
+            in_range(c, mid_maybe_extrema[13][1])
+        ]
+        for m_extr, cond in zip(mid_maybe_extrema, mid_extrema_conds):
+            mid_impact.lower = \
+                T.switch(cond, T.minimum(mid_impact.lower, mid_d_norm(m_extr)),
+                         mid_impact.lower)
+            mid_impact.upper = \
+                T.switch(cond, T.maximum(mid_impact.upper, mid_d_norm(m_extr)),
+                         mid_impact.upper)
+
+
+
+
+        t_low = 0.5 * alpha * sq_low
+        t_upp = 0.5 * alpha * sq_upp
+        extr_t = T.dscalar(1.0 / 3.0)
+        extr_c = T.dscalar(5.0)
 
         junction_t1 = T.and_(T.neg(is_above_line(c_low, t_low, extr_t)),
                              is_above_line(c_low, t_upp, extr_t))
@@ -916,46 +976,6 @@ class Interval(Numlike):
             res_upp = T.switch(jct, T.maximum(res_upp, pt), res_upp)
         mid_impact = Interval(res_low, res_upp) * output
 
-        def norm((arg_x, arg_c)):
-            return arg_x / T.power(arg_c + alpha * T.sqr(arg_x), beta)
-
-        def c_extr_from_x(arg_x):
-            return T.sqr(arg_x) * ((2 * beta - 1) * alpha)
-
-        def x_extr_from_c(arg_c):
-            return T.sqrt(arg_c / ((2 * beta - 1) * alpha))
-
-        res = Interval.from_shape(input_shape, lower_val=numpy.inf,
-                                  upper_val=-numpy.inf)
-        corners = [(x.lower, c.lower), (x.lower, c.upper),
-                   (x.upper, c.lower), (x.upper, c.upper)]
-        for corner in corners:
-            res.lower = T.minimum(res.lower, norm(corner))
-            res.upper = T.maximum(res.upper, norm(corner))
-        maybe_extrema = [
-            (shared(0), c.lower), (shared(0), c.upper),
-            (x_extr_from_c(c.lower), c.lower),
-            (x_extr_from_c(c.upper), c.upper),
-            (x_extr_from_c(c.lower) * (-1), c.lower),
-            (x_extr_from_c(c.upper) * (-1), c.upper),
-            (x.lower, c_extr_from_x(x.lower)),
-            (x.upper, c_extr_from_x(x.upper))
-        ]
-        extrema_conds = [
-            in_range(x, maybe_extrema[0][0]),
-            in_range(x, maybe_extrema[1][0]),
-            in_range(x, maybe_extrema[2][0]),
-            in_range(x, maybe_extrema[3][0]),
-            in_range(x, maybe_extrema[4][0]),
-            in_range(x, maybe_extrema[5][0]),
-            in_range(c, maybe_extrema[6][1]),
-            in_range(c, maybe_extrema[7][1])
-        ]
-        for m_extr, cond in zip(maybe_extrema, extrema_conds):
-            res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
-                                 res.lower)
-            res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
-                                 res.lower)
 
         # impact of neighbours of middle element in local_range on output
         neigh_impact_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
