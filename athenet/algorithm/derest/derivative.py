@@ -74,8 +74,8 @@ def d_fully_connected(output, weights, input_shape):
                            height, width)
     :param weights: weights of fully connected layer in format (n_in, n_out)
     :type weights: 2D numpy.ndarray or theano.tensor
-    :param tuple of integers input_shape: shape of fully connected layer input
-                                          without batch size
+    :param input_shape: shape of fully connected layer input in any format.
+    :type input_shape: tuple of integers
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
@@ -84,7 +84,7 @@ def d_fully_connected(output, weights, input_shape):
         res = output.dot(weights.T)
     except NotImplementedError:
         res = (output * weights).sum(1)
-    return res.reshape((output.shape[0],) + input_shape)
+    return res.reshape(input_shape)
 
 
 def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
