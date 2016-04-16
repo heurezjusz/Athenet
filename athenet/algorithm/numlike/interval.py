@@ -1004,7 +1004,6 @@ class Interval(Numlike):
 
     def op_d_conv(self, input_shape, filter_shape, weights,
                   stride, padding, n_groups):
-        # TODO: all
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
