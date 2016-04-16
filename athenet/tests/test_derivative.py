@@ -51,6 +51,7 @@ class DerivativeTest2(unittest.TestCase):
             a[i] = self.s()
         return a.reshape(shp)
 
+
 class DerivativeTest(object):
     pass
 
@@ -61,7 +62,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         dout = thv([[1]])
         idout = Itv(dout, dout)
         w = thv([[2]])
-        shp = (1,)
+        shp = (1, 1)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
         arae(l, u)
@@ -71,7 +72,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         dout = thv([[3, 6]])
         idout = Itv(dout, dout)
         w = thv([9, 12])
-        shp = (1,)
+        shp = (1, 1)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
         arae(l, u)
@@ -81,7 +82,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         dout = thv([[3, 0]])
         idout = Itv(dout, dout)
         w = thv([[6, 0], [9, 0]])
-        shp = (2,)
+        shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
         arae(l, u)
@@ -91,7 +92,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         dout = thv([[3, 6]])
         idout = Itv(dout, dout)
         w = thv([[9, 15], [12, 18]])
-        shp = (2,)
+        shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
         arae(l, u)
@@ -102,7 +103,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         doutu = thv([[9, -3, 6]])
         idout = Itv(doutl, doutu)
         w = thv([[2, -3, -3], [-3, 1, 2], [5, -4, 3], [-2, -3, -4]])
-        shp = (2, 2)
+        shp = (1, 2, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
         arae(l, A([[[-15, -27], [6, -33]]]))
@@ -112,7 +113,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         dout = thv([[3, 6], [1, 2]])
         idout = Itv(dout, dout)
         w = thv([[9, 15], [12, 18]])
-        shp = (2,)
+        shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
         arae(l, u)
@@ -124,7 +125,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         idout = Itv(tdout, tdout)
         d = {tdout: dout}
         w = thv([[9, 15], [12, 18]])
-        shp = (2,)
+        shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval(d)
         arae(l, u)
@@ -164,7 +165,7 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         din = d_conv(dout, (1, 2, 2, 2), (2, 3, 3), w, padding=(1, 1))
         l, u = din.eval()
         arae(l, u)
-        arae(l, A([[[[18.5, 25], [31.1, 29.6],],
+        arae(l, A([[[[18.5, 25], [31.1, 29.6]],
                     [[34.6, 57.5], [74.4, 174.8]]]]))
 
     def test_interval(self):
@@ -408,6 +409,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
         arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]) / 4.0)
         arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]) / 4.0)
 
+
 class SoftmaxDerivativeTest(DerivativeTest):
 
     def test_case1(self):
@@ -431,6 +433,7 @@ class NormDerivativeTest(DerivativeTest2):
     beta = 0.75
     k = 1.0
     n = 5
+
 
 class DropoutDerivativeTest(DerivativeTest):
 

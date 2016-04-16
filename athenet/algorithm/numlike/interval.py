@@ -82,7 +82,7 @@ class Interval(Numlike):
         """Returns sum of two intervals.
 
         :param other: matrix to be added
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -97,7 +97,7 @@ class Interval(Numlike):
         """Returns difference between two intervals.
 
         :param other: matrix to be subtracted
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -112,7 +112,7 @@ class Interval(Numlike):
         """Returns product of two intervals.
 
         :param other: matrix to be multiplied
-        :type other: Interval or numpy.ndarray
+        :type other: Interval or numpy.ndarray or float
         :rtype: Interval
         """
         if isinstance(other, Interval):
@@ -390,15 +390,17 @@ class Interval(Numlike):
         :param float upper_val: value of upper bound
         """
         if lower_val > upper_val:
-            raise ValueError("lower_val > upper_val in newly created Interval")
+            if lower_val != numpy.inf or upper_val != -numpy.inf:
+                raise ValueError("lower_val > upper_val "
+                                 "in newly created Interval")
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
                         DEFAULT_INTERVAL_LOWER
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
                         DEFAULT_INTERVAL_UPPER
-        lower_array = numpy.ndarray(shp)
-        upper_array = numpy.ndarray(shp)
+        lower_array = numpy.ndarray(shp, dtype=theano.config.floatX)
+        upper_array = numpy.ndarray(shp, dtype=theano.config.floatX)
         lower_array.fill(lower_val)
         upper_array.fill(upper_val)
         lower = shared(lower_array)
@@ -516,42 +518,72 @@ class Interval(Numlike):
                             (n_channels, height, width)
         :param integer local_range: size of local range in local range
                                     normalization
-        :param integer k: local range normalization k argument
-        :param integer alpha: local range normalization alpha argument
-        :param integer beta: local range normalization beta argument
+        :param float k: local range normalization k argument
+        :param float alpha: local range normalization alpha argument
+        :param float beta: local range normalization beta argument
         :type input_shape: tuple of 3 integers
         :rtype: Interval
         """
         alpha /= local_range
-        k_array = numpy.array([k])
-        alpha_array = numpy.array([alpha])
-        lower = self.lower
-        upper = self.upper
         half = local_range / 2
+        x = self
         sq = self.square()
         n_channels, h, w = input_shape
         extra_channels = self.from_shape((n_channels + 2 * half, h, w),
                                          neutral=True)
         extra_channels[half:half + n_channels, :, :] = sq
-        neigh_sums = self.from_shape(input_shape, neutral=True)
+        s = self.from_shape(input_shape, neutral=True)
 
         for i in xrange(local_range):
             if i != half:
-                neigh_sums += extra_channels[i:i + n_channels, :, :]
-        c1 = neigh_sums * alpha_array + k_array
-        c2 = alpha_array
-        extreme = c1 * numpy.array([2.0]) - sq * c2
-        upper_v = T.sqrt(c1.lower * 2.0 / alpha)
-        lower_alpha = alpha * sq.lower
-        upper_alpha = alpha * sq.upper
-        lower1 = lower / T.pow(c1.upper + lower_alpha, beta)
-        lower2 = upper / T.pow(c1.upper + upper_alpha, beta)
-        upper1 = upper / T.pow(c1.lower + upper_alpha, beta)
-        upper2 = lower / T.pow(c1.lower + lower_alpha, beta)
-        res_lower = T.minimum(lower1, lower2)
-        res_upper = T.switch(extreme._has_zero(), upper_v,
-                             T.minimum(upper1, upper2))
-        return Interval(res_lower, res_upper)
+                s += extra_channels[i:i + n_channels, :, :]
+
+        c = s * alpha + k
+
+        def norm((arg_x, arg_c)):
+            return arg_x / T.power(arg_c + alpha * T.sqr(arg_x), beta)
+
+        def in_range((range_), val):
+            return T.and_(T.lt(range_.lower, val), T.lt(val, range_.upper))
+
+        def c_extr_from_x(arg_x):
+            return T.sqr(arg_x) * ((2 * beta - 1) * alpha)
+
+        def x_extr_from_c(arg_c):
+            return T.sqrt(arg_c / ((2 * beta - 1) * alpha))
+
+        res = Interval.from_shape(input_shape, lower_val=numpy.inf,
+                                  upper_val=-numpy.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            res.lower = T.minimum(res.lower, norm(corner))
+            res.upper = T.maximum(res.upper, norm(corner))
+        maybe_extrema = [
+            (shared(0), c.lower), (shared(0), c.upper),
+            (x_extr_from_c(c.lower), c.lower),
+            (x_extr_from_c(c.upper), c.upper),
+            (x_extr_from_c(c.lower) * (-1), c.lower),
+            (x_extr_from_c(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x(x.lower)),
+            (x.upper, c_extr_from_x(x.upper))
+        ]
+        extrema_conds = [
+            in_range(x, maybe_extrema[0][0]),
+            in_range(x, maybe_extrema[1][0]),
+            in_range(x, maybe_extrema[2][0]),
+            in_range(x, maybe_extrema[3][0]),
+            in_range(x, maybe_extrema[4][0]),
+            in_range(x, maybe_extrema[5][0]),
+            in_range(c, maybe_extrema[6][1]),
+            in_range(c, maybe_extrema[7][1])
+        ]
+        for m_extr, cond in zip(maybe_extrema, extrema_conds):
+            res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
+                                 res.lower)
+            res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
+                                 res.lower)
+        return res
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):
@@ -629,7 +661,7 @@ class Interval(Numlike):
                          T.switch(upp_lt_zero, 0.0, T.maximum(out_upper, 0.0)))
         return Interval(lower, upper)
 
-    def op_d_max_pool(self, activation, activation_shape, poolsize, stride,
+    def op_d_max_pool(self, activation, input_shape, poolsize, stride,
                       padding):
         """Returns estimated impact of input of max pool layer on output of
         network.
@@ -638,9 +670,9 @@ class Interval(Numlike):
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
-        :param activation_shape: shape of activation in format (batch size,
-                                 number of channels, height, width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format (batch size,
+                            number of channels, height, width)
+        :type input_shape: tuple of 4 integers
         :param pair of integers poolsize: pool size in format (height, width),
                                           not equal (1, 1)
         :param pair of integers stride: stride of max pool
@@ -648,12 +680,12 @@ class Interval(Numlike):
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
-        n_batches, n_in, h, w = activation_shape
+        n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(activation_shape, padding,
+        activation = activation.reshape_for_padding(input_shape, padding,
                                                     lower_val=-numpy.inf,
                                                     upper_val=-numpy.inf)
-        activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
         # n_batches, n_in, h, w - number of batches, number of channels,
@@ -662,7 +694,7 @@ class Interval(Numlike):
         fh, fw = poolsize
         stride_h, stride_w = stride
         output = self
-        result = activation.from_shape(activation_shape, neutral=True)
+        result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at
             # h
@@ -723,7 +755,7 @@ class Interval(Numlike):
 
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
-    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride,
+    def op_d_avg_pool(self, activation, input_shape, poolsize, stride,
                       padding):
         """Returns estimated impact of input of avg pool layer on output of
         network.
@@ -732,21 +764,21 @@ class Interval(Numlike):
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
-        :param activation_shape: shape of activation in format (batch size,
-                                 number of channels, height, width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format (batch size,
+                            number of channels, height, width)
+        :type input_shape: tuple of 4 integers
         :param pair of integers poolsize: pool size in format (height, width)
         :param pair of integers stride: stride of max pool
         :param pair of integers padding: padding of avg pool
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
-        n_batches, n_in, h, w = activation_shape
+        n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(activation_shape, padding,
+        activation = activation.reshape_for_padding(input_shape, padding,
                                                     lower_val=-numpy.inf,
                                                     upper_val=-numpy.inf)
-        activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
         # n_batches, n_in, h, w - number of batches, number of channels,
@@ -755,7 +787,7 @@ class Interval(Numlike):
         fh, fw = poolsize
         stride_h, stride_w = stride
         output = self
-        result = activation.from_shape(activation_shape, neutral=True)
+        result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at
             # h
@@ -778,7 +810,7 @@ class Interval(Numlike):
         result = result * shared(1.0 / numpy.prod(poolsize))
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
-    def op_d_norm(self, activation, activation_shape, local_range, k, alpha,
+    def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
         # TODO: all
         """Returns estimated impact of input of norm layer on output of
@@ -788,9 +820,9 @@ class Interval(Numlike):
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
-        :param activation_shape: shape of activation in format (batch size,
-                                 number of channels, height, width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format (batch size,
+                            number of channels, height, width)
+        :type input_shape: tuple of 4 integers
         :param integer local_range: size of local range in local range
                                     normalization
         :param float k: local range normalization k argument
@@ -808,7 +840,7 @@ class Interval(Numlike):
         half = local_range / 2
         sq_low = T.sqr(lower)
         sq_upp = T.sqr(upper)
-        bs, n_channels, h, w = activation_shape
+        bs, n_channels, h, w = input_shape
         extra_channels_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
         extra_channels_upp = T.alloc(0, bs, n_channels + 2 * half, h, w)
         T.set_subtensor(extra_channels_low[:, half:half + n_channels, :, :],
@@ -970,20 +1002,20 @@ class Interval(Numlike):
             impact = mid_impact + neigh_impact
             return impact
 
-    def op_d_conv(self, activation_shape, filter_shape, weights,
+    def op_d_conv(self, input_shape, filter_shape, weights,
                   stride, padding, n_groups):
-        # TODO: all
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
         :param Interval self: estimated impact of output of layer on output
                               of network in shape (number of batches,
                               number of channels, height, width)
-        :param activation_shape in the format (number of batches,
-                                               number of input channels,
-                                               image height,
-                                               image width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format
+                            (number of batches,
+                             number of input channels,
+                             image height,
+                             image width)
+        :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
                               filter width)
@@ -1006,7 +1038,7 @@ class Interval(Numlike):
         :rtype: Interval
         """
         # n_in, h, w - number of input channels, image height, image width
-        n_batches, n_in, h, w = activation_shape
+        n_batches, n_in, h, w = input_shape
         # n_out, fh, fw - number of output channels, filter height, filter
         # width
         n_out, fh, fw = filter_shape
@@ -1055,7 +1087,7 @@ class Interval(Numlike):
         h += 2 * pad_h
         w += 2 * pad_w
         padded_input_shape = (n_batches, n_in, h, w)
-        result = output.from_shape(padded_input_shape, neutral=True)
+        result = Interval.from_shape(padded_input_shape, neutral=True)
         # see: flipping kernel
         weights = weights[:, :, ::-1, ::-1]
         weights_neg = T.minimum(weights, 0.0)
