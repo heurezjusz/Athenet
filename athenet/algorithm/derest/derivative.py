@@ -85,7 +85,10 @@ def d_fully_connected(output, weights, input_shape):
         res = output.dot(weights.T)
     except NotImplementedError:
         res = (output * weights).sum(1)
-    return res.reshape((output.shape[0],) + input_shape)
+    if isinstance(input_shape, tuple):
+        return res.reshape((output.shape[0].eval(),) + input_shape)
+    else:
+        return res.reshape((output.shape[0].eval(), input_shape))
 
 
 def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):

@@ -1014,7 +1014,7 @@ class Interval(Numlike):
         output = self
         if stride == (1, 1):
             weights = weights[:, :, ::-1, ::-1]
-            rev_weights = weights.dimshuffle(1, 0, 2, 3)
+            rev_weights = weights.transpose((1, 0, 2, 3))
             rev_weights_neg = T.minimum(rev_weights, 0.0)
             rev_weights_pos = T.maximum(rev_weights, 0.0)
             rev_h = h + 2 * pad_h - fh + 1

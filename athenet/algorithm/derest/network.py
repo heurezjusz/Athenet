@@ -4,11 +4,15 @@ from athenet.algorithm.derest.activation import *
 from athenet.algorithm.derest.derivative import *
 
 
-def _change_order((h, w, n)):
+def _change_order(a):
     """
-    So the last will be first, and the first will be last.
+    So the last will be first
     """
-    return (n, h, w)
+    try:
+        h, w, n = a
+        return (n, h, w)
+    except:
+        return a
 
 
 class DerestNetwork(Network):
@@ -22,9 +26,15 @@ class DerestNetwork(Network):
             inp = layer.count_activation(inp)
         return inp
 
-    def count_derivatives(self, outp):
+    def count_derivatives(self, outp, batches):
+
+        #we assume that batches is equal to outp.shape[0] (for now)
         for i in range(len(self.layers) - 1, -1, -1):
-            outp = self.layers[i].count_derivatives(outp)
+            if i > 0:
+                input_shape = self.layers[i - 1].layer.output_shape
+            else:
+                input_shape = self.layers[i].layer.input_shape
+            outp = self.layers[i].count_derivatives(outp, batches, input_shape)
         return outp
 
 
@@ -32,7 +42,6 @@ class DerestLayer(Layer):
 
     def __init__(self, layer):
         self.layer = layer
-        self.layer_input = None
         self.activations = None
         self.derivatives = None
 
@@ -68,10 +77,15 @@ class DerestLayer(Layer):
 
         return self.activations
 
-    def count_derivatives(self, output):
+    def count_derivatives(self, output, batches, input_shape):
+        if ( isinstance(input_shape, tuple)):
+            input_shape2 = (batches, ) + _change_order(input_shape)
+        else:
+            input_shape2 = (batches, input_shape)
+
         if isinstance(self.layer, ConvolutionalLayer):
             self.derivatives = d_conv(
-                output, self.activations.shape,
+                output, input_shape2,
                 _change_order(self.layer.filter_shape), self.layer.W,
                 self.layer.stride, self.layer.padding, self.layer.n_groups
             )
@@ -79,16 +93,16 @@ class DerestLayer(Layer):
             self.derivatives = d_dropout(output, self.layer.p_dropout)
         elif isinstance(self.layer, FullyConnectedLayer):
             self.derivatives = d_fully_connected(output, self.layer.W,
-                                                 self.layer.input_shape)
+                                                 _change_order(input_shape))
         elif isinstance(self.layer, LRN):
             self.derivatives = d_norm(
-                output, self.activations, self.activations.shape,
+                output, self.activations, input_shape2,
                 self.layer.local_range, self.layer.k, self.layer.alpha,
                 self.layer.beta
             )
         elif isinstance(self.layer, PoolingLayer):
             self.derivatives = d_pool(
-                output, self.activations, self.activations.shape,
+                output, self.activations, input_shape2,
                 self.layer.poolsize, self.layer.stride, self.layer.padding,
                 self.layer.mode
             )
@@ -100,7 +114,3 @@ class DerestLayer(Layer):
             raise NotImplementedError
 
         return self.derivatives
-
-
-
-
