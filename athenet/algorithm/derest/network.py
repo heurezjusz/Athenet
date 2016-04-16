@@ -11,22 +11,30 @@ def _change_order((h, w, n)):
     return (n, h, w)
 
 
-class derestNetwork(Network):
+class DerestNetwork(Network):
 
     def __init__(self, network):
         self.network = network
+        self.layers = [DerestLayer(layer) for layer in network.layers]
+
+    def count_activations(self, inp):
+        for layer in self.layers:
+            inp = layer.count_activation(inp)
+        return inp
+
+    def count_derivatives(self, outp):
+        for i in range(len(self.layers) - 1, -1, -1):
+            outp = self.layers[i].count_derivatives(self, outp)
+        return outp
 
 
-class derestLayer(Layer):
+class DerestLayer(Layer):
 
     def __init__(self, layer):
         self.layer = layer
         self.layer_input = None
         self.activations = None
         self.derivatives = None
-
-        self._choose_functions()
-
 
     def count_activation(self, input):
         if isinstance(self.layer, ConvolutionalLayer):
@@ -58,6 +66,7 @@ class derestLayer(Layer):
         else:
             raise NotImplementedError
 
+        return self.activations
 
     def count_derivatives(self, output):
         if isinstance(self.layer, ConvolutionalLayer):
@@ -84,11 +93,13 @@ class derestLayer(Layer):
                 self.layer.mode
             )
         elif isinstance(self.layer, Softmax):
-            return d_softmax(output)
+            self.derivatives = d_softmax(output)
         elif isinstance(self.layer, ReLU):
-            return d_relu(output, self.activations)
+            self.derivatives = d_relu(output, self.activations)
         else:
             raise NotImplementedError
+
+        return self.derivatives
 
 
 
