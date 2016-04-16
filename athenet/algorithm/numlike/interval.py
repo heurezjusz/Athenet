@@ -830,32 +830,36 @@ class Interval(Numlike):
         :param float beta: local range normalization beta argument
         :rtype: Interval
         """
+        # TODO: Condition to be deleted
         if beta != 0.75:
             raise NotImplementedError("d_norm: beta != 0.75")
         if local_range % 2 == 0:
             local_range += 1
         output = self
-        lower = activation.lower
-        upper = activation.upper
+        x_low = activation.lower
+        x_upp = activation.upper
+        # x is activation of middle elt in local_range
+        x = Interval(x_low, x_upp)
         half = local_range / 2
-        sq_low = T.sqr(lower)
-        sq_upp = T.sqr(upper)
+        # sq_x is sqare of x
+        sq_x = x.square()
         bs, n_channels, h, w = input_shape
         extra_channels_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
         extra_channels_upp = T.alloc(0, bs, n_channels + 2 * half, h, w)
         T.set_subtensor(extra_channels_low[:, half:half + n_channels, :, :],
-                        sq_low)
+                        sq_x.lower)
         T.set_subtensor(extra_channels_upp[:, half:half + n_channels, :, :],
-                        sq_upp)
-        neigh_sum_low = T.zeros_like(lower, dtype=theano.config.floatX)
-        neigh_sum_upp = T.zeros_like(upper, dtype=theano.config.floatX)
+                        sq_x.upper)
+        s_low = T.zeros_like(x_low, dtype=theano.config.floatX)
+        s_upp = T.zeros_like(x_upp, dtype=theano.config.floatX)
+        # s is sum of squares of elements in local range except middle
+        s = Interval(s_low, s_upp)
         for i in xrange(local_range):
             if i != half:
-                neigh_sum_low += extra_channels_low[:, i:i + n_channels, :, :]
-                neigh_sum_upp += extra_channels_upp[:, i:i + n_channels, :, :]
+                s.lower += extra_channels_low[:, i:i + n_channels, :, :]
+                s.upper += extra_channels_upp[:, i:i + n_channels, :, :]
         # impact of middle element in local_range on output
-        c_low = neigh_sum_low * alpha + k
-        c_upp = neigh_sum_upp * alpha + k
+        c = s * alpha + k
         t_low = 0.5 * alpha * sq_low
         t_upp = 0.5 * alpha * sq_upp
         extr_t = T.dscalar(1.0 / 3.0)
@@ -863,6 +867,14 @@ class Interval(Numlike):
 
         def is_above_line(arg_x, arg_y, arg_coefficient):
             return T.gt(arg_y, arg_x * arg_coefficient)
+
+        def mid_d_norm(arg_x, arg_c):
+            sq_x_a = T.sqr(arg_x) * alpha
+            return (sq_x_a * (1 - 2 * beta) + arg_c) / \
+                T.power(sq_x_a + arg_c, beta + 1)
+
+        def in_range((range_), val):
+            return T.and_(T.lt(range_.lower, val), T.lt(val, range_.upper))
 
         def norm_fun(arg_t, arg_c):
             return (arg_c - arg_t) / T.power((arg_c + 2.0 * arg_t), 1.75)
@@ -907,6 +919,47 @@ class Interval(Numlike):
             res_low = T.switch(jct, T.minimum(res_low, pt), res_low)
             res_upp = T.switch(jct, T.maximum(res_upp, pt), res_upp)
         mid_impact = Interval(res_low, res_upp) * output
+
+        def norm((arg_x, arg_c)):
+            return arg_x / T.power(arg_c + alpha * T.sqr(arg_x), beta)
+
+        def c_extr_from_x(arg_x):
+            return T.sqr(arg_x) * ((2 * beta - 1) * alpha)
+
+        def x_extr_from_c(arg_c):
+            return T.sqrt(arg_c / ((2 * beta - 1) * alpha))
+
+        res = Interval.from_shape(input_shape, lower_val=numpy.inf,
+                                  upper_val=-numpy.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            res.lower = T.minimum(res.lower, norm(corner))
+            res.upper = T.maximum(res.upper, norm(corner))
+        maybe_extrema = [
+            (shared(0), c.lower), (shared(0), c.upper),
+            (x_extr_from_c(c.lower), c.lower),
+            (x_extr_from_c(c.upper), c.upper),
+            (x_extr_from_c(c.lower) * (-1), c.lower),
+            (x_extr_from_c(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x(x.lower)),
+            (x.upper, c_extr_from_x(x.upper))
+        ]
+        extrema_conds = [
+            in_range(x, maybe_extrema[0][0]),
+            in_range(x, maybe_extrema[1][0]),
+            in_range(x, maybe_extrema[2][0]),
+            in_range(x, maybe_extrema[3][0]),
+            in_range(x, maybe_extrema[4][0]),
+            in_range(x, maybe_extrema[5][0]),
+            in_range(c, maybe_extrema[6][1]),
+            in_range(c, maybe_extrema[7][1])
+        ]
+        for m_extr, cond in zip(maybe_extrema, extrema_conds):
+            res.lower = T.switch(cond, T.minimum(res.lower, norm(m_extr)),
+                                 res.lower)
+            res.upper = T.switch(cond, T.maximum(res.upper, norm(m_extr)),
+                                 res.lower)
 
         # impact of neighbours of middle element in local_range on output
         neigh_impact_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
