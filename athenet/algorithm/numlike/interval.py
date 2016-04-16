@@ -544,7 +544,7 @@ class Interval(Numlike):
             return arg_x / T.power(arg_c + alpha * T.sqr(arg_x), beta)
 
         def in_range((range_), val):
-            return T.and_(T.lt(range_.lower, val), T.lt(val, range_.upper))
+            return T.and_(T.le(range_.lower, val), T.le(val, range_.upper))
 
         def c_extr_from_x(arg_x):
             return T.sqr(arg_x) * ((2 * beta - 1) * alpha)
