@@ -42,7 +42,7 @@ class DerestNetwork():
     def count_derivatives(self, outp, batches):
         #we assume that batches is equal to outp.shape[0] (for now)
         for i in range(len(self.layers) - 1, -1, -1):
-            input_shape = _add_tuples(batches, self._get_layer_input_shape(i))
+            input_shape = _add_tuples(batches, _change_order(self._get_layer_input_shape(i)))
             outp = self.layers[i].count_derivatives(outp, input_shape)
         return outp
 
@@ -55,36 +55,36 @@ class DerestLayer():
         self.derivatives = None
 
     def count_activation(self, input):
+        self.activations = input
         if isinstance(self.layer, ConvolutionalLayer):
-            self.activations = conv(
+            return conv(
                 input, _change_order(self.layer.input_shape),
                 self.layer.W, _change_order(self.layer.filter_shape),
                 theano.shared(self.layer.b), self.layer.stride, self.layer.padding
             )
         elif isinstance(self.layer, Dropout):
-            self.activations = dropout(input, self.layer.p_dropout)
+            return dropout(input, self.layer.p_dropout)
         elif isinstance(self.layer, FullyConnectedLayer):
-            self.activations = fully_connected(input, self.layer.W,
+            return fully_connected(input, self.layer.W,
                                                self.layer.b)
         elif isinstance(self.layer, LRN):
-            self.activations = norm(
+            return norm(
                 input, _change_order(self.layer.input_shape),
                 self.layer.local_range, self.layer.k,
                 self.layer.alpha, self.layer.beta
             )
         elif isinstance(self.layer, PoolingLayer):
-            self.activations = pool(
+            return pool(
                 input, _change_order(self.layer.input_shape),
                 self.layer.poolsize, self.layer.stride, self.layer.mode
             )
         elif isinstance(self.layer, Softmax):
-            self.activations = softmax(input, self.layer.input_shape)
+            return softmax(input, self.layer.input_shape)
         elif isinstance(self.layer, ReLU):
-            self.activations = relu(input)
+            return relu(input)
         else:
             raise NotImplementedError
 
-        return self.activations
 
     def count_derivatives(self, output, input_shape):
         if isinstance(self.layer, ConvolutionalLayer):
