@@ -11,7 +11,7 @@ from athenet.algorithm.numlike import Numlike, assert_numlike
 # TODO: All functions below will be implemented.
 
 
-def d_conv(output, activation_shape, filter_shape, weights,
+def d_conv(output, input_shape, filter_shape, weights,
            stride=(1, 1), padding=(0, 0), n_groups=1):
     """Returns estimated impact of input of convolutional layer on output of
     network.
@@ -19,14 +19,15 @@ def d_conv(output, activation_shape, filter_shape, weights,
     :param Numlike output: estimated impact of output of layer on output
                            of network in shape (batch_size, number of channels,
                            height, width)
-    :param activation_shape in the format (number of batches,
-                                           number of input channels,
-                                           image height,
-                                           image width)
-    :type activation_shape: tuple of 4 integers
+    :param input_shape: shape of layer input in the format
+                        (number of batches,
+                         number of input channels,
+                         image height,
+                         image width)
+    :type input_shape: tuple of 4 integers
     :param filter_shape: filter shape in the format (number of output channels,
-                                                   filter height,
-                                                   filter width)
+                                                     filter height,
+                                                     filter width)
     :type filter_shape: tuple of 3 integers
     :param weights: Weights tensor in format (number of output channels,
                                               number of input channels,
@@ -45,7 +46,7 @@ def d_conv(output, activation_shape, filter_shape, weights,
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    res = output.op_d_conv(activation_shape, filter_shape,
+    res = output.op_d_conv(input_shape, filter_shape,
                            weights, stride, padding, n_groups)
     return res
 
@@ -86,7 +87,7 @@ def d_fully_connected(output, weights, input_shape):
     return res.reshape((output.shape[0],) + input_shape)
 
 
-def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):
+def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
     # TODO: all
     """Returns estimated impact of input of LRN layer on output of network.
 
@@ -94,9 +95,9 @@ def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):
                            of network in shape (batch_size, number of channels,
                            height, width)
     :param Numlike activation: estimated activation of input
-    :param activation_shape: shape of activation in format
-                             (batch size, number of channels, height, width)
-    :type activation_shape: tuple of 4 integers
+    :param input_shape: shape of layer input in format
+                        (number of batches, number of channels, height, width)
+    :type input_shape: tuple of 4 integers
     :param int local_range: Local channel range. Should be odd, otherwise it
                             will be incremented.
     :param float k: Additive constant.
@@ -107,12 +108,12 @@ def d_norm(output, activation, activation_shape, local_range, k, alpha, beta):
     """
     assert_numlike(activation)
     assert_numlike(output)
-    res = output.op_d_norm(activation, activation_shape, local_range, k, alpha,
+    res = output.op_d_norm(activation, input_shape, local_range, k, alpha,
                            beta)
     return res
 
 
-def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
+def d_pool(output, activation, input_shape, poolsize, stride=(1, 1),
            padding=(0, 0), mode='max'):
     """Returns estimated impact of input of pool layer on output of network.
 
@@ -120,9 +121,9 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
                            of network in shape (batch size, number of channels,
                            height, width)
     :param Numlike activation: estimated activation of input
-    :param activation_shape: shape of activation in format
-                             (batch size, number of channels, height, width)
-    :type activation_shape: tuple of 4 integers
+    :param input_shape: shape of layer input in format
+                        (batch size, number of channels, height, width)
+    :type input_shape: tuple of 4 integers
     :param pair of integers poolsize: pool size in format (height, width)
     :param pair of integers stride: stride of pool
     :param pair of integers padding: padding of pool
@@ -137,10 +138,10 @@ def d_pool(output, activation, activation_shape, poolsize, stride=(1, 1),
         raise ValueError("pool mode should be 'max' or 'avg'")
     is_max = mode == 'max'
     if is_max:
-        res = output.op_d_max_pool(activation, activation_shape,
+        res = output.op_d_max_pool(activation, input_shape,
                                    poolsize, stride, padding)
     else:
-        res = output.op_d_avg_pool(activation, activation_shape,
+        res = output.op_d_avg_pool(activation, input_shape,
                                    poolsize, stride, padding)
     return res
 

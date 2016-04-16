@@ -51,6 +51,7 @@ class DerivativeTest2(unittest.TestCase):
             a[i] = self.s()
         return a.reshape(shp)
 
+
 class DerivativeTest(object):
     pass
 
@@ -164,7 +165,7 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         din = d_conv(dout, (1, 2, 2, 2), (2, 3, 3), w, padding=(1, 1))
         l, u = din.eval()
         arae(l, u)
-        arae(l, A([[[[18.5, 25], [31.1, 29.6],],
+        arae(l, A([[[[18.5, 25], [31.1, 29.6]],
                     [[34.6, 57.5], [74.4, 174.8]]]]))
 
     def test_interval(self):
@@ -408,6 +409,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
         arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]) / 4.0)
         arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]) / 4.0)
 
+
 class SoftmaxDerivativeTest(DerivativeTest):
 
     def test_case1(self):
@@ -431,6 +433,7 @@ class NormDerivativeTest(DerivativeTest2):
     beta = 0.75
     k = 1.0
     n = 5
+
 
 class DropoutDerivativeTest(DerivativeTest):
 

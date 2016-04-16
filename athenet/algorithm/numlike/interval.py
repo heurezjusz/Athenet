@@ -661,7 +661,7 @@ class Interval(Numlike):
                          T.switch(upp_lt_zero, 0.0, T.maximum(out_upper, 0.0)))
         return Interval(lower, upper)
 
-    def op_d_max_pool(self, activation, activation_shape, poolsize, stride,
+    def op_d_max_pool(self, activation, input_shape, poolsize, stride,
                       padding):
         """Returns estimated impact of input of max pool layer on output of
         network.
@@ -670,9 +670,9 @@ class Interval(Numlike):
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
-        :param activation_shape: shape of activation in format (batch size,
-                                 number of channels, height, width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format (batch size,
+                            number of channels, height, width)
+        :type input_shape: tuple of 4 integers
         :param pair of integers poolsize: pool size in format (height, width),
                                           not equal (1, 1)
         :param pair of integers stride: stride of max pool
@@ -680,12 +680,12 @@ class Interval(Numlike):
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
-        n_batches, n_in, h, w = activation_shape
+        n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(activation_shape, padding,
+        activation = activation.reshape_for_padding(input_shape, padding,
                                                     lower_val=-numpy.inf,
                                                     upper_val=-numpy.inf)
-        activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
         # n_batches, n_in, h, w - number of batches, number of channels,
@@ -694,7 +694,7 @@ class Interval(Numlike):
         fh, fw = poolsize
         stride_h, stride_w = stride
         output = self
-        result = activation.from_shape(activation_shape, neutral=True)
+        result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at
             # h
@@ -755,7 +755,7 @@ class Interval(Numlike):
 
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
-    def op_d_avg_pool(self, activation, activation_shape, poolsize, stride,
+    def op_d_avg_pool(self, activation, input_shape, poolsize, stride,
                       padding):
         """Returns estimated impact of input of avg pool layer on output of
         network.
@@ -764,21 +764,21 @@ class Interval(Numlike):
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
-        :param activation_shape: shape of activation in format (batch size,
-                                 number of channels, height, width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format (batch size,
+                            number of channels, height, width)
+        :type input_shape: tuple of 4 integers
         :param pair of integers poolsize: pool size in format (height, width)
         :param pair of integers stride: stride of max pool
         :param pair of integers padding: padding of avg pool
         :returns: Estimated impact of input on output of network
         :rtype: Interval
         """
-        n_batches, n_in, h, w = activation_shape
+        n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(activation_shape, padding,
+        activation = activation.reshape_for_padding(input_shape, padding,
                                                     lower_val=-numpy.inf,
                                                     upper_val=-numpy.inf)
-        activation_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
         # n_batches, n_in, h, w - number of batches, number of channels,
@@ -787,7 +787,7 @@ class Interval(Numlike):
         fh, fw = poolsize
         stride_h, stride_w = stride
         output = self
-        result = activation.from_shape(activation_shape, neutral=True)
+        result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at
             # h
@@ -810,7 +810,7 @@ class Interval(Numlike):
         result = result * shared(1.0 / numpy.prod(poolsize))
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
-    def op_d_norm(self, activation, activation_shape, local_range, k, alpha,
+    def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
         # TODO: all
         """Returns estimated impact of input of norm layer on output of
@@ -820,9 +820,9 @@ class Interval(Numlike):
                                of network in shape (batch_size, number of
                                channels, height, width)
         :param Interval activation: estimated activation of input
-        :param activation_shape: shape of activation in format (batch size,
-                                 number of channels, height, width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format (batch size,
+                            number of channels, height, width)
+        :type input_shape: tuple of 4 integers
         :param integer local_range: size of local range in local range
                                     normalization
         :param float k: local range normalization k argument
@@ -840,7 +840,7 @@ class Interval(Numlike):
         half = local_range / 2
         sq_low = T.sqr(lower)
         sq_upp = T.sqr(upper)
-        bs, n_channels, h, w = activation_shape
+        bs, n_channels, h, w = input_shape
         extra_channels_low = T.alloc(0, bs, n_channels + 2 * half, h, w)
         extra_channels_upp = T.alloc(0, bs, n_channels + 2 * half, h, w)
         T.set_subtensor(extra_channels_low[:, half:half + n_channels, :, :],
@@ -1002,7 +1002,7 @@ class Interval(Numlike):
             impact = mid_impact + neigh_impact
             return impact
 
-    def op_d_conv(self, activation_shape, filter_shape, weights,
+    def op_d_conv(self, input_shape, filter_shape, weights,
                   stride, padding, n_groups):
         # TODO: all
         """Returns estimated impact of input of convolutional layer on output
@@ -1011,11 +1011,12 @@ class Interval(Numlike):
         :param Interval self: estimated impact of output of layer on output
                               of network in shape (number of batches,
                               number of channels, height, width)
-        :param activation_shape in the format (number of batches,
-                                               number of input channels,
-                                               image height,
-                                               image width)
-        :type activation_shape: tuple of 4 integers
+        :param input_shape: shape of layer input in format
+                            (number of batches,
+                             number of input channels,
+                             image height,
+                             image width)
+        :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
                               filter width)
@@ -1038,7 +1039,7 @@ class Interval(Numlike):
         :rtype: Interval
         """
         # n_in, h, w - number of input channels, image height, image width
-        n_batches, n_in, h, w = activation_shape
+        n_batches, n_in, h, w = input_shape
         # n_out, fh, fw - number of output channels, filter height, filter
         # width
         n_out, fh, fw = filter_shape
@@ -1087,7 +1088,7 @@ class Interval(Numlike):
         h += 2 * pad_h
         w += 2 * pad_w
         padded_input_shape = (n_batches, n_in, h, w)
-        result = output.from_shape(padded_input_shape, neutral=True)
+        result = Interval.from_shape(padded_input_shape, neutral=True)
         # see: flipping kernel
         weights = weights[:, :, ::-1, ::-1]
         weights_neg = T.minimum(weights, 0.0)
