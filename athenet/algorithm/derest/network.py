@@ -24,7 +24,7 @@ class DerestNetwork(Network):
 
     def count_derivatives(self, outp):
         for i in range(len(self.layers) - 1, -1, -1):
-            outp = self.layers[i].count_derivatives(self, outp)
+            outp = self.layers[i].count_derivatives(outp)
         return outp
 
 
