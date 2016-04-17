@@ -806,6 +806,7 @@ class Interval(Numlike):
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
+        # TODO: Tests
         """Returns estimated impact of input of norm layer on output of
         network.
 
@@ -852,11 +853,6 @@ class Interval(Numlike):
         c = s * alpha + k
 
         # impact of middle element in local_range on output
-
-        # TODO: Check if is_above_line is needed
-        def is_above_line(arg_x, arg_y, arg_coefficient):
-            return T.gt(arg_y, arg_x * arg_coefficient)
-
         def mid_d_norm((arg_x, arg_c)):
             sq_x_a = T.sqr(arg_x) * alpha
             return (sq_x_a * (1 - 2 * beta) + arg_c) / \
@@ -962,6 +958,7 @@ class Interval(Numlike):
                            (x.upper, y.lower, c.upper),
                            (x.upper, y.upper, c.lower),
                            (x.upper, y.upper, c.upper)]
+
                 for corner in corners:
                     y_impact.lower = T.minimum(y_impact.lower,
                                                neigh_d_norm(corner))
@@ -970,71 +967,190 @@ class Interval(Numlike):
 
                 # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0
 
-                def x_func1(y_arg, c_arg):
+                def surf_x_func1(y_arg, c_arg):
                     return T.sqrt((c_arg + T.sqr(y_arg) * alpha) /
                                   (alpha * (2 * beta + 1)))
 
-                def y_func1(x_arg, c_arg):
+                def surf_y_func1(x_arg, c_arg):
                     return T.sqrt((T.sqr(x_arg) * (2 * beta + 1)) -
                                   c_arg / alpha)
 
-                def c_func(x_arg, y_arg):
+                def surf_c_func1(x_arg, y_arg):
                     return (T.sqr(x_arg) * (2 * beta + 1) - T.sqr(y_arg)) * \
                            alpha
 
                 # y^2 * alpha * (2 * beta + 1) - x^2 * alpha - c = 0
                 # Note: Condition is symmetric to func1's condition
-                x_func2 = y_func1
-                y_func2 = x_func1
+                surf_x_func2 = surf_y_func1
+                surf_y_func2 = surf_x_func1
 
-                # TODO: Set extrema
+                def surf_c_func2(x_arg, y_arg):
+                    return surf_c_func1(y_arg, x_arg)
+
+                surf_1_y_low_c_low = surf_x_func1(y.lower, c.lower)
+                surf_1_y_low_c_upp = surf_x_func1(y.lower, c.upper)
+                surf_1_y_upp_c_low = surf_x_func1(y.upper, c.lower)
+                surf_1_y_upp_c_upp = surf_x_func1(y.upper, c.upper)
+
+                surf_1_x_low_c_low = surf_y_func1(x.lower, c.lower)
+                surf_1_x_low_c_upp = surf_y_func1(x.lower, c.upper)
+                surf_1_x_upp_c_low = surf_y_func1(x.upper, c.lower)
+                surf_1_x_upp_c_upp = surf_y_func1(x.upper, c.upper)
+
+                surf_1_x_low_y_low = surf_c_func1(x.lower, y.lower)
+                surf_1_x_low_y_upp = surf_c_func1(x.lower, y.upper)
+                surf_1_x_upp_y_low = surf_c_func1(x.upper, y.lower)
+                surf_1_x_upp_y_upp = surf_c_func1(x.upper, y.upper)
+
+                surf_2_y_low_c_low = surf_x_func2(y.lower, c.lower)
+                surf_2_y_low_c_upp = surf_x_func2(y.lower, c.upper)
+                surf_2_y_upp_c_low = surf_x_func2(y.upper, c.lower)
+                surf_2_y_upp_c_upp = surf_x_func2(y.upper, c.upper)
+
+                surf_2_x_low_c_low = surf_y_func2(x.lower, c.lower)
+                surf_2_x_low_c_upp = surf_y_func2(x.lower, c.upper)
+                surf_2_x_upp_c_low = surf_y_func2(x.upper, c.lower)
+                surf_2_x_upp_c_upp = surf_y_func2(x.upper, c.upper)
+
+                surf_2_x_low_y_low = surf_c_func2(x.lower, y.lower)
+                surf_2_x_low_y_upp = surf_c_func2(x.lower, y.upper)
+                surf_2_x_upp_y_low = surf_c_func2(x.upper, y.lower)
+                surf_2_x_upp_y_upp = surf_c_func2(x.upper, y.upper)
+
+                def line_xy_func(c_arg):
+                    xy = T.sqrt(c_arg / (2 * alpha * (beta - 1)))
+                    return xy
+
+                def line_c_func(x_arg):
+                    return T.sqr(x_arg) * (2 * alpha * (beta - 1))
+
+                line_xy_low = line_xy_func(c.lower)
+                line_xy_upp = line_xy_func(c.upper)
+                line_c_from_x_low = line_c_func(x.lower)
+                line_c_from_x_upp = line_c_func(x.upper)
+                line_c_from_y_low = line_c_func(y.lower)
+                line_c_from_y_upp = line_c_func(y.upper)
+
+                # 6 types of conditions
+                x_cnd = 1
+                y_cnd = 2
+                c_cnd = 3
+                xy_cnd = 4
+                xc_cnd = 5
+                yc_cnd = 6
+
                 neigh_maybe_extrema = [
                     # x = 0
-                    (shared(0), y.lower, c.lower),
-                    (shared(0), y.lower, c.upper),
-                    (shared(0), y.upper, c.lower),
-                    (shared(0), y.upper, c.upper),
+                    ((shared(0), y.lower, c.lower), x_cnd),
+                    ((shared(0), y.lower, c.upper), x_cnd),
+                    ((shared(0), y.upper, c.lower), x_cnd),
+                    ((shared(0), y.upper, c.upper), x_cnd),
                     # y = 0
-                    (x.lower, shared(0), c.lower),
-                    (x.lower, shared(0), c.upper),
-                    (x.upper, shared(0), c.lower),
-                    (x.upper, shared(0), c.upper),
-                    # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0
-                    # x
-                    # y
-                    # c
-                    # y^2 * alpha * (2 * beta + 1) - x^2 * alpha - c = 0
-                    # x
-                    # y
-                    # c
-
+                    ((x.lower, shared(0), c.lower), y_cnd),
+                    ((x.lower, shared(0), c.upper), y_cnd),
+                    ((x.upper, shared(0), c.lower), y_cnd),
+                    ((x.upper, shared(0), c.upper), y_cnd),
+                    # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0 =: eq1
+                    # x edges
+                    ((surf_1_y_low_c_low, y.lower, c.lower), x_cnd),
+                    ((surf_1_y_low_c_upp, y.lower, c.upper), x_cnd),
+                    ((surf_1_y_upp_c_low, y.upper, c.lower), x_cnd),
+                    ((surf_1_y_upp_c_upp, y.upper, c.upper), x_cnd),
+                    ((-surf_1_y_low_c_low, y.lower, c.lower), x_cnd),
+                    ((-surf_1_y_low_c_upp, y.lower, c.upper), x_cnd),
+                    ((-surf_1_y_upp_c_low, y.upper, c.lower), x_cnd),
+                    ((-surf_1_y_upp_c_upp, y.upper, c.upper), x_cnd),
+                    # y edges
+                    ((x.lower, surf_1_x_low_c_low, c.lower), y_cnd),
+                    ((x.lower, surf_1_x_low_c_upp, c.upper), y_cnd),
+                    ((x.upper, surf_1_x_upp_c_low, c.lower), y_cnd),
+                    ((x.upper, surf_1_x_upp_c_upp, c.upper), y_cnd),
+                    ((x.lower, -surf_1_x_low_c_low, c.lower), y_cnd),
+                    ((x.lower, -surf_1_x_low_c_upp, c.upper), y_cnd),
+                    ((x.upper, -surf_1_x_upp_c_low, c.lower), y_cnd),
+                    ((x.upper, -surf_1_x_upp_c_upp, c.upper), y_cnd),
+                    # c edges
+                    ((x.lower, y.lower, surf_1_x_low_y_low), c_cnd),
+                    ((x.lower, y.upper, surf_1_x_low_y_upp), c_cnd),
+                    ((x.upper, y.lower, surf_1_x_upp_y_low), c_cnd),
+                    ((x.upper, y.upper, surf_1_x_upp_y_upp), c_cnd),
+                    # y^2 * alpha * (2 * beta + 1) - x^2 * alpha - c = 0 =: eq2
+                    # x edges
+                    ((surf_2_y_low_c_low, y.lower, c.lower), x_cnd),
+                    ((surf_2_y_low_c_upp, y.lower, c.upper), x_cnd),
+                    ((surf_2_y_upp_c_low, y.upper, c.lower), x_cnd),
+                    ((surf_2_y_upp_c_upp, y.upper, c.upper), x_cnd),
+                    ((-surf_2_y_low_c_low, y.lower, c.lower), x_cnd),
+                    ((-surf_2_y_low_c_upp, y.lower, c.upper), x_cnd),
+                    ((-surf_2_y_upp_c_low, y.upper, c.lower), x_cnd),
+                    ((-surf_2_y_upp_c_upp, y.upper, c.upper), x_cnd),
+                    # y edges
+                    ((x.lower, surf_2_x_low_c_low, c.lower), y_cnd),
+                    ((x.lower, surf_2_x_low_c_upp, c.upper), y_cnd),
+                    ((x.upper, surf_2_x_upp_c_low, c.lower), y_cnd),
+                    ((x.upper, surf_2_x_upp_c_upp, c.upper), y_cnd),
+                    ((x.lower, -surf_2_x_low_c_low, c.lower), y_cnd),
+                    ((x.lower, -surf_2_x_low_c_upp, c.upper), y_cnd),
+                    ((x.upper, -surf_2_x_upp_c_low, c.lower), y_cnd),
+                    ((x.upper, -surf_2_x_upp_c_upp, c.upper), y_cnd),
+                    # c edges
+                    ((x.lower, y.lower, surf_2_x_low_y_low), c_cnd),
+                    ((x.lower, y.upper, surf_2_x_low_y_upp), c_cnd),
+                    ((x.upper, y.lower, surf_2_x_upp_y_low), c_cnd),
+                    ((x.upper, y.upper, surf_2_x_upp_y_upp), c_cnd),
+                    # eq1 and eq2: |x| = |y|, c = x^2 * 2 * alpha * (beta - 1)
+                    # x * y surfaces
+                    ((line_xy_low, line_xy_low, c.lower), xy_cnd),
+                    ((line_xy_upp, line_xy_upp, c.upper), xy_cnd),
+                    ((line_xy_low, -line_xy_low, c.lower), xy_cnd),
+                    ((line_xy_upp, -line_xy_upp, c.upper), xy_cnd),
+                    ((-line_xy_low, line_xy_low, c.lower), xy_cnd),
+                    ((-line_xy_upp, line_xy_upp, c.upper), xy_cnd),
+                    ((-line_xy_low, -line_xy_low, c.lower), xy_cnd),
+                    ((-line_xy_upp, -line_xy_upp, c.upper), xy_cnd),
+                    # y * c surfaces
+                    ((x.lower, x.lower, line_c_from_x_low), yc_cnd),
+                    ((x.upper, x.upper, line_c_from_x_upp), yc_cnd),
+                    ((x.lower, x.lower, -line_c_from_x_low), yc_cnd),
+                    ((x.upper, x.upper, -line_c_from_x_upp), yc_cnd),
+                    ((x.lower, -x.lower, line_c_from_x_low), yc_cnd),
+                    ((x.upper, -x.upper, line_c_from_x_upp), yc_cnd),
+                    ((x.lower, -x.lower, -line_c_from_x_low), yc_cnd),
+                    ((x.upper, -x.upper, -line_c_from_x_upp), yc_cnd),
+                    # x * c surfaces
+                    ((y.lower, y.lower, line_c_from_y_low), xc_cnd),
+                    ((y.upper, y.upper, line_c_from_y_upp), xc_cnd),
+                    ((y.lower, y.lower, -line_c_from_y_low), xc_cnd),
+                    ((y.upper, y.upper, -line_c_from_y_upp), xc_cnd),
+                    ((-y.lower, y.lower, line_c_from_y_low), xc_cnd),
+                    ((-y.upper, y.upper, line_c_from_y_upp), xc_cnd),
+                    ((-y.lower, y.lower, -line_c_from_y_low), xc_cnd),
+                    ((-y.upper, y.upper, -line_c_from_y_upp), xc_cnd)
                 ]
 
-                def make_cond(itv, idx, at_tuple):
-                    return in_range(itv, mid_maybe_extrema[idx][at_tuple])
+                for m_extr, cond in neigh_maybe_extrema:
+                    if cond == x_cnd:
+                        cond = T.and_(T.neg(T.isnan(m_extr[0])),
+                                      in_range(x, m_extr[0]))
+                    elif cond == y_cnd:
+                        cond = T.and_(T.neg(T.isnan(m_extr[1])),
+                                      in_range(y, m_extr[1]))
+                    elif cond == c_cnd:
+                        cond = in_range(c, m_extr[2])
+                    elif cond == xy_cnd:
+                        cond = T.and_(T.and_(T.neg(T.isnan(m_extr[0])),
+                                             in_range(x, m_extr[0])),
+                                      T.and_(T.neg(T.isnan(m_extr[1])),
+                                             in_range(y, m_extr[1])))
+                    elif cond == xc_cnd:
+                        cond = T.and_(T.and_(T.neg(T.isnan(m_extr[0])),
+                                             in_range(x, m_extr[0])),
+                                      in_range(c, m_extr[2]))
+                    elif cond == yc_cnd:
+                        cond = T.and_(T.and_(T.neg(T.isnan(m_extr[1])),
+                                             in_range(y, m_extr[1])),
+                                      in_range(c, m_extr[2]))
 
-                neigh_extrema_conds = [
-                    # x = 0
-                    make_cond(x, 0, 0),
-                    make_cond(x, 1, 0),
-                    make_cond(x, 2, 0),
-                    make_cond(x, 3, 0),
-                    # y = 0
-                    make_cond(y, 0, 0),
-                    make_cond(y, 1, 0),
-                    make_cond(y, 2, 0),
-                    make_cond(y, 3, 0),
-                    # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0
-                    # x
-                    # y
-                    # c
-                    # y^2 * alpha * (2 * beta + 1) - x^2 * alpha - c = 0
-                    # x
-                    # y
-                    # c
-                ]
-                for m_extr, cond in zip(neigh_maybe_extrema,
-                                        neigh_extrema_conds):
                     y_impact.lower = \
                         T.switch(cond, T.minimum(y_impact.lower,
                                                  neigh_d_norm(m_extr)),
