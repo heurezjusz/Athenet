@@ -9,7 +9,7 @@ def get_fraction_of_zeros_in_layer(layer):
 def get_fraction_of_zeros_in_network(network):
     number_of_nonzeros = sum((numpy.count_nonzero(layer.W)
                               for layer in network.weighted_layers))
-    number_of_weights = sum((layer.W.sizes
+    number_of_weights = sum((layer.W.size
                             for layer in network.weighted_layers))
     return 1. - (number_of_nonzeros / float(number_of_weights))
 
