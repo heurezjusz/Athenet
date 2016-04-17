@@ -6,7 +6,7 @@ to the end of the network.
 from athenet.algorithm.numlike import Numlike, assert_numlike
 
 
-def conv(layer_input, image_shape, weights, filter_shape, biases,
+def a_conv(layer_input, image_shape, weights, filter_shape, biases,
          stride=(1, 1), padding=(0, 0), n_groups=1):
     """Returns estimated activation of convolutional layer.
 
@@ -101,7 +101,7 @@ def conv(layer_input, image_shape, weights, filter_shape, biases,
         return result
 
 
-def dropout(layer_input, p_dropout):
+def a_dropout(layer_input, p_dropout):
     """Returns estimated activation of dropout layer.
 
     :param Numlike layer_input: input Numlike
@@ -112,7 +112,7 @@ def dropout(layer_input, p_dropout):
     return layer_input * (1.0 - p_dropout)
 
 
-def fully_connected(layer_input, weights, biases):
+def a_fully_connected(layer_input, weights, biases):
     """Returns estimated activation of fully connected layer.
 
     :param Numlike layer_input: input Numlike
@@ -130,7 +130,7 @@ def fully_connected(layer_input, weights, biases):
         return (flat_input * weights.T).sum(1) + biases
 
 
-def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
+def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
          beta=0.75):
     """Returns estimated activation of LRN layer.
 
@@ -163,7 +163,7 @@ def norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
             local_sums * (alpha / local_range) + k).power(beta))
 
 
-def pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
+def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     """Returns estimated activation of pool layer.
 
     :param Numlike layer_input: Numlike input in input_shp format

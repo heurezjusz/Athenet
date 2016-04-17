@@ -57,31 +57,31 @@ class DerestLayer():
     def count_activation(self, input):
         self.activations = input
         if isinstance(self.layer, ConvolutionalLayer):
-            return conv(
+            return a_conv(
                 input, _change_order(self.layer.input_shape),
                 self.layer.W, _change_order(self.layer.filter_shape),
                 theano.shared(self.layer.b), self.layer.stride, self.layer.padding
             )
         elif isinstance(self.layer, Dropout):
-            return dropout(input, self.layer.p_dropout)
+            return a_dropout(input, self.layer.p_dropout)
         elif isinstance(self.layer, FullyConnectedLayer):
-            return fully_connected(input, self.layer.W,
+            return a_fully_connected(input, self.layer.W,
                                                self.layer.b)
         elif isinstance(self.layer, LRN):
-            return norm(
+            return a_norm(
                 input, _change_order(self.layer.input_shape),
                 self.layer.local_range, self.layer.k,
                 self.layer.alpha, self.layer.beta
             )
         elif isinstance(self.layer, PoolingLayer):
-            return pool(
+            return a_pool(
                 input, _change_order(self.layer.input_shape),
                 self.layer.poolsize, self.layer.stride, self.layer.mode
             )
         elif isinstance(self.layer, Softmax):
-            return softmax(input, self.layer.input_shape)
+            return a_softmax(input, self.layer.input_shape)
         elif isinstance(self.layer, ReLU):
-            return relu(input)
+            return a_relu(input)
         else:
             raise NotImplementedError
 
