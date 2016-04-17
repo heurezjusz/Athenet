@@ -261,8 +261,8 @@ class IntervalTest(unittest.TestCase):
         ans1u = [np.reciprocal(ans1l[3]), np.reciprocal(ans1l[2])] + ans1u
         ans2l = [A([1., 4.]), A([1., 2. ** 2.5])]
         ans2u = [A([9., 16.]), A([3. ** 2.5, 4. ** 2.5])]
-        ans2l = [np.reciprocal(ans2u[1])] + [np.reciprocal(ans2u[0])] + ans2l
-        ans2u = [np.reciprocal(ans2l[3])] + [np.reciprocal(ans2l[2])] + ans2u
+        ans2l = [np.reciprocal(ans2u[1]), np.reciprocal(ans2u[0])] + ans2l
+        ans2u = [np.reciprocal(ans2l[3]), np.reciprocal(ans2l[2])] + ans2u
         ans3l = [A([0.] * 9),
                  A([-8., -8., -8., -1., -1., -1., -0.125, -0.125, -0.125])]
         ans3u = [A([4., 4., 4., 1., 1., 4., 0.25, 1., 4.]),
@@ -482,7 +482,7 @@ class IntervalTest(unittest.TestCase):
         zl, zu = iz.eval(d)
         arae(zl, xl + yl)
         arae(zu, xu + yu)
-        i2 = Interval(1, 3)
+        i2 = Interval(theano.shared(1), theano.shared(3))
         i2l, i2u = i2.eval()
         assert_equal(i2l, 1)
         assert_equal(i2u, 3)
