@@ -206,7 +206,7 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     return result
 
 
-def softmax(layer_input, input_shp):
+def a_softmax(layer_input, input_shp):
     """Returns estimated activation of softmax layer.
     :param Numlike layer_input: input
     :param integer input_shp: shape of 1D input
@@ -221,7 +221,7 @@ def softmax(layer_input, input_shp):
     return res
 
 
-def relu(layer_input):
+def a_relu(layer_input):
     """Returns estimated activation of relu layer.
 
     :param Numlike layer_input: input
