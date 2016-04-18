@@ -277,24 +277,37 @@ class Interval(Numlike):
         return Interval(l, u)
 
     def dot(self, other):
-        """Returns dot product of Interval(self) vector and a number array
+        """Returns dot product of Interval(self) vector and a number array or Interval
         (other).
 
-        :param numpy.ndarray or theano.tensor other: number array to be
+        :param Interval or numpy.ndarray or theano.tensor other: array to be
                                                      multiplied
         :rtype: Interval
         """
-        lower = self.lower
-        upper = self.upper
-        other_negative = T.minimum(other, 0.0)
-        other_positive = T.maximum(other, 0.0)
-        lower_pos_dot = T.dot(lower, other_positive)
-        lower_neg_dot = T.dot(lower, other_negative)
-        upper_pos_dot = T.dot(upper, other_positive)
-        upper_neg_dot = T.dot(upper, other_negative)
-        res_lower = lower_pos_dot + upper_neg_dot
-        res_upper = upper_pos_dot + lower_neg_dot
-        return Interval(res_lower, res_upper)
+        if isinstance(other, Interval):
+            ll = self.lower.dot(other.lower)
+            lu = self.lower.dot(other.upper)
+            ul = self.upper.dot(other.lower)
+            uu = self.upper.dot(other.upper)
+            l = T.minimum(ll, lu)
+            l = T.minimum(l, ul)
+            l = T.minimum(l, uu)
+            u = T.maximum(ll, lu)
+            u = T.maximum(u, ul)
+            u = T.maximum(u, uu)
+            return Interval(l, u)
+        else:
+            lower = self.lower
+            upper = self.upper
+            other_negative = T.minimum(other, 0.0)
+            other_positive = T.maximum(other, 0.0)
+            lower_pos_dot = T.dot(lower, other_positive)
+            lower_neg_dot = T.dot(lower, other_negative)
+            upper_pos_dot = T.dot(upper, other_positive)
+            upper_neg_dot = T.dot(upper, other_negative)
+            res_lower = lower_pos_dot + upper_neg_dot
+            res_upper = upper_pos_dot + lower_neg_dot
+            return Interval(res_lower, res_upper)
 
     def max(self, other):
         """Returns interval such that for any numbers (x, y) in a pair of
