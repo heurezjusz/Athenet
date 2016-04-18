@@ -2,8 +2,8 @@ import theano
 import numpy
 
 from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, InceptionLayer
-from athenet.algorithm.derest.activation import *
-from athenet.algorithm.derest.derivative import *
+from athenet.algorithm.derest.activation import count_activation
+from athenet.algorithm.derest.derivative import count_derivative
 from athenet.algorithm.derest.utils import _change_order
 from itertools import product
 
@@ -20,7 +20,17 @@ class DerestNetwork():
 
     def __init__(self, network):
         self.network = network
-        self.layers = [DerestLayer(layer) for layer in network.layers]
+        self.layers = [self._get_derest_layer(layer) for layer in network.layers]
+
+    def _get_derest_layer(self, layer):
+        if isinstance(layer, FullyConnectedLayer):
+            return DerestFullyConnectedLayer(layer)
+        elif isinstance(layer, ConvolutionalLayer):
+            return DerestConvolutionalLayer(layer)
+        elif isinstance(layer, InceptionLayer):
+            return DerestInceptionLayer(layer)
+        else:
+            return DerestLayer(layer)
 
     def _get_layer_input_shape(self, i):
         if i > 0:
@@ -59,14 +69,12 @@ class DerestLayer():
         return count_derivative(output, self.activations, input_shape, self.layer)
 
     def count_derest(self):
-        if isinstance(self.layer, ConvolutionalLayer):
-            return self.count_derest_conv()
-        if isinstance(self.layer, FullyConnectedLayer):
-            return self.count_derest_fc()
-        if isinstance(self.layer, InceptionLayer):
-            raise NotImplementedError
+        pass
 
-    def count_derest_fc(self):
+
+class DerestFullyConnectedLayer(DerestLayer):
+
+    def count_derest(self):
         indicators = numpy.zeros_like(self.layer.W)
         nr_of_batches = self.derivatives.shape.eval()[0]
         for i in range(nr_of_batches):
@@ -75,13 +83,16 @@ class DerestLayer():
             indicators = indicators + numpy.amax((act.dot(der) * self.layer.W).eval(), 0)
         return indicators
 
+
+class DerestConvolutionalLayer(DerestLayer):
+
     def _get_activation_for_weight(self, i1, i2, i3):
         #no padding or strides yet considered
         n1, n2, _ = self.layer.input_shape
         m1, m2, _ = self.layer.filter_shape
         return self.activations[i1, i2:(n1-m2+i2+1), i3:(n2-m2+i3+1)]
 
-    def count_derest_conv(self):
+    def count_derest(self):
         indicators = numpy.zeros_like(self.layer.W)
 
         i0, i1, i2, i3 = self.layer.W.shape
@@ -94,7 +105,8 @@ class DerestLayer():
 
         return indicators
 
+class DerestInceptionLayer(DerestLayer):
 
-
-
+    def count_derest(self):
+        raise NotImplementedError
 
