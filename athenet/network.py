@@ -100,9 +100,12 @@ class Network(object):
         self._correct_answers = T.ivector()
         self.layers = layers
 
-        self.weighted_layers = [layer for layer in self.layers
-                                if isinstance(layer, WeightedLayer) or
-                                isinstance(layer, InceptionLayer)]
+        self.param_layers = [layer for layer in self.layers
+                             if isinstance(layer, WeightedLayer) or
+                             isinstance(layer, InceptionLayer)]
+        layer_lists = [[l] if isinstance(l, WeightedLayer) else
+                       l.convolutional_layers for l in self.param_layers]
+        self.weighted_layers = [l for layers in layer_lists for l in layers]
         self.convolutional_layers = [layer for layer in self.weighted_layers
                                      if isinstance(layer, ConvolutionalLayer)]
 
@@ -234,17 +237,14 @@ class Network(object):
 
         :return: List of pairs (W, b).
         """
-        params = []
-        for layer in self.weighted_layers:
-            params += [(layer.W, layer.b)]
-        return params
+        return [layer.get_params() for layer in self.param_layers]
 
     def set_params(self, params):
         """Set network's weights and biases.
 
         :param params: List of pairs (W, b).
         """
-        for layer, p in zip(self.weighted_layers, params):
+        for layer, p in zip(self.param_layers, params):
             layer.set_params(p)
 
     def save_to_file(self, filename):
