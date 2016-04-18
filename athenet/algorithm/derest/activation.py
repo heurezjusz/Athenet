@@ -18,7 +18,7 @@ def count_activation(layer_input, layer):
         return a_dropout(input, layer.p_dropout)
     elif isinstance(layer, FullyConnectedLayer):
         return a_fully_connected(input, layer.W,
-                                           layer.b)
+                                 layer.b)
     elif isinstance(layer, LRN):
         return a_norm(
             layer_input, _change_order(layer.input_shape),
@@ -39,7 +39,7 @@ def count_activation(layer_input, layer):
 
 
 def a_conv(layer_input, image_shape, weights, filter_shape, biases,
-         stride=(1, 1), padding=(0, 0), n_groups=1):
+           stride=(1, 1), padding=(0, 0), n_groups=1):
     """Returns estimated activation of convolutional layer.
 
     :param layer_input: input Numlike in input_shp format
@@ -163,7 +163,7 @@ def a_fully_connected(layer_input, weights, biases):
 
 
 def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
-         beta=0.75):
+           beta=0.75):
     """Returns estimated activation of LRN layer.
 
     :param Numlike layer_input: Numlike input
@@ -232,8 +232,8 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
             if is_max:
                 pool_res = input_slice.amax(axis=(1, 2), keepdims=False)
             else:
-                pool_res = input_slice.sum(axis=(1, 2), keepdims=False) / \
-                           float(fh * fw)
+                pool_res = input_slice.sum(axis=(1, 2), keepdims=False) \
+                    / float(fh * fw)
             result[:, at_out_h, at_out_w] = pool_res
     return result
 

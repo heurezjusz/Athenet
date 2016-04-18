@@ -21,8 +21,7 @@ def count_derivative(layer_output, activations, input_shape, layer):
     elif isinstance(layer, Dropout):
         return d_dropout(layer_output, layer.p_dropout)
     elif isinstance(layer, FullyConnectedLayer):
-        return d_fully_connected(layer_output, layer.W,
-                                             input_shape)
+        return d_fully_connected(layer_output, layer.W, input_shape)
     elif isinstance(layer, LRN):
         return d_norm(
             layer_output, activations, input_shape,
