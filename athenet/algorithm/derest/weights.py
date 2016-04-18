@@ -5,33 +5,7 @@ import theano
 
 from athenet.algorithm.derest.network import DerestNetwork
 from athenet.algorithm.numlike.interval import Interval
-from athenet.network import Network
-from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, Softmax, ReLU, MaxPool
-
-
-def run_derest_run():
-    n = Network([
-        ConvolutionalLayer(image_shape=(8, 8, 1), filter_shape=(5, 5, 3)),
-        ReLU(),
- #       MaxPool(poolsize=(2, 2)),
- #       ConvolutionalLayer(filter_shape=(2, 2, 50)),
- #       ReLU(),
- #       MaxPool(poolsize=(2, 2)),
- #       FullyConnectedLayer(n_out=500),
- #       ReLU(),
-        FullyConnectedLayer(n_out=10),
-        Softmax(),
-    ])
-    n2 = DerestNetwork(n)
-
-    inp = Interval(theano.shared(numpy.full((1, 8, 8), 0.)), theano.shared(numpy.full((1, 8, 8), 1.)))
-    n2.count_activations(inp)
-
-    r = numpy.array([[1., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])
-    out = Interval(theano.shared(r), theano.shared(r))
-    n2.count_derivatives(out, 1)
-
-    return n2.count_derest()
+from athenet.algorithm.deleting import delete_weights_by_global_fraction
 
 
 def get_derest_indicators(network, input):
@@ -40,6 +14,13 @@ def get_derest_indicators(network, input):
     output_nr = network.layers[-1].output_shape
     n.count_derivatives(input.derest_output(output_nr), output_nr)
     return n.count_derest()
+
+
+def derest(network, fraction, (min_value, max_value)=(0, 255)):
+    input_shape = network.layer[0].input_shape
+    input = Interval(theano.shared(numpy.full(input_shape, min_value)), theano.shared(numpy.full(input_shape, max_value)))
+    indicators = get_derest_indicators(network, input)
+    delete_weights_by_global_fraction(network.layers, fraction, indicators)
 
 
 
