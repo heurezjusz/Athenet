@@ -1,8 +1,7 @@
 import theano
 import numpy
 
-from athenet.layers import ConvolutionalLayer, PoolingLayer,\
-    FullyConnectedLayer, Softmax, Dropout, ReLU, LRN, InceptionLayer
+from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, InceptionLayer
 from athenet.algorithm.derest.activation import *
 from athenet.algorithm.derest.derivative import *
 from athenet.algorithm.derest.utils import _change_order
