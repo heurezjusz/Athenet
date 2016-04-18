@@ -3,16 +3,7 @@ import theano
 from athenet.layers import ConvolutionalLayer, PoolingLayer, FullyConnectedLayer, Softmax, Dropout, ReLU, LRN
 from athenet.algorithm.derest.activation import *
 from athenet.algorithm.derest.derivative import *
-
-def _change_order(a):
-    """
-    So the last will be first
-    """
-    try:
-        h, w, n = a
-        return (n, h, w)
-    except:
-        return a
+from athenet.algorithm.derest.utils import _change_order
 
 
 def _add_tuples(a, b):

@@ -4,6 +4,8 @@ to the end of the network.
 """
 
 from athenet.algorithm.numlike import Numlike, assert_numlike
+from athenet.layers import InceptionLayer
+from athenet.algorithm.derest.utils import _change_order
 
 
 def a_conv(layer_input, image_shape, weights, filter_shape, biases,
@@ -233,3 +235,58 @@ def a_relu(layer_input):
     except NotImplementedError:
         res = (layer_input + layer_input.abs()) * 0.5
     return res
+
+
+
+def a_conv_for_layer(layer_input, layer):
+    return a_conv(layer_input,
+                  _change_order(layer.input_shape),
+                  layer.W,
+                  _change_order(layer.filter_shape),
+                  theano.shared(layer.b),
+                  layer.stride,
+                  layer.padding)
+
+
+def a_inception(layer_input, layer):
+    """Returns estimated activation of inception layer.
+
+    :param Numlike layer_input: input
+    :rtype: Numlike
+    :param InceptionLayer layer: layer of which activation will be retuned
+    """
+
+    assert_numlike(layer_input)
+    assert(isinstance(layer, InceptionLayer))
+    # c means convolutional, r means relu, m means maxpool
+    # number is an index of the list
+    cr0 = layer.layer_lists[0]
+    crcr1 = layer.layer_lists[1]
+    crcr2 = layer.layer_lists[2]
+    mcr3 = layer.layer_lists[3]
+
+    # output from first list
+    out0_0 = a_conv_for_layer(layer_input, cr0[0])
+    out0 = a_relu(out0_0)
+
+    # output from second list
+    out1_0 = a_conv_for_layer(layer_input, crcr1[0])
+    out1_1 = a_relu(out1_0)
+    out1_2 = a_conv_for_layer(out1_1, crcr1[2])
+    out1 = a_relu(out1_2)
+
+    # output from third list
+    out2_0 = a_conv_for_layer(layer_input, crcr2[0])
+    out2_1 = a_relu(out2_0)
+    out2_2 = a_conv_for_layer(out2_1, crcr2[2])
+    out2 = a_relu(out2_2)
+
+    # output from fourth list
+    out3_0 = a_pool(
+            layer_input, _change_order(mcr3[0].input_shape),
+            mcr3[0].poolsize, mcr3[0].stride, mcr3[0].mode
+        )
+    out3_1 = a_conv_for_layer(out3_0, mcr3[1])
+    out3 = a_relu(out3_1)
+
+    return T.concatenate([out0, out1, out2, out3], axis=1)
