@@ -268,17 +268,6 @@ def a_relu(layer_input):
     return res
 
 
-
-def a_conv_for_layer(layer_input, layer):
-    return a_conv(layer_input,
-                  _change_order(layer.input_shape),
-                  layer.W,
-                  _change_order(layer.filter_shape),
-                  theano.shared(layer.b),
-                  layer.stride,
-                  layer.padding)
-
-
 def a_inception(layer_input, layer):
     """Returns estimated activation of inception layer.
 
