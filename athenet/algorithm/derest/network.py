@@ -7,16 +7,6 @@ from athenet.algorithm.derest.activation import *
 from athenet.algorithm.derest.derivative import *
 from itertools import product
 
-def _change_order(a):
-    """
-    So the last will be first
-    """
-    try:
-        h, w, n = a
-        return (n, h, w)
-    except:
-        return a
-
 
 def _add_tuples(a, b):
     if not isinstance(a, tuple):
@@ -62,67 +52,11 @@ class DerestLayer():
 
     def count_activation(self, input):
         self.activations = input
-        if isinstance(self.layer, ConvolutionalLayer):
-            return a_conv(
-                input, _change_order(self.layer.input_shape),
-                self.layer.W, _change_order(self.layer.filter_shape),
-                theano.shared(self.layer.b), self.layer.stride, self.layer.padding
-            )
-        elif isinstance(self.layer, Dropout):
-            return a_dropout(input, self.layer.p_dropout)
-        elif isinstance(self.layer, FullyConnectedLayer):
-            return a_fully_connected(input, self.layer.W,
-                                               self.layer.b)
-        elif isinstance(self.layer, LRN):
-            return a_norm(
-                input, _change_order(self.layer.input_shape),
-                self.layer.local_range, self.layer.k,
-                self.layer.alpha, self.layer.beta
-            )
-        elif isinstance(self.layer, PoolingLayer):
-            return a_pool(
-                input, _change_order(self.layer.input_shape),
-                self.layer.poolsize, self.layer.stride, self.layer.mode
-            )
-        elif isinstance(self.layer, Softmax):
-            return a_softmax(input, self.layer.input_shape)
-        elif isinstance(self.layer, ReLU):
-            return a_relu(input)
-        else:
-            raise NotImplementedError
-
+        return count_activation(input, self.layer)
 
     def count_derivatives(self, output, input_shape):
         self.derivatives = output
-        if isinstance(self.layer, ConvolutionalLayer):
-            return d_conv(
-                output, input_shape,
-                _change_order(self.layer.filter_shape), self.layer.W,
-                self.layer.stride, self.layer.padding, self.layer.n_groups
-            )
-        elif isinstance(self.layer, Dropout):
-            return d_dropout(output, self.layer.p_dropout)
-        elif isinstance(self.layer, FullyConnectedLayer):
-            return d_fully_connected(output, self.layer.W,
-                                                 input_shape)
-        elif isinstance(self.layer, LRN):
-            return d_norm(
-                output, self.activations, input_shape,
-                self.layer.local_range, self.layer.k, self.layer.alpha,
-                self.layer.beta
-            )
-        elif isinstance(self.layer, PoolingLayer):
-            return d_pool(
-                output, self.activations, input_shape,
-                self.layer.poolsize, self.layer.stride, self.layer.padding,
-                self.layer.mode
-            )
-        elif isinstance(self.layer, Softmax):
-            return d_softmax(output)
-        elif isinstance(self.layer, ReLU):
-            return d_relu(output, self.activations)
-        else:
-            raise NotImplementedError
+        return count_derivative(output, self.activations, input_shape, self.layer)
 
     def count_derest(self):
         if isinstance(self.layer, ConvolutionalLayer):

@@ -11,6 +11,38 @@ from athenet.algorithm.numlike import Numlike, assert_numlike
 # TODO: All functions below will be implemented.
 
 
+def count_derivative(layer_output, activations, input_shape, layer):
+    if isinstance(layer, ConvolutionalLayer):
+        return d_conv(
+            layer_output, input_shape,
+            _change_order(layer.filter_shape), layer.W,
+            layer.stride, layer.padding, layer.n_groups
+        )
+    elif isinstance(layer, Dropout):
+        return d_dropout(layer_output, layer.p_dropout)
+    elif isinstance(layer, FullyConnectedLayer):
+        return d_fully_connected(layer_output, layer.W,
+                                             input_shape)
+    elif isinstance(layer, LRN):
+        return d_norm(
+            layer_output, activations, input_shape,
+            layer.local_range, layer.k, layer.alpha,
+            layer.beta
+        )
+    elif isinstance(layer, PoolingLayer):
+        return d_pool(
+            layer_output, activations, input_shape,
+            layer.poolsize, layer.stride, layer.padding,
+            layer.mode
+        )
+    elif isinstance(layer, Softmax):
+        return d_softmax(layer_output)
+    elif isinstance(layer, ReLU):
+        return d_relu(layer_output, activations)
+    else:
+        raise NotImplementedError
+
+
 def d_conv(output, input_shape, filter_shape, weights,
            stride=(1, 1), padding=(0, 0), n_groups=1):
     """Returns estimated impact of input of convolutional layer on output of

@@ -4,6 +4,38 @@ to the end of the network.
 """
 
 from athenet.algorithm.numlike import Numlike, assert_numlike
+from athenet.algorithm.derest.utils import _change_order
+
+
+def count_activation(layer_input, layer):
+    if isinstance(layer, ConvolutionalLayer):
+        return a_conv(
+            layer_input, _change_order(layer.input_shape),
+            layer.W, _change_order(layer.filter_shape),
+            theano.shared(layer.b), layer.stride, layer.padding
+        )
+    elif isinstance(layer, Dropout):
+        return a_dropout(input, layer.p_dropout)
+    elif isinstance(layer, FullyConnectedLayer):
+        return a_fully_connected(input, layer.W,
+                                           layer.b)
+    elif isinstance(layer, LRN):
+        return a_norm(
+            layer_input, _change_order(layer.input_shape),
+            layer.local_range, layer.k,
+            layer.alpha, layer.beta
+        )
+    elif isinstance(layer, PoolingLayer):
+        return a_pool(
+            layer_input, _change_order(layer.input_shape),
+            layer.poolsize, layer.stride, layer.mode
+        )
+    elif isinstance(layer, Softmax):
+        return a_softmax(input, layer.input_shape)
+    elif isinstance(layer, ReLU):
+        return a_relu(input)
+    else:
+        raise NotImplementedError
 
 
 def a_conv(layer_input, image_shape, weights, filter_shape, biases,
