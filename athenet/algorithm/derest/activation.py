@@ -2,7 +2,10 @@
 neuron's range of activation. Functions are being invoked from the beginning
 to the end of the network.
 """
+import theano
 
+from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, \
+    InceptionLayer, Dropout, LRN, PoolingLayer, Softmax, ReLU
 from athenet.algorithm.numlike import Numlike, assert_numlike
 from athenet.algorithm.derest.utils import _change_order
 

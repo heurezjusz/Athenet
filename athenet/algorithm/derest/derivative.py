@@ -6,7 +6,10 @@ Every estimated impact of tensor on output of network is stored with batches.
 Every entity in batches store impact on different output of network.
 """
 
+from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, \
+    InceptionLayer, Dropout, LRN, PoolingLayer, Softmax, ReLU
 from athenet.algorithm.numlike import Numlike, assert_numlike
+from athenet.algorithm.derest.utils import _change_order
 
 # TODO: All functions below will be implemented.
 
