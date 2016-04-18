@@ -7,7 +7,7 @@ Every entity in batches store impact on different output of network.
 """
 
 from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, \
-    InceptionLayer, Dropout, LRN, PoolingLayer, Softmax, ReLU
+    InceptionLayer, Dropout, LRN, PoolingLayer, Softmax, ReLU, InceptionLayer
 from athenet.algorithm.numlike import Numlike, assert_numlike
 from athenet.algorithm.derest.utils import _change_order
 
