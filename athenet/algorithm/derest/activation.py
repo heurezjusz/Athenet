@@ -18,9 +18,9 @@ def count_activation(layer_input, layer):
             theano.shared(layer.b), layer.stride, layer.padding
         )
     elif isinstance(layer, Dropout):
-        return a_dropout(input, layer.p_dropout)
+        return a_dropout(layer_input, layer.p_dropout)
     elif isinstance(layer, FullyConnectedLayer):
-        return a_fully_connected(input, layer.W,
+        return a_fully_connected(layer_input, layer.W,
                                  layer.b)
     elif isinstance(layer, LRN):
         return a_norm(
@@ -34,9 +34,9 @@ def count_activation(layer_input, layer):
             layer.poolsize, layer.stride, layer.mode
         )
     elif isinstance(layer, Softmax):
-        return a_softmax(input, layer.input_shape)
+        return a_softmax(layer_input, layer.input_shape)
     elif isinstance(layer, ReLU):
-        return a_relu(input)
+        return a_relu(layer_input)
     else:
         raise NotImplementedError
 
