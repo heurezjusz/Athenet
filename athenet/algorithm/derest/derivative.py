@@ -88,7 +88,6 @@ def d_fully_connected(output, weights, input_shape):
 
 
 def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
-    # TODO: all
     """Returns estimated impact of input of LRN layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output

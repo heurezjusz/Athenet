@@ -836,12 +836,14 @@ class Interval(Numlike):
         sq_x = x.square()
         bs, n_channels, h, w = input_shape
         extra_shape = (bs, n_channels + 2 * half, h, w)
-        extra_sq_x_low = T.alloc(0, *extra_shape)
-        extra_sq_x_upp = T.alloc(0, *extra_shape)
-        T.set_subtensor(extra_sq_x_low[:, half:half + n_channels, :, :],
-                        sq_x.lower)
-        T.set_subtensor(extra_sq_x_upp[:, half:half + n_channels, :, :],
-                        sq_x.upper)
+        extra_sq_x_low = T.alloc(0., *extra_shape)
+        extra_sq_x_upp = T.alloc(0., *extra_shape)
+        extra_sq_x_low = T.set_subtensor(extra_sq_x_low[:,
+                                         half:half + n_channels, :, :],
+                                         sq_x.lower)
+        extra_sq_x_upp = T.set_subtensor(extra_sq_x_upp[:,
+                                         half:half + n_channels, :, :],
+                                         sq_x.upper)
         s_low = T.zeros_like(x_low, dtype=theano.config.floatX)
         s_upp = T.zeros_like(x_upp, dtype=theano.config.floatX)
         # s is sum of squares of elements in local range except middle
@@ -877,6 +879,10 @@ class Interval(Numlike):
                                          upper_val=-numpy.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
+        # TODO: Debug below
+        # print 's', s.eval()
+        # print 'x', x.eval()
+        # print 'c', c.eval()
         for corner in corners:
             mid_impact.lower = T.minimum(mid_impact.lower, mid_d_norm(corner))
             mid_impact.upper = T.maximum(mid_impact.upper, mid_d_norm(corner))
@@ -922,18 +928,19 @@ class Interval(Numlike):
         mid_impact = mid_impact * output
 
         # impact of neighbours of middle element in local_range on output
-        neigh_impact = Interval.from_shape(extra_shape, lower_val=numpy.inf,
-                                           upper_val=-numpy.inf)
+        neigh_impact = Interval.from_shape(extra_shape)
 
         def neigh_d_norm((arg_x, arg_y, arg_c)):
             return arg_x * arg_y * (-2 * alpha * beta) / T.power(
                 (T.sqr(arg_x) + T.sqr(arg_y)) * alpha + arg_c, beta + 1)
 
         c_with_sq_y = c
-        extra_x_low = T.alloc(0, *extra_shape)
-        extra_x_upp = T.alloc(0, *extra_shape)
-        T.set_subtensor(extra_x_low[:, half:half + n_channels, :, :], x.lower)
-        T.set_subtensor(extra_x_upp[:, half:half + n_channels, :, :], x.upper)
+        extra_x_low = T.alloc(0., *extra_shape)
+        extra_x_upp = T.alloc(0., *extra_shape)
+        extra_x_low = T.set_subtensor(extra_x_low[:, half:half + n_channels, :,
+                                      :], x.lower)
+        extra_x_upp = T.set_subtensor(extra_x_upp[:, half:half + n_channels, :,
+                                      :], x.upper)
         for i in xrange(local_range):
             if i != half:
                 y_low = extra_x_low[:, i:i + n_channels, :, :]
@@ -964,6 +971,13 @@ class Interval(Numlike):
                                                neigh_d_norm(corner))
                     y_impact.upper = T.maximum(y_impact.upper,
                                                neigh_d_norm(corner))
+                # TODO: Below
+                #print ''
+                #print 'x', x.eval()
+                #print 'y', y.eval()
+                #print 'c', c.eval()
+                #print 'neigh_d_norm', neigh_d_norm(corner).eval()
+                #print 'y_impact', y_impact.eval()
 
                 # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0
 
@@ -1150,7 +1164,6 @@ class Interval(Numlike):
                         cond = T.and_(T.and_(T.neg(T.isnan(m_extr[1])),
                                              in_range(y, m_extr[1])),
                                       in_range(c, m_extr[2]))
-
                     y_impact.lower = \
                         T.switch(cond, T.minimum(y_impact.lower,
                                                  neigh_d_norm(m_extr)),
@@ -1159,18 +1172,32 @@ class Interval(Numlike):
                         T.switch(cond, T.maximum(y_impact.upper,
                                                  neigh_d_norm(m_extr)),
                                  y_impact.upper)
+                # TODO: Below
+                #print ''
+                #print 'final y_impact', y_impact.eval()
                 y_impact = mid_impact * output
                 T.inc_subtensor(neigh_impact.lower[:, i:i + n_channels, :, :],
                                 y_impact.lower)
                 T.inc_subtensor(neigh_impact.upper[:, i:i + n_channels, :, :],
-                                y_impact.lower)
-            neigh_impact.lower = \
-                neigh_impact.lower[:, half:half + n_channels, :, :]
-            neigh_impact.upper = \
-                neigh_impact.upper[:, half:half + n_channels, :, :]
-            # sum impacts
-            impact = mid_impact + neigh_impact
-            return impact
+                                y_impact.upper)
+        neigh_impact.lower = \
+            neigh_impact.lower[:, half:half + n_channels, :, :]
+        neigh_impact.upper = \
+            neigh_impact.upper[:, half:half + n_channels, :, :]
+        # sum impacts
+        # mid_impact.lower = T.switch(T.isinf(mid_impact.lower),
+        #                             shared(0), mid_impact.lower)
+        # mid_impact.upper = T.switch(T.isinf(mid_impact.upper),
+        #                             shared(0), mid_impact.upper)
+        #print 'neigh_impact', neigh_impact.eval()
+        neigh_impact.lower = T.switch(T.isinf(neigh_impact.lower),
+                                      shared(0), neigh_impact.lower)
+        neigh_impact.upper = T.switch(T.isinf(neigh_impact.upper),
+                                      shared(0), neigh_impact.upper)
+        impact = mid_impact + neigh_impact
+        #print 'mid_impact', mid_impact.eval()
+        #print 'neigh_impact', neigh_impact.eval()
+        return impact
 
     def op_d_conv(self, input_shape, filter_shape, weights,
                   stride, padding, n_groups):

@@ -168,16 +168,6 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         arae(l, A([[[[18.5, 25], [31.1, 29.6]],
                     [[34.6, 57.5], [74.4, 174.8]]]]))
 
-    def test_interval(self):
-        # TODO: this
-        doutl = thv(A([[[[-2, -3], [-4, 5]]]]))
-        doutu = thv(A([[[[-1, -2], [1, 6]]]]))
-        dout = Itv(doutl, doutu)
-        w = thv([[[[-1, 1], [-2, 3]]]])
-        din = d_conv(dout, (1, 1, 3, 3), (1, 2, 2), w)
-        l, u = din.eval()
-
-
 class MaxPoolDerivativeTest(DerivativeTest):
 
     def test_simple(self):
@@ -428,12 +418,59 @@ class SoftmaxDerivativeTest(DerivativeTest):
 
 
 class NormDerivativeTest(DerivativeTest2):
+    # TODO: tests, interval test, channels_2, channels_higher
 
     alpha = 0.00002
     beta = 0.75
     k = 1.0
     n = 5
 
+    def atest_simple(self):
+        iint = ithv([[[[100]]]])
+        idout = ithv([[[[100]]]])
+        ishp = (1, 1, 1, 1)
+        din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
+        l, u = din.eval()
+        arae(l, A([[[[65.4146962]]]]))
+        arae(u, A([[[[65.4146962]]]]))
+
+    def atest_2x2(self):
+        iint = ithv([[[[1, 10], [100, 1000]]]])
+        idout = ithv([[[[1, 10], [100, 1000]]]])
+        ishp = (1, 1, 2, 2)
+        din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
+        l, u = din.eval()
+        arae(l, A([[[[0.9999550, 9.9551309],
+                     [65.4146962, -43.6876559]]]]))
+        arae(u, A([[[[0.9999550, 9.9551309],
+                     [65.4146962, -43.6876559]]]]))
+
+    def atest_batches(self):
+        iint = ithv([[[[1, 10], [100, 1000]]],
+                     [[[1, 10], [100, 1000]]]])
+        idout = ithv([[[[1, 10], [100, 1000]]],
+                      [[[1, 10], [100, 1000]]]])
+        ishp = (2, 1, 2, 2)
+        din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
+        l, u = din.eval()
+        arae(l, A([[[[0.9999550, 9.9551309],
+                     [65.4146962, -43.6876559]]],
+                   [[[0.9999550, 9.9551309],
+                     [65.4146962, -43.6876559]]]]))
+        arae(u, A([[[[0.9999550, 9.9551309],
+                     [65.4146962, -43.6876559]]],
+                   [[[0.9999550, 9.9551309],
+                     [65.4146962, -43.6876559]]]]))
+
+    def test_channels_2(self):
+        iint = ithv([[[[100]], [[100]]]])
+        idout = ithv([[[[100]], [[100]]]])
+        ishp = (1, 2, 1, 1)
+        din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
+        l, u = din.eval()
+        # TODO: Count arae
+        arae(l, A([[[[65.4146962]], [[65.4146962]]]]))
+        arae(u, A([[[[65.4146962]], [[65.4146962]]]]))
 
 class DropoutDerivativeTest(DerivativeTest):
 
