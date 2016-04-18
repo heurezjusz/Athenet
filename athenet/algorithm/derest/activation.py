@@ -282,7 +282,7 @@ def a_inception(layer_input, layer):
     for layer_list in layer.layer_lists:
         inp = layer_input
         for l in layer_list:
-            inp = count_activation(inp, layer)
+            inp = count_activation(inp, l)
         out.append(inp)
 
     return T.concatenate(out, axis=1)
