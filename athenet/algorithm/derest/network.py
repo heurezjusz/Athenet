@@ -20,7 +20,8 @@ class DerestNetwork():
 
     def __init__(self, network):
         self.network = network
-        self.layers = [self._get_derest_layer(layer) for layer in network.layers]
+        self.layers = [self._get_derest_layer(layer)
+                       for layer in network.layers]
 
     def _get_derest_layer(self, layer):
         if isinstance(layer, FullyConnectedLayer):
@@ -42,11 +43,17 @@ class DerestNetwork():
             inp = layer.count_activation(inp)
         return inp
 
-    def count_derivatives(self, outp, batches):
-        #we assume that batches is equal to outp.shape[0] (for now)
+    def count_derivatives(self, outp):
+        batches = outp.shape.eval()[0]
         for i in range(len(self.layers) - 1, -1, -1):
-            input_shape = _add_tuples(batches, _change_order(self._get_layer_input_shape(i)))
-            outp = self.layers[i].count_derivatives(outp, input_shape)
+            input_shape = _add_tuples(
+                batches,
+                _change_order(self._get_layer_input_shape(i))
+            )
+            outp = self.layers[i].count_derivatives(
+                outp,
+                input_shape
+            )
         return outp
 
     def count_derest(self):
@@ -66,7 +73,8 @@ class DerestLayer():
 
     def count_derivatives(self, output, input_shape):
         self.derivatives = output
-        return count_derivative(output, self.activations, input_shape, self.layer)
+        return count_derivative(output, self.activations,
+                                input_shape, self.layer)
 
     def count_derest(self):
         pass
