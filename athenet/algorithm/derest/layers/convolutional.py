@@ -3,7 +3,7 @@ import theano
 import numpy
 
 from athenet.algorithm.derest.layers.layer import DerestLayer
-from athenet.algorithm.derest.utils import _change_order
+from athenet.algorithm.derest.utils import change_order
 from athenet.algorithm.numlike import assert_numlike
 
 
@@ -11,15 +11,15 @@ class DerestConvolutionalLayer(DerestLayer):
 
     def count_activation(self, input):
         return a_conv(
-            input, _change_order(self.layer.input_shape),
-            self.layer.W, _change_order(self.layer.filter_shape),
+            input, change_order(self.layer.input_shape),
+            self.layer.W, change_order(self.layer.filter_shape),
             theano.shared(self.layer.b), self.layer.stride, self.layer.padding
         )
 
     def count_derivatives(self, output, input_shape):
         return d_conv(
             output, input_shape,
-            _change_order(self.layer.filter_shape), self.layer.W,
+            change_order(self.layer.filter_shape), self.layer.W,
             self.layer.stride, self.layer.padding, self.layer.n_groups
         )
 
