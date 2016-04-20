@@ -108,19 +108,3 @@ def d_softmax(output):
     """
     assert_numlike(output)
     return output
-
-
-def d_relu(output, activation):
-    """Returns estimated impact of input of relu layer on output of network.
-
-    :param Numlike activation: estimated activation of input
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
-                           height, width)
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
-    """
-    assert_numlike(activation)
-    assert_numlike(output)
-    res = output.op_d_relu(activation)
-    return res
