@@ -1,9 +1,4 @@
-from itertools import product
-import theano
-import numpy
-
 from athenet.algorithm.derest.layers.layer import DerestLayer
-from athenet.algorithm.derest.utils import _change_order
 from athenet.algorithm.numlike import assert_numlike
 
 
@@ -14,7 +9,7 @@ class DerestReluLayer(DerestLayer):
 
     def count_derivatives(self, output, input_shape):
         assert self.activation is not None
-        return d_conv(output, self.activation)
+        return d_relu(output, self.activation)
 
 
 def a_relu(layer_input):
