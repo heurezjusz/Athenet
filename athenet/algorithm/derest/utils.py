@@ -42,3 +42,5 @@ def get_derest_layer(layer):
         return DerestFullyConnectedLayer(layer)
     if isinstance(layer, InceptionLayer):
         return DerestInceptionLayer(layer)
+    raise NotImplementedError
+
