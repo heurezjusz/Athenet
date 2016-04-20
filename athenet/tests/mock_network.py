@@ -1,4 +1,4 @@
-import numpy as np
+import numpy
 
 
 class NetworkMock(object):
@@ -13,5 +13,5 @@ class NetworkMock(object):
 
 class LayerMock(object):
     def __init__(self, weights=None, biases=None):
-        self.W = weights if weights is not None else np.array()
-        self.B = biases if biases is not None else np.array()
+        self.W = weights if weights is not None else numpy.array()
+        self.B = biases if biases is not None else numpy.array()

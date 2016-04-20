@@ -1,91 +1,105 @@
 import numpy
 import cv2
 
-from athenet.layers.conv import ConvolutionalLayer
+from athenet.algorithm.deleting import delete_weights_by_layer_fractions
+from athenet.algorithm.sparsify_smallest import get_smallest_indicators
 
 
-def get_noise_indicators(filter, bilateral_filter_args):
+def _get_bilateral_noise_indicators(filter_2d, bilateral_filter_args):
     """
     Returns possibility of being a noise .
 
-    This function, for 2D filter with values in (-1, 1),
+    This function, for 2D filter,
     computes possibility of being a noise for every value in filters,
     which is computed using bilateral filtering with given arguments
 
-    :param numpy.ndarray filter: 2D filter
+    :param numpy.ndarray filter_2d: 2D filter
     :param bilateral_filter_args: args for bilateral filtering
     :type bilateral_filter_args: list or tuple
+    :return numpy.ndarray with [0,1] values
     """
+    assert len(filter_2d.shape) == 2
 
-    filter_as_image = numpy.array(filter * 255, dtype=numpy.uint8)
+    filter_as_image = numpy.array(
+        (filter_2d - numpy.amin(filter_2d))/numpy.ptp(filter_2d) * 255,
+        dtype=numpy.uint8
+    )
+
     sharpened_filter = cv2.bilateralFilter(filter_as_image,
                                            *bilateral_filter_args)
 
-    return (numpy.array(sharpened_filter, dtype=numpy.float32) -
-            numpy.array(filter_as_image, dtype=numpy.float32)) / 255.
+    return abs(numpy.array(sharpened_filter, dtype=numpy.float32) -
+               numpy.array(filter_as_image, dtype=numpy.float32)) / 255.
 
 
-def sharpen_filter(filter, min_noise_indicator, max_value,
-                   bilateral_filter_args):
+def _get_filters_indicators_in_layer_with_filters(layer,
+                                                  bilateral_filter_args):
     """
-    Delete weights in filter.
+    Return indicators of being a noise for layer containing filters.
 
-    This function, in given 3D filter,
-    sets to zero weights which are smaller than max_value
-    and which possibility of being a noise is greater than min_noise_value,
+    This function, for layer with filters,
+    return indicators of being a noise
+    computed using bilateral filtering with given arguments
+    for every 2d filter
 
-    :param numpy.ndarray filter: 3D filter
-    :param float min_noise_indicator: minimal value of noise indicator
-        enabling deleting the weight
-    :param float max_value: values larger than max_value will be not deleted,
-        regardless of the noise_indicator
+    :param layer: convolutional layer
     :param bilateral_filter_args: args for bilateral filtering
+    :type bilateral_filter_args: list or tuple
+    :return numpy.ndarray
     """
-    for filter_2d in filter:
-        noise_indicators = get_noise_indicators(filter_2d,
-                                                bilateral_filter_args)
-        filter_2d[(abs(noise_indicators) >= min_noise_indicator)
-                  & (abs(filter_2d) < max_value)] = 0
+    assert len(layer.W.shape) == 4
+
+    def filter_indicator(filter_3d):
+        return [
+            _get_bilateral_noise_indicators(filter_2d, bilateral_filter_args)
+            for filter_2d in filter_3d]
+
+    return numpy.array([filter_indicator(filter_3d) for filter_3d in layer.W])
 
 
-def sharpen_filters_in_layer(layer, (min_noise_indicator,
-                                     max_value, bilateral_filter_args)):
+def get_filters_indicators(layers, bilateral_filter_args):
     """
-    Delete weights in layer.
+    Returns indicators of being a noise for layers.
 
-    This function, in given layer,
-    sets to zero filters' weights which are smaller than max_value
-    and which possibility of being a noise is greater than min_noise_value,
+    This function, for every layer,
+    returns indicators of being a noise
+    computed using bilateral filtering with given arguments
+    for every 2d filter in every layer
 
-    :param numpy.ndarray layer: convolutional layer in network
-    :param float min_noise_indicator: minimal value of noise indicator
-        enabling deleting the weight
-    :param float max_value: maximal value enabling deleting the weight
-    :param bilateral_filter_args: args for bilateral filtering
+    :param layers:
+    :type layers: list or numpy.array or tuple
+    :param tuple bilateral_filter_args:args for bilateral filtering
+    :return: numpy.ndarray
     """
-    W = layer.W
-    for filter in W:
-        sharpen_filter(filter, min_noise_indicator, max_value,
-                       bilateral_filter_args)
-    layer.W = W
+
+    return numpy.array([
+        _get_filters_indicators_in_layer_with_filters(layer,
+                                                      bilateral_filter_args)
+        for layer in layers
+        if len(layer.W.shape) == 4])  # only layers with 3d filters
 
 
-def sharpen_filters_in_network(network, (min_noise_indicator, max_value,
-                                         bilater_filter_args)):
+def sharpen_filters(network,
+                    (fraction, filters_importance, bilateral_filter_args)):
     """
     Delete weights in network.
 
-    This function, in given network's every convolutional layer,
+    This function, in given network's every layer containing filters,
     sets to zero weights which are smaller than max_value
     and which possibility of being a noise is greater than min_noise_value,
 
-    :param numpy.ndarray filter: 3D filter
-    :param float min_noise_indicator: minimal value of noise indicator
-        enabling deleting the weight
-    :param float max_value: maximal value enabling deleting the weight
-    :param bilateral_filter_args: args for bilateral filtering
+    :param Network network: network for sparsifying
+    :param tuple (fraction, filters_importance, bilateral_filter_args):
+        float fraction: fraction of weights to be changes into zero
+        float filters_importance: how much sharpen filters in the process
+        tuple bilateral_filter_args: args for filter algorithm
     """
-    for layer in network.weighted_layers:
-        if isinstance(layer, ConvolutionalLayer):
-            sharpen_filters_in_layer(layer, (min_noise_indicator,
-                                             max_value, bilater_filter_args))
+
+    layers = [layer for layer in network.convolutional_layers]
+    filter_indicators = get_filters_indicators(layers,
+                                               bilateral_filter_args)
+    smallest_indicators = get_smallest_indicators(layers)
+    delete_weights_by_layer_fractions(
+        layers, fraction,
+        (filter_indicators ** filters_importance) * smallest_indicators
+    )

@@ -7,3 +7,11 @@ def _change_order(a):
         return (n, h, w)
     except:
         return a
+
+
+def add_tuples(a, b):
+    if not isinstance(a, tuple):
+        a = (a, )
+    if not isinstance(b, tuple):
+        b = (b, )
+    return a + b
