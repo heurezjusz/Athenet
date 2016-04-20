@@ -11,9 +11,7 @@ from athenet.algorithm.derest.utils import _change_order
 
 
 def count_activation(layer_input, layer):
-    if isinstance(layer, Dropout):
-        return a_dropout(layer_input, layer.p_dropout)
-    elif isinstance(layer, LRN):
+    if isinstance(layer, LRN):
         return a_norm(
             layer_input, _change_order(layer.input_shape),
             layer.local_range, layer.k,
@@ -31,17 +29,6 @@ def count_activation(layer_input, layer):
     else:
         raise NotImplementedError
 
-
-
-def a_dropout(layer_input, p_dropout):
-    """Returns estimated activation of dropout layer.
-
-    :param Numlike layer_input: input Numlike
-    :param float p_dropout: probability of dropping in dropout
-    :rtype: Numlike
-    """
-    assert_numlike(layer_input)
-    return layer_input * (1.0 - p_dropout)
 
 
 

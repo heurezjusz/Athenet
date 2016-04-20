@@ -40,6 +40,7 @@ def a_fully_connected(layer_input, weights, biases):
     except NotImplementedError:
         return (flat_input * weights.T).sum(1) + biases
 
+
 def d_fully_connected(output, weights, input_shape):
     """Returns estimated impact of input of fully connected layer on output of
     network.

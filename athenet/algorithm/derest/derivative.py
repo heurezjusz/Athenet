@@ -15,9 +15,7 @@ from athenet.algorithm.derest.utils import _change_order
 
 
 def count_derivative(layer_output, activations, input_shape, layer):
-    if isinstance(layer, Dropout):
-        return d_dropout(layer_output, layer.p_dropout)
-    elif isinstance(layer, LRN):
+    if isinstance(layer, LRN):
         return d_norm(
             layer_output, activations, input_shape,
             layer.local_range, layer.k, layer.alpha,
@@ -35,21 +33,6 @@ def count_derivative(layer_output, activations, input_shape, layer):
         return d_relu(layer_output, activations)
     else:
         raise NotImplementedError
-
-
-
-def d_dropout(output, p_dropout):
-    """Returns estimated impact of input of dropout layer on output of network.
-
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
-                           height, width)
-    :param float p_dropout: probability of dropping in dropout
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
-    """
-    assert_numlike(output)
-    return output * (1.0 - p_dropout)
 
 
 
