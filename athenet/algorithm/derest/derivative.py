@@ -15,16 +15,8 @@ from athenet.algorithm.derest.utils import _change_order
 
 
 def count_derivative(layer_output, activations, input_shape, layer):
-    if isinstance(layer, ConvolutionalLayer):
-        return d_conv(
-            layer_output, input_shape,
-            _change_order(layer.filter_shape), layer.W,
-            layer.stride, layer.padding, layer.n_groups
-        )
-    elif isinstance(layer, Dropout):
+    if isinstance(layer, Dropout):
         return d_dropout(layer_output, layer.p_dropout)
-    elif isinstance(layer, FullyConnectedLayer):
-        return d_fully_connected(layer_output, layer.W, input_shape)
     elif isinstance(layer, LRN):
         return d_norm(
             layer_output, activations, input_shape,
@@ -45,45 +37,6 @@ def count_derivative(layer_output, activations, input_shape, layer):
         raise NotImplementedError
 
 
-def d_conv(output, input_shape, filter_shape, weights,
-           stride=(1, 1), padding=(0, 0), n_groups=1):
-    """Returns estimated impact of input of convolutional layer on output of
-    network.
-
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
-                           height, width)
-    :param input_shape: shape of layer input in the format
-                        (number of batches,
-                         number of input channels,
-                         image height,
-                         image width)
-    :type input_shape: tuple of 4 integers
-    :param filter_shape: filter shape in the format (number of output channels,
-                                                     filter height,
-                                                     filter width)
-    :type filter_shape: tuple of 3 integers
-    :param weights: Weights tensor in format (number of output channels,
-                                              number of input channels,
-                                              filter height,
-                                              filter width)
-    :type weights: numpy.ndarray or theano tensor
-    :param stride: pair representing interval at which to apply the filters.
-    :type stride: pair of integers
-    :param padding: pair representing number of zero-valued pixels to add on
-                    each side of the input.
-    :type padding: pair of integers
-    :param n_groups: number of groups input and output channels will be split
-                     into, two channels are connected only if they belong to
-                     the same group.
-    :type n_groups: integer
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
-    """
-    res = output.op_d_conv(input_shape, filter_shape,
-                           weights, stride, padding, n_groups)
-    return res
-
 
 def d_dropout(output, p_dropout):
     """Returns estimated impact of input of dropout layer on output of network.
@@ -98,27 +51,6 @@ def d_dropout(output, p_dropout):
     assert_numlike(output)
     return output * (1.0 - p_dropout)
 
-
-def d_fully_connected(output, weights, input_shape):
-    """Returns estimated impact of input of fully connected layer on output of
-    network.
-
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
-                           height, width)
-    :param weights: weights of fully connected layer in format (n_in, n_out)
-    :type weights: 2D numpy.ndarray or theano.tensor
-    :param input_shape: shape of fully connected layer input in any format.
-    :type input_shape: tuple of integers
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
-    """
-    assert_numlike(output)
-    try:
-        res = output.dot(weights.T)
-    except NotImplementedError:
-        res = (output * weights).sum(1)
-    return res.reshape(input_shape)
 
 
 def d_norm(output, activation, input_shape, local_range, k, alpha, beta):

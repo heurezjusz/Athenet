@@ -7,14 +7,13 @@ from athenet.algorithm.derest.layers import DerestFullyConnectedLayer, DerestCon
 
 def derest_layer(layer):
     if isinstance(layer, FullyConnectedLayer):
-        a = DerestFullyConnectedLayer(layer)
+        return DerestFullyConnectedLayer(layer)
     elif isinstance(layer, ConvolutionalLayer):
-        a = DerestConvolutionalLayer(layer)
+        return DerestConvolutionalLayer(layer)
     elif isinstance(layer, InceptionLayer):
         return DerestInceptionLayer(layer)
     else:
-        a = DerestLayer(layer)
-    return a
+        return DerestLayer(layer)
 
 
 class DerestNetwork(object):
