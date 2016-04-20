@@ -1,4 +1,6 @@
-from athenet.algorithm.derest.layer import DerestLayer
+from athenet.algorithm.derest.layers import DerestLayer
+from athenet.algorithm.numlike import assert_numlike
+from athenet.algorithm.derest.utils import _change_order
 
 
 class DerestPoolLayer(DerestLayer):
