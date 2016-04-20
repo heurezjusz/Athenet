@@ -50,4 +50,4 @@ class DerestInceptionLayer(DerestLayer):
         for derest_layer_list in self.derest_layer_lists:
             for derest_layer in derest_layer_list:
                 results += derest_layer.count_derest(f)
-        return res
+        return results
