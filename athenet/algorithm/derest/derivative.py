@@ -62,39 +62,6 @@ def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
     return res
 
 
-def d_pool(output, activation, input_shape, poolsize, stride=(1, 1),
-           padding=(0, 0), mode='max'):
-    """Returns estimated impact of input of pool layer on output of network.
-
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch size, number of channels,
-                           height, width)
-    :param Numlike activation: estimated activation of input
-    :param input_shape: shape of layer input in format
-                        (batch size, number of channels, height, width)
-    :type input_shape: tuple of 4 integers
-    :param pair of integers poolsize: pool size in format (height, width)
-    :param pair of integers stride: stride of pool
-    :param pair of integers padding: padding of pool
-    :param 'max' or 'avg' mode: specifies whether it is max pool or average
-                                pool
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
-    """
-    assert_numlike(activation)
-    assert_numlike(output)
-    if mode not in ['max', 'avg']:
-        raise ValueError("pool mode should be 'max' or 'avg'")
-    is_max = mode == 'max'
-    if is_max:
-        res = output.op_d_max_pool(activation, input_shape,
-                                   poolsize, stride, padding)
-    else:
-        res = output.op_d_avg_pool(activation, input_shape,
-                                   poolsize, stride, padding)
-    return res
-
-
 def d_softmax(output):
     """Returns estimated impact of input of softmax layer on output of network.
 

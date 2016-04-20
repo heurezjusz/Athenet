@@ -65,49 +65,6 @@ def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
             local_sums * (alpha / local_range) + k).power(beta))
 
 
-def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
-    """Returns estimated activation of pool layer.
-
-    :param Numlike layer_input: Numlike input in input_shp format
-    :param tuple of 3 integers input_shp: input shape in format (n_channels,
-                                          height, width)
-    :param pair of integers poolsize: pool size in format (height, width)
-    :param pair of integers stride: stride of max pool
-    :param 'max' or 'avg' mode: specifies whether it is max pool or average
-                                pool
-    :rtype: Numlike
-    """
-    assert_numlike(layer_input)
-    if mode not in ["max", "avg"]:
-        raise ValueError("pool mode should be 'max' or 'avg'")
-    is_max = mode == "max"
-    # n_in, h, w - number of input channels, image height, image width
-    n_in, h, w = input_shp
-    n_out = n_in
-    # fh, fw - pool height, pool width
-    fh, fw = poolsize
-    stride_h, stride_w = stride
-    output_h = (h - fh) / stride_h + 1
-    output_w = (w - fw) / stride_w + 1
-    output_shp = (n_out, output_h, output_w)
-    result = layer_input.from_shape(output_shp, neutral=True)
-    for at_h in xrange(0, h - fh + 1, stride_h):
-        # at_out_h - height of output corresponding to pool at position at_h
-        at_out_h = at_h / stride_h
-        for at_w in xrange(0, w - fw + 1, stride_w):
-            # at_out_w - height of output corresponding to pool at
-            # position at_w
-            at_out_w = at_w / stride_w
-            input_slice = layer_input[:, at_h:(at_h + fh), at_w:(at_w + fw)]
-            if is_max:
-                pool_res = input_slice.amax(axis=(1, 2), keepdims=False)
-            else:
-                pool_res = input_slice.sum(axis=(1, 2), keepdims=False) \
-                    / float(fh * fw)
-            result[:, at_out_h, at_out_w] = pool_res
-    return result
-
-
 def a_softmax(layer_input, input_shp):
     """Returns estimated activation of softmax layer.
     :param Numlike layer_input: input
