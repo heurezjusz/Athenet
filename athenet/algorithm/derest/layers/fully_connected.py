@@ -1,11 +1,9 @@
 import numpy
 
-from athenet.algorithm.derest.layer import DerestLayer
+from athenet.algorithm.derest.layers import DerestLayer
 
 
 class DerestFullyConnectedLayer(DerestLayer):
-    def count_activation(self, input):
-        return
 
     def count_derest(self, count_function):
         indicators = numpy.zeros_like(self.layer.W)

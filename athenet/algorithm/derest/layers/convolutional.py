@@ -1,6 +1,8 @@
-import numpy
 from itertools import product
-from athenet.algorithm.derest.layer import DerestLayer
+
+import numpy
+
+from athenet.algorithm.derest.layers.layer import DerestLayer
 
 
 class DerestConvolutionalLayer(DerestLayer):

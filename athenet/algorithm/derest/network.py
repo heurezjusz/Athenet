@@ -1,8 +1,23 @@
 from athenet.algorithm.derest.utils import _change_order, add_tuples
-from athenet.algorithm.derest.layer import derest_layer
+from athenet.layers import FullyConnectedLayer, ConvolutionalLayer, InceptionLayer
+from athenet.algorithm.derest.layers import DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestInceptionLayer, DerestLayer
+
+# TODO - add normalization of inputs and outputs between layers in count_activations and count_derivatives
 
 
-class DerestNetwork():
+def derest_layer(layer):
+    if isinstance(layer, FullyConnectedLayer):
+        a = DerestFullyConnectedLayer(layer)
+    elif isinstance(layer, ConvolutionalLayer):
+        a = DerestConvolutionalLayer(layer)
+    elif isinstance(layer, InceptionLayer):
+        return DerestInceptionLayer(layer)
+    else:
+        a = DerestLayer(layer)
+    return a
+
+
+class DerestNetwork(object):
 
     def __init__(self, network):
         self.network = network
@@ -10,6 +25,7 @@ class DerestNetwork():
                        for layer in network.layers]
 
     def _get_layer_input_shape(self, i):
+        # TODO - do it better
         if i > 0:
             return self.layers[i - 1].layer.output_shape
         return self.layers[i].layer.input_shape
@@ -27,6 +43,7 @@ class DerestNetwork():
                 batches,
                 _change_order(self._get_layer_input_shape(i))
             )
+            self.layers[i].derivatives = outp
             outp = self.layers[i].count_derivatives(
                 outp,
                 input_shape

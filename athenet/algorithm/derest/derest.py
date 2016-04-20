@@ -3,10 +3,10 @@
 import numpy
 import theano
 
-from athenet.algorithm.derest.network import DerestNetwork
-from athenet.algorithm.numlike.interval import Interval
 from athenet.algorithm.deleting import delete_weights_by_global_fraction
+from athenet.algorithm.derest.network import DerestNetwork
 from athenet.algorithm.derest.utils import _change_order
+from athenet.algorithm.numlike.interval import Interval
 from athenet.algorithm.utils import to_indicators
 
 

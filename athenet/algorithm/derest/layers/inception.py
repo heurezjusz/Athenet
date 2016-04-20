@@ -1,4 +1,4 @@
-from athenet.algorithm.derest.layer import DerestLayer
+from athenet.algorithm.derest.layers.layer import DerestLayer
 
 
 class DerestInceptionLayer(DerestLayer):
