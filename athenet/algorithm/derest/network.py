@@ -1,21 +1,23 @@
 from athenet.algorithm.derest.utils import _change_order, add_tuples
-import athenet.algorithm.derest.layers as derest_layers
-import athenet.layers as layers
+#import athenet.algorithm.derest.layers as derest_layers
+#import athenet.layers as layers
+from athenet.algorithm.derest.layers import *
+from athenet.layers import *
 
 # TODO - add normalization of inputs and outputs between layers in count_activations and count_derivatives
 
 
 def derest_layer(layer):
-    if isinstance(layer, layers.FullyConnectedLayer):
-        return derest_layers.DerestFullyConnectedLayer(layer)
-    elif isinstance(layer, layers.ConvolutionalLayer):
-        return derest_layers.DerestConvolutionalLayer(layer)
-    elif isinstance(layer, layers.InceptionLayer):
-        return derest_layers.DerestInceptionLayer(layer)
-    elif isinstance(layer, layers.Dropout):
-        return derest_layers.DerestDropoutLayer(layer)
+    if isinstance(layer, FullyConnectedLayer):
+        return DerestFullyConnectedLayer(layer)
+    elif isinstance(layer, ConvolutionalLayer):
+        return DerestConvolutionalLayer(layer)
+    elif isinstance(layer, InceptionLayer):
+        return DerestInceptionLayer(layer)
+    elif isinstance(layer, Dropout):
+        return DerestDropoutLayer(layer)
     else:
-        return derest_layers.DerestLayer(layer)
+        return DerestLayer(layer)
 
 
 class DerestNetwork(object):

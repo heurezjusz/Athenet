@@ -2,4 +2,4 @@ from layer import DerestLayer
 from convolutional import DerestConvolutionalLayer
 from fully_connected import DerestFullyConnectedLayer
 from inception import DerestInceptionLayer
-from dropout import DerestDroupoutLayer
+from dropout import DerestDropoutLayer
