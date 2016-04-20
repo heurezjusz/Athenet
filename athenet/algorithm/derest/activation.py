@@ -122,16 +122,3 @@ def a_softmax(layer_input, input_shp):
         res = exponents / exponents.sum()
     return res
 
-
-def a_relu(layer_input):
-    """Returns estimated activation of relu layer.
-
-    :param Numlike layer_input: input
-    :rtype: Numlike
-    """
-    assert_numlike(layer_input)
-    try:
-        res = layer_input.op_relu()
-    except NotImplementedError:
-        res = (layer_input + layer_input.abs()) * 0.5
-    return res
