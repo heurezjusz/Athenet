@@ -56,8 +56,13 @@ class DerestNetwork():
             )
         return outp
 
-    def count_derest(self):
-        return [layer.count_derest() for layer in self.layers]
+    def count_derest(self, f):
+        result = []
+        for layer in self.layers:
+            indices = layer.count_derest(f)
+            if indices is not None:
+                result.append(indices)
+        return result
 
 
 class DerestLayer():
@@ -76,19 +81,21 @@ class DerestLayer():
         return count_derivative(output, self.activations,
                                 input_shape, self.layer)
 
-    def count_derest(self):
+    def count_derest(self, f):
         pass
 
 
 class DerestFullyConnectedLayer(DerestLayer):
 
-    def count_derest(self):
+    def count_derest(self, count_function):
         indicators = numpy.zeros_like(self.layer.W)
         nr_of_batches = self.derivatives.shape.eval()[0]
         for i in range(nr_of_batches):
             act = self.activations.reshape((self.layer.input_shape, 1))
             der = self.derivatives[i].reshape((1, self.layer.output_shape))
-            indicators = indicators + numpy.amax((act.dot(der) * self.layer.W).eval(), 0)
+#            indicators = indicators + numpy.amax((act.dot(der) * self.layer.W).eval(), 0)
+            b =  (act.dot(der) * self.layer.W).eval()
+            indicators = count_function(indicators,b)
         return indicators
 
 
@@ -100,7 +107,7 @@ class DerestConvolutionalLayer(DerestLayer):
         m1, m2, _ = self.layer.filter_shape
         return self.activations[i1, i2:(n1-m2+i2+1), i3:(n2-m2+i3+1)]
 
-    def count_derest(self):
+    def count_derest(self, f):
         indicators = numpy.zeros_like(self.layer.W)
 
         i0, i1, i2, i3 = self.layer.W.shape
@@ -109,12 +116,13 @@ class DerestConvolutionalLayer(DerestLayer):
             for j1, j2, j3, j4 in product(range(i0), range(i1), range(i2), range(i3)):
                 y = self._get_activation_for_weight(j2, j3, j4)
                 x = (der[j1] * y * self.layer.W[j1, j2, j3, j4]).eval()
-                indicators[j1, j2, j3, j4] = indicators[j1, j2, j3, j4] + numpy.sum(numpy.amax(x, 0))
+                indicators[j1, j2, j3, j4] = f(indicators[j1, j2, j3, j4], x, True)
 
         return indicators
 
+
 class DerestInceptionLayer(DerestLayer):
 
-    def count_derest(self):
+    def count_derest(self, f):
         raise NotImplementedError
 
