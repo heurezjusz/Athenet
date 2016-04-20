@@ -25,7 +25,25 @@ class DerestInceptionLayer(DerestLayer):
         return T.concatenate(results)
 
     def count_derivatives(self, output, input_shape):
-        assert NotImplementedError
+        output_list = []
+        last = 0
+        for layer in self.layer.top_layers:
+            width = layer.output_shape[1]
+            output_list.append(output[:, last : (last + width), ::])
+            last += width
+
+        result = None
+        for output, derest_list in zip(output, self.derest_layer_lists):
+            out = output
+            for derest_layer in reversed(derest_list):
+                out = derest_list.count_derivatives(out)
+                derest_layer.derivatives = out
+            if result is None:
+                result = out
+            else:
+                result += out
+
+        return result
 
     def count_derest(self, f):
         raise NotImplementedError
