@@ -65,17 +65,4 @@ def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
             local_sums * (alpha / local_range) + k).power(beta))
 
 
-def a_softmax(layer_input, input_shp):
-    """Returns estimated activation of softmax layer.
-    :param Numlike layer_input: input
-    :param integer input_shp: shape of 1D input
-    :rtype: Numlike
-    """
-    assert_numlike(layer_input)
-    try:
-        res = layer_input.op_softmax(input_shp)
-    except NotImplementedError:
-        exponents = layer_input.exp()
-        res = exponents / exponents.sum()
-    return res
 

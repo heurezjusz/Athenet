@@ -62,16 +62,3 @@ def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
     return res
 
 
-def d_softmax(output):
-    """Returns estimated impact of input of softmax layer on output of network.
-
-    .. warning: Current implementation only consider softmax as the last layer.
-
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
-                           height, width)
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
-    """
-    assert_numlike(output)
-    return output
