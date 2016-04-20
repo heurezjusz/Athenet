@@ -32,37 +32,5 @@ def count_activation(layer_input, layer):
 
 
 
-def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
-           beta=0.75):
-    """Returns estimated activation of LRN layer.
-
-    :param Numlike layer_input: Numlike input
-    :param input_shape: shape of Interval in format (n_channels, height, width)
-    :param integer local_range: size of local range in local range
-                                normalization
-    :param integer k: local range normalization k argument
-    :param integer alpha: local range normalization alpha argument
-    :param integer beta: local range normalization beta argument
-    :type input_shape: tuple of 3 integers
-    :rtype: Numlike
-    """
-    assert_numlike(layer_input)
-    try:
-        return layer_input.op_norm(input_shape, local_range, k, alpha, beta)
-    except NotImplementedError:
-        half = local_range / 2
-        sq = layer_input.square()
-        n_channels, h, w = input_shape
-        extra_channels = layer_input.from_shape((n_channels + 2 * half, h, w),
-                                                neutral=True)
-        extra_channels[half:half + n_channels, :, :] = sq
-        local_sums = layer_input.from_shape(input_shape, neutral=True)
-
-        for i in xrange(local_range):
-            local_sums += extra_channels[i:i + n_channels, :, :]
-
-        return layer_input / ((
-            local_sums * (alpha / local_range) + k).power(beta))
-
 
 
