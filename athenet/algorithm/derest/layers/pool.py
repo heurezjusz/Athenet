@@ -7,12 +7,13 @@ class DerestPoolLayer(DerestLayer):
 
     def count_activation(self, input):
         return a_pool(input, _change_order(self.layer.input_shape),
-            self.layer.poolsize, self.layer.stride, self.layer.mode)
+                      self.layer.poolsize, self.layer.stride, self.layer.mode)
 
     def count_derivatives(self, output, input_shape):
         assert(self.activations is not None)
-        return d_pool(output, self.activations, input_shape, self.layer.poolsize,
-                      self.layer.stride, self.layer.padding, self.layer.mode)
+        return d_pool(output, self.activations, input_shape,
+                      self.layer.poolsize, self.layer.stride,
+                      self.layer.padding, self.layer.mode)
 
     def count_derest(self, f):
         pass

@@ -6,13 +6,15 @@ from athenet.algorithm.derest.utils import _change_order
 class DerestNormLayer(DerestLayer):
 
     def count_activation(self, input):
-        return a_norm(input, _change_order(self.layer.input_shape), self.layer.local_range,
-                      self.layer.k, self.layer.alpha, self.layer.beta)
+        return a_norm(input, _change_order(self.layer.input_shape),
+                      self.layer.local_range, self.layer.k,
+                      self.layer.alpha, self.layer.beta)
 
     def count_derivatives(self, output, input_shape):
         assert(self.activations is not None)
-        return d_norm(output, self.activations, input_shape, self.layer.local_range,
-                      self.layer.k, self.layer.alpha, self.layer.beta)
+        return d_norm(output, self.activations, input_shape,
+                      self.layer.local_range, self.layer.k,
+                      self.layer.alpha, self.layer.beta)
 
     def count_derest(self, f):
         pass
@@ -48,8 +50,8 @@ def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
         for i in xrange(local_range):
             local_sums += extra_channels[i:i + n_channels, :, :]
 
-        return layer_input / ((
-                                  local_sums * (alpha / local_range) + k).power(beta))
+        return layer_input /\
+            ((local_sums * (alpha / local_range) + k).power(beta))
 
 
 def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
@@ -76,5 +78,3 @@ def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
     res = output.op_d_norm(activation, input_shape, local_range, k, alpha,
                            beta)
     return res
-
-

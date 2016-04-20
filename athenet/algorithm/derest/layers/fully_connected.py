@@ -19,7 +19,7 @@ class DerestFullyConnectedLayer(DerestLayer):
             act = self.activations.reshape((self.layer.input_shape, 1))
             der = self.derivatives[i].reshape((1, self.layer.output_shape))
             b = (act.dot(der) * self.layer.W).eval()
-            indicators = count_function(indicators,b)
+            indicators = count_function(indicators, b)
         return indicators
 
     @staticmethod
@@ -27,7 +27,8 @@ class DerestFullyConnectedLayer(DerestLayer):
         """Returns estimated activation of fully connected layer.
 
         :param Numlike layer_input: input Numlike
-        :param weights: weights of fully connected layer in format (n_in, n_out)
+        :param weights: weights of fully connected layer in format
+        (n_in, n_out)
         :param biases: biases of fully connected layer of size n_out
         :type weights: 2D numpy.ndarray or theano.tensor
         :type biases: 1D numpy.ndarray or theano.tensor
@@ -42,13 +43,14 @@ class DerestFullyConnectedLayer(DerestLayer):
 
     @staticmethod
     def d_fully_connected(output, weights, input_shape):
-        """Returns estimated impact of input of fully connected layer on output of
-        network.
+        """Returns estimated impact of input of fully connected layer on
+        output of network.
 
         :param Numlike output: estimated impact of output of layer on output
-                               of network in shape (batch_size, number of channels,
-                               height, width)
-        :param weights: weights of fully connected layer in format (n_in, n_out)
+                               of network in shape (batch_size,
+                               number of channels, height, width)
+        :param weights: weights of fully connected layer in format
+        (n_in, n_out)
         :type weights: 2D numpy.ndarray or theano.tensor
         :param input_shape: shape of fully connected layer input in any format.
         :type input_shape: tuple of integers

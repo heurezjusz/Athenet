@@ -33,15 +33,17 @@ class DerestConvolutionalLayer(DerestLayer):
         indicators = numpy.zeros_like(self.layer.W)
 
         i0, i1, i2, i3 = self.layer.W.shape
-        for batch_nr in range(self.derivatives.shape.eval()[0]): #for every batch
+        for batch_nr in range(self.derivatives.shape.eval()[0]):
+            # for every batch
             der = self.derivatives[batch_nr]
-            for j1, j2, j3, j4 in product(range(i0), range(i1), range(i2), range(i3)):
+            for j1, j2, j3, j4 in product(range(i0), range(i1),
+                                          range(i2), range(i3)):
                 y = self._get_activation_for_weight(j2, j3, j4)
                 x = (der[j1] * y * self.layer.W[j1, j2, j3, j4]).eval()
-                indicators[j1, j2, j3, j4] = f(indicators[j1, j2, j3, j4], x, True)
+                indicators[j1, j2, j3, j4] = f(indicators[j1, j2, j3, j4],
+                                               x, True)
 
         return indicators
-
 
 
 def a_conv(layer_input, image_shape, weights, filter_shape, biases,
