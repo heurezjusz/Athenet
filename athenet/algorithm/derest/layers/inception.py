@@ -6,7 +6,7 @@ from athenet.algorithm.derest.utils import get_derest_layer
 class DerestInceptionLayer(DerestLayer):
 
     def __init__(self, layer):
-        super(DerestInceptionLayer, layer)
+        super(DerestInceptionLayer, self).__init__(layer)
         self.derest_layer_lists = []
         for layer_list in self.layer.layers_lists:
             derest_layer_list = []
@@ -22,7 +22,7 @@ class DerestInceptionLayer(DerestLayer):
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
             results.append(inp)
-        return T.concatenate(results)
+        return T.concatenate(results, axis=1)
 
     def count_derivatives(self, output, input_shape):
         output_list = []
