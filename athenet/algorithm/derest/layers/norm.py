@@ -1,12 +1,12 @@
 from athenet.algorithm.derest.layers import DerestLayer
 from athenet.algorithm.numlike import assert_numlike
-from athenet.algorithm.derest.utils import _change_order
+from athenet.algorithm.derest.utils import change_order
 
 
 class DerestNormLayer(DerestLayer):
 
     def count_activation(self, input):
-        return a_norm(input, _change_order(self.layer.input_shape),
+        return a_norm(input, change_order(self.layer.input_shape),
                       self.layer.local_range, self.layer.k,
                       self.layer.alpha, self.layer.beta)
 

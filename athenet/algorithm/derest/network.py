@@ -1,4 +1,4 @@
-from athenet.algorithm.derest.utils import _change_order, add_tuples
+from athenet.algorithm.derest.utils import change_order, add_tuples
 #import athenet.algorithm.derest.layers as derest_layers
 #import athenet.layers as layers
 from athenet.algorithm.derest.layers import *
@@ -44,7 +44,7 @@ class DerestNetwork(object):
         for i in range(len(self.layers) - 1, -1, -1):
             input_shape = add_tuples(
                 batches,
-                _change_order(self._get_layer_input_shape(i))
+                change_order(self._get_layer_input_shape(i))
             )
             self.layers[i].derivatives = outp
             outp = self.layers[i].count_derivatives(

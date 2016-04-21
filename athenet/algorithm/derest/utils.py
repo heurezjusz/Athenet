@@ -6,7 +6,7 @@ from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
     ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
 
 
-def _change_order(a):
+def change_order(a):
     """
     So the last will be first
     """

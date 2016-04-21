@@ -1,12 +1,12 @@
 from athenet.algorithm.derest.layers import DerestLayer
 from athenet.algorithm.numlike import assert_numlike
-from athenet.algorithm.derest.utils import _change_order
+from athenet.algorithm.derest.utils import change_order
 
 
 class DerestPoolLayer(DerestLayer):
 
     def count_activation(self, input):
-        return a_pool(input, _change_order(self.layer.input_shape),
+        return a_pool(input, change_order(self.layer.input_shape),
                       self.layer.poolsize, self.layer.stride, self.layer.mode)
 
     def count_derivatives(self, output, input_shape):
