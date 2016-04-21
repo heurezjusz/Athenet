@@ -1,11 +1,3 @@
-from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
-    DerestReluLayer, DerestPoolLayer, DerestNormLayer,\
-    DerestConvolutionalLayer, DerestDropoutLayer, DerestFullyConnectedLayer,\
-    DerestInceptionLayer
-from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
-    ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
-
-
 def change_order(a):
     """
     So the last will be first
@@ -24,23 +16,4 @@ def add_tuples(a, b):
         b = (b, )
     return a + b
 
-
-def get_derest_layer(layer):
-    if isinstance(layer, Softmax):
-        return DerestSoftmaxLayer(layer)
-    if isinstance(layer, ReLU):
-        return DerestReluLayer(layer)
-    if isinstance(layer, PoolingLayer):
-        return DerestPoolLayer(layer)
-    if isinstance(layer, LRN):
-        return DerestNormLayer(layer)
-    if isinstance(layer, ConvolutionalLayer):
-        return DerestConvolutionalLayer(layer)
-    if isinstance(layer, Dropout):
-        return DerestDropoutLayer(layer)
-    if isinstance(layer, FullyConnectedLayer):
-        return DerestFullyConnectedLayer(layer)
-    if isinstance(layer, InceptionLayer):
-        return DerestInceptionLayer(layer)
-    raise NotImplementedError
 

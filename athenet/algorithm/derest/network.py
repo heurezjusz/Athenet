@@ -7,17 +7,24 @@ from athenet.layers import *
 # TODO - add normalization of inputs and outputs between layers in count_activations and count_derivatives
 
 
-def derest_layer(layer):
+def get_derest_layer(layer):
+    if isinstance(layer, Softmax):
+        return DerestSoftmaxLayer(layer)
+    if isinstance(layer, ReLU):
+        return DerestReluLayer(layer)
+    if isinstance(layer, PoolingLayer):
+        return DerestPoolLayer(layer)
+    if isinstance(layer, LRN):
+        return DerestNormLayer(layer)
+    if isinstance(layer, ConvolutionalLayer):
+        return DerestConvolutionalLayer(layer)
+    if isinstance(layer, Dropout):
+        return DerestDropoutLayer(layer)
     if isinstance(layer, FullyConnectedLayer):
         return DerestFullyConnectedLayer(layer)
-    elif isinstance(layer, ConvolutionalLayer):
-        return DerestConvolutionalLayer(layer)
-    elif isinstance(layer, InceptionLayer):
+    if isinstance(layer, InceptionLayer):
         return DerestInceptionLayer(layer)
-    elif isinstance(layer, Dropout):
-        return DerestDropoutLayer(layer)
-    else:
-        return DerestLayer(layer)
+    raise NotImplementedError
 
 
 class DerestNetwork(object):
