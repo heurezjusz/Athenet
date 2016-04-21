@@ -1,6 +1,9 @@
 import theano.tensor as T
-from athenet.algorithm.derest.layers import *
+from athenet.algorithm.derest.layers import DerestReluLayer, DerestLayer, \
+    DerestConvolutionalLayer, DerestPoolLayer, DerestFullyConnectedLayer, \
+    DerestNormLayer, DerestSoftmaxLayer, DerestDropoutLayer
 from athenet.layers import *
+
 
 def get_derest_layer(layer):
     if isinstance(layer, Softmax):
@@ -27,7 +30,7 @@ class DerestInceptionLayer(DerestLayer):
     def __init__(self, layer):
         super(DerestInceptionLayer, self).__init__(layer)
         self.derest_layer_lists = []
-        for layer_list in self.layer.layers_lists:
+        for layer_list in self.layer.layer_lists:
             derest_layer_list = []
             for l in layer_list:
                 derest_layer_list.append(get_derest_layer(l))
