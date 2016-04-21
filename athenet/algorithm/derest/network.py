@@ -1,37 +1,14 @@
 from athenet.algorithm.derest.utils import change_order, add_tuples
-#import athenet.algorithm.derest.layers as derest_layers
-#import athenet.layers as layers
-from athenet.algorithm.derest.layers import *
-from athenet.layers import *
+from athenet.algorithm.derest.layers import get_derest_layer
 
 # TODO - add normalization of inputs and outputs between layers in count_activations and count_derivatives
-
-
-def get_derest_layer(layer):
-    if isinstance(layer, Softmax):
-        return DerestSoftmaxLayer(layer)
-    if isinstance(layer, ReLU):
-        return DerestReluLayer(layer)
-    if isinstance(layer, PoolingLayer):
-        return DerestPoolLayer(layer)
-    if isinstance(layer, LRN):
-        return DerestNormLayer(layer)
-    if isinstance(layer, ConvolutionalLayer):
-        return DerestConvolutionalLayer(layer)
-    if isinstance(layer, Dropout):
-        return DerestDropoutLayer(layer)
-    if isinstance(layer, FullyConnectedLayer):
-        return DerestFullyConnectedLayer(layer)
-    if isinstance(layer, InceptionLayer):
-        return DerestInceptionLayer(layer)
-    raise NotImplementedError
 
 
 class DerestNetwork(object):
 
     def __init__(self, network):
         self.network = network
-        self.layers = [derest_layer(layer)
+        self.layers = [get_derest_layer(layer)
                        for layer in network.layers]
 
     def _get_layer_input_shape(self, i):

@@ -1,6 +1,25 @@
 import theano.tensor as T
-from athenet.algorithm.derest.layers.layer import DerestLayer
-from athenet.algorithm.derest.utils import get_derest_layer
+from athenet.algorithm.derest.layers import *
+from athenet.layers import *
+
+def get_derest_layer(layer):
+    if isinstance(layer, Softmax):
+        return DerestSoftmaxLayer(layer)
+    if isinstance(layer, ReLU):
+        return DerestReluLayer(layer)
+    if isinstance(layer, PoolingLayer):
+        return DerestPoolLayer(layer)
+    if isinstance(layer, LRN):
+        return DerestNormLayer(layer)
+    if isinstance(layer, ConvolutionalLayer):
+        return DerestConvolutionalLayer(layer)
+    if isinstance(layer, Dropout):
+        return DerestDropoutLayer(layer)
+    if isinstance(layer, FullyConnectedLayer):
+        return DerestFullyConnectedLayer(layer)
+    if isinstance(layer, InceptionLayer):
+        return DerestInceptionLayer(layer)
+    raise NotImplementedError
 
 
 class DerestInceptionLayer(DerestLayer):
