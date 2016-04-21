@@ -132,3 +132,6 @@ class Nplike(Numlike):
     def __str__(self):
         """"Standard str method."""
         return str(self.value)
+
+    def concat(self, other):
+        return Nplike(numpy.concatenate((self.value, other.value), axis=1))
