@@ -37,14 +37,17 @@ class DerestInceptionLayer(DerestLayer):
             self.derest_layer_lists.append(derest_layer_list)
 
     def count_activation(self, input):
-        results = []
+        results = None
         for derest_layer_list in self.derest_layer_lists:
             inp = input
             for derest_layer in derest_layer_list:
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
-            results.append(inp)
-        return T.concatenate(results, axis=1)
+            if results is None:
+                results = inp
+            else:
+                results = results.concat(inp)
+        return results
 
     def count_derivatives(self, output, input_shape):
         output_list = []
