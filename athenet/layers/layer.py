@@ -96,7 +96,8 @@ class Layer(object):
         self.input_shape = input_layer.output_shape
 
         self.input = input_layer.output
-        self.train_input = input_layer.train_output
+        if input_layer.train_output is not None:
+            self.train_input = input_layer.train_output
 
     def set_params(self, params):
         """Set layer's weights and biases, if it has any.
