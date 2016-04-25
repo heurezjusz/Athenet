@@ -14,7 +14,9 @@ from athenet.algorithm.derest.derivative import *
 
 theano.config.exception_verbosity = 'high'
 
-A = np.array
+
+def A(x):
+    return np.array(x, dtype=theano.config.floatX)
 
 
 def npl(x):
@@ -22,7 +24,7 @@ def npl(x):
 
 
 def thv(x):
-    return theano.shared(np.array(x, dtype=float))
+    return theano.shared(A(x))
 
 
 def ithv(x):
@@ -142,7 +144,7 @@ class ConvolutionalDerivativeTest(DerivativeTest):
                      [4, 8, 12, 16, 12, 8, 4],
                      [2, 4, 6, 8, 6, 4, 2]]]]))
 
-    def test_case(self):
+    def test_2x2_float(self):
         dout = ithv(A([[[[4, 8], [2, 3]]]]))
         w = thv(A([[[[2, 3, 0], [5, 7, 0], [0, 0, 0]]]]))
         w = w[:, :, ::-1, ::-1]
@@ -398,14 +400,14 @@ class AvgPoolDerivativeTest(DerivativeTest):
 
 class SoftmaxDerivativeTest(DerivativeTest):
 
-    def test_case1(self):
+    def test_1_output(self):
         dout = Itv.derest_output(1)
         din = d_softmax(dout)
         l, u = din.eval()
         arae(l, u)
         arae(l, A([[1]]))
 
-    def test_case2(self):
+    def test_3_outputs(self):
         dout = Itv.derest_output(3)
         din = d_softmax(dout)
         l, u = din.eval()
@@ -468,7 +470,7 @@ class NormDerivativeTest(DerivativeTest):
 
 class DropoutDerivativeTest(DerivativeTest):
 
-    def test_case1(self):
+    def test_interval_3x3n(self):
         doutl = thv([[-3, 0, 3], [3, -3, -5], [-3, -2, 1]])
         doutu = thv([[-3, 2, 3], [5, 3, 2], [-1, 3, 3]])
         idout = Itv(doutl, doutu)
@@ -482,7 +484,7 @@ class DropoutDerivativeTest(DerivativeTest):
 
 class ReluDerivativeTest(DerivativeTest):
 
-    def test_case1(self):
+    def test_4x3x2(self):
         shp = (4, 3, 2)
         act = np.zeros(shp)
         for n_in in range(4):
@@ -504,7 +506,7 @@ class ReluDerivativeTest(DerivativeTest):
         aae(l[2, 2, 0], 1.0)
         aae(l[1, 0, 1], 1.0)
 
-    def test_case2(self):
+    def test_interval(self):
         actl = thv([-2, -1, -1, 0, 0, 1])
         actu = thv([-1, 1, 0, 0, 1, 2])
         doutl = thv([2, 3, 4, 7, 11, 13])
@@ -518,7 +520,7 @@ class ReluDerivativeTest(DerivativeTest):
         arae(l, rl)
         arae(u, ru)
 
-    def test_case3(self):
+    def test_interval_negative(self):
         actl = thv([-2, -1, -1, 0, 0, 1])
         actu = thv([-1, 1, 0, 0, 1, 2])
         doutl = thv([-3, -5, -7, -11, -13, -17])
