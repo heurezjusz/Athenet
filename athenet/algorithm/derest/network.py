@@ -1,6 +1,4 @@
 from athenet.algorithm.derest.utils import change_order, add_tuples
-#import athenet.algorithm.derest.layers as derest_layers
-#import athenet.layers as layers
 from athenet.algorithm.derest.layers import *
 from athenet.layers import *
 
@@ -31,7 +29,7 @@ class DerestNetwork(object):
 
     def __init__(self, network):
         self.network = network
-        self.layers = [derest_layer(layer)
+        self.layers = [get_derest_layer(layer)
                        for layer in network.layers]
 
     def _get_layer_input_shape(self, i):
@@ -63,7 +61,5 @@ class DerestNetwork(object):
     def count_derest(self, f):
         result = []
         for layer in self.layers:
-            indices = layer.count_derest(f)
-            if indices is not None:
-                result.append(indices)
+            result.extend(layer.count_derest(f))
         return result
