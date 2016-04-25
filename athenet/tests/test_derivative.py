@@ -487,10 +487,8 @@ class ReluDerivativeTest(DerivativeTest):
     def test_4x3x2(self):
         shp = (4, 3, 2)
         act = np.zeros(shp)
-        for n_in in range(4):
-            for h in range(3):
-                for w in range(2):
-                    act[n_in, h, w] += 100 * n_in + 10 * h + w
+        ind_n_in, ind_h, ind_w = np.indices(shp)
+        act = 100 * ind_n_in + 10 * ind_h + ind_w
         thact = theano.shared(act)
         iact = Itv(thact, thact)
         thdout = theano.shared(np.ones(shp))
