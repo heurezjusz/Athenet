@@ -1,8 +1,12 @@
 import numpy
 
-from athenet.algorithm.derest.utils import change_order, add_tuples, make_iterable
-from athenet.algorithm.derest.layers import *
-from athenet.layers import *
+from athenet.algorithm.derest.utils import change_order, add_tuples,\
+    make_iterable
+from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
+    DerestReluLayer, DerestPoolLayer, DerestInceptionLayer, DerestNormLayer,\
+    DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
+from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
+    ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
 
 
 def get_derest_layer(layer):

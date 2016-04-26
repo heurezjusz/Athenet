@@ -10,24 +10,38 @@ from athenet.algorithm.numlike.interval import Interval
 from athenet.algorithm.utils import to_indicators
 
 
-def sum_max(a, b, many=False):
-    c = numpy.amax(numpy.abs(b), 0)
-    if many:
-        return a + numpy.sum(c)
-    else:
-        return a + c
+def sum_max(values):
+    """
+    :param Numlike values: values to count indicator from
+    :return: int
+    """
+    return numpy.amax(values.abs().sum().eval())
 
 
-def get_derest_indicators(network, input, count_function):
+def get_derest_indicators(network, input, count_function=sum_max):
+    """
+    Returns indicators of importance using derest algorithm
+
+    :param Network network: network to work with
+    :param Numlike input: possible input for network
+    :param function count_function: function to use
+    :return:
+    """
     n = DerestNetwork(network)
-    n.count_activations(input)
+    n.count_activations(input, True)
     output_nr = network.layers[-1].output_shape
-    n.count_derivatives(input.derest_output(output_nr))
+    n.count_derivatives(input.derest_output(output_nr), True)
     results = n.count_derest(count_function)
     return to_indicators(results)
 
 
 def derest(network, fraction, (min_value, max_value)=(0., 255.)):
+    """
+
+    :param network:
+    :param fraction:
+    :return:
+    """
     input_shape = change_order(network.layers[0].input_shape)
     input = Interval(
         theano.shared(numpy.full(input_shape, min_value)),
