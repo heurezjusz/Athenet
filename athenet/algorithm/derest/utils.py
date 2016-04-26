@@ -9,6 +9,14 @@ def change_order(a):
         return a
 
 
+def make_iterable(a):
+    try:
+        iter(a)
+        return a
+    except TypeError:
+        return (a, )
+
+
 def add_tuples(a, b):
     if not isinstance(a, tuple):
         a = (a, )

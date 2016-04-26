@@ -1,6 +1,6 @@
 import numpy
 
-from athenet.algorithm.derest.utils import change_order, add_tuples
+from athenet.algorithm.derest.utils import change_order, add_tuples, make_iterable
 from athenet.algorithm.derest.layers import *
 from athenet.layers import *
 
@@ -32,12 +32,6 @@ class DerestNetwork(object):
         self.layers = [get_derest_layer(layer)
                        for layer in network.layers]
 
-    def _get_layer_input_shape(self, i):
-        # TODO - do it better
-        if i > 0:
-            return self.layers[i - 1].layer.output_shape
-        return self.layers[i].layer.input_shape
-
     @staticmethod
     def _normalize(data):
         a = max(numpy.abs(data.amax().eval()))
@@ -47,24 +41,24 @@ class DerestNetwork(object):
         for layer in self.layers:
             if normalize:
                 inp = self._normalize(inp)
+            input_shape = change_order(make_iterable(layer.layer.input_shape))
+            inp = inp.reshape(input_shape)
             layer.activations = inp
             inp = layer.count_activation(inp)
         return inp
 
     def count_derivatives(self, outp, normalize=False):
         batches = outp.shape.eval()[0]
-        for i in range(len(self.layers) - 1, -1, -1):
+        for layer in reversed(self.layers):
             if normalize:
                 outp = self._normalize(outp)
-            input_shape = add_tuples(
-                batches,
-                change_order(self._get_layer_input_shape(i))
-            )
-            self.layers[i].derivatives = outp
-            outp = self.layers[i].count_derivatives(
-                outp,
-                input_shape
-            )
+            input_shape = add_tuples(batches,
+                                     change_order(layer.layer.input_shape))
+            output_shape = add_tuples(batches,
+                                      change_order(layer.layer.output_shape))
+            outp = outp.reshape(output_shape)
+            layer.derivatives = outp
+            outp = layer.count_derivatives(outp, input_shape)
         return outp
 
     def count_derest(self, count_function):
