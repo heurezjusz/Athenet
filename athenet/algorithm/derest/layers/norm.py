@@ -16,9 +16,6 @@ class DerestNormLayer(DerestLayer):
                       self.layer.local_range, self.layer.k,
                       self.layer.alpha, self.layer.beta)
 
-    def count_derest(self, f):
-        pass
-
 
 def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
            beta=0.75):

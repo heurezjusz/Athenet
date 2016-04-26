@@ -5,7 +5,7 @@ from athenet.algorithm.numlike import assert_numlike
 class DerestSoftmaxLayer(DerestLayer):
 
     def count_activation(self, input):
-        assert a_softmax(input, self.layer.input_shape)
+        return a_softmax(input, self.layer.input_shape)
 
     def count_derivatives(self, output, input_shape):
         return d_softmax(output)

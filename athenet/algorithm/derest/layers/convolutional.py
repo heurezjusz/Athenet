@@ -29,7 +29,7 @@ class DerestConvolutionalLayer(DerestLayer):
 
         :param Numlike layer_output: impact of input of next layer
             on output of network
-        :param input_shape:
+        :param tuple input_shape:
         :return Numlike:
         """
         return d_conv(

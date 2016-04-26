@@ -19,6 +19,15 @@ class DerestFullyConnectedLayer(DerestLayer):
         return a_fully_connected(layer_input, self.layer.W, self.layer.b)
 
     def count_derivatives(self, output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of
+        network.
+
+        :param Numlike layer_output: impact of input of next layer
+            on output of network
+        :param tuple input_shape:
+        :return Numlike:
+        """
         return d_fully_connected(output, self.layer.W, input_shape)
 
     def count_derest(self, count_function):

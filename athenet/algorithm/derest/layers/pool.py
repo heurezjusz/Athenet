@@ -15,9 +15,6 @@ class DerestPoolLayer(DerestLayer):
                       self.layer.poolsize, self.layer.stride,
                       self.layer.padding, self.layer.mode)
 
-    def count_derest(self, f):
-        pass
-
 
 def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     """Returns estimated activation of pool layer.
