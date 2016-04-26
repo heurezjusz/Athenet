@@ -69,9 +69,9 @@ class DerestNetwork(object):
             )
         return outp
 
-    def count_derest(self, f):
+    def count_derest(self, count_function):
         result = []
         for layer in self.layers:
-            indicators = layer.count_derest(f)
+            indicators = layer.count_derest(count_function)
             result.extend(indicators)
         return result
