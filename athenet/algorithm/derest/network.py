@@ -10,6 +10,11 @@ from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
 
 
 def get_derest_layer(layer):
+    """
+
+    :param Layer layer:
+    :return DerestLayer:
+    """
     if isinstance(layer, Softmax):
         return DerestSoftmaxLayer(layer)
     if isinstance(layer, ReLU):

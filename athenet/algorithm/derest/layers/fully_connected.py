@@ -9,13 +9,26 @@ from athenet.algorithm.numlike import assert_numlike
 
 class DerestFullyConnectedLayer(DerestLayer):
 
-    def count_activation(self, input):
-        return a_fully_connected(input, self.layer.W, self.layer.b)
+    def count_activation(self, layer_input):
+        """
+        Return estimated activations
+
+        :param Numlike layer_input: input for layer
+        :return Numlike:
+        """
+        return a_fully_connected(layer_input, self.layer.W, self.layer.b)
 
     def count_derivatives(self, output, input_shape):
         return d_fully_connected(output, self.layer.W, input_shape)
 
     def count_derest(self, count_function):
+        """
+        Returns indicators of each weight importance
+
+        :param function count_function: function to count indicators,
+            takes Numlike and returns float
+        :return list of numpy arrays:
+        """
         indicators = numpy.zeros_like(self.layer.W)
         nr_of_batches = self.derivatives.shape.eval()[0]
         input_shape = self.layer.input_shape

@@ -38,18 +38,36 @@ class DerestConvolutionalLayer(DerestLayer):
             self.layer.stride, self.layer.padding, self.layer.n_groups
         )
 
-    def _get_activation_for_weight(self, i1, i2, i3):
+    def _get_activation_for_weight(self, i0, i1, i2):
+        """
+        For given weight returns activations for inputs used by this weight.
+
+        :param integer i0:
+        :param interger i1:
+        :param integer i2;
+        :return Numlike: activations for weight
+        """
         n1, n2, _ = self.layer.input_shape
         m1, m2, _ = self.layer.filter_shape
         p1, p2 = self.layer.padding
         s1, s2 = self.layer.stride
-        return self.activations[i1, i2:(n1-m2+i2+1):s1, i3:(n2-m2+i3+1):s2]
+
+        #first elements
+        f1 = max(i1 - p1, 0)
+        f2 = max(i2 - p2, 0)
+
+        #last + 1 elements
+        l1 = min(n1 - m2 + 1 + i1 + p1, n1)
+        l2 = min(n2 - m2 + 1 + i2 + p2, n2)
+
+        return self.activations[i0, f1:l1:s1, f2:l2:s2]
 
     def count_derest(self, count_function):
         """
         Returns indicators of each weight importance
 
-        :param function count_function:
+        :param function count_function: function to count indicators,
+            takes Numlike and returns float
         :return list of numpy arrays:
         """
         indicators = numpy.zeros_like(self.layer.W)

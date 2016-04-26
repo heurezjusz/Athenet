@@ -5,12 +5,31 @@ class DerestLayer(object):
         self.activations = None
         self.derivatives = None
 
-    def count_activation(self, input):
+    def count_activation(self, layer_input):
+        """
+        Returns estimated activations
+
+        :param Numlike layer_input:
+        :return Numlike:
+        """
         raise NotImplementedError
 
-    def count_derivatives(self, output, input_shape):
-        #TODO - nice check if activations are done
+    def count_derivatives(self, layer_output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of network
+
+        :param Numlike layer_output:
+        :param tuple input_shape:
+        :return Numlike:
+        """
         raise NotImplementedError
 
-    def count_derest(self, f):
+    def count_derest(self, count_function):
+        """
+        Returns indicators of each weight importance
+
+        :param function count_function: function to count indicators,
+            takes Numlike and returns float
+        :return list of numpy arrays:
+        """
         return []

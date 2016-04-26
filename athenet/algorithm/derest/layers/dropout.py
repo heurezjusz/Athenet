@@ -5,9 +5,22 @@ from athenet.algorithm.numlike import assert_numlike
 class DerestDropoutLayer(DerestLayer):
 
     def count_activation(self, layer_input):
+        """
+        Returns estimated activations
+
+        :param Numlike layer_input:
+        :return Numlike:
+        """
         return a_dropout(layer_input, self.layer.p_dropout)
 
     def count_derivatives(self, layer_output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of network
+
+        :param Numlike layer_output:
+        :param tuple input_shape:
+        :return Numlike:
+        """
         return d_dropout(layer_output, self.layer.p_dropout)
 
 
