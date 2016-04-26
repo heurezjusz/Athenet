@@ -4,8 +4,6 @@ from athenet.algorithm.derest.utils import change_order, add_tuples
 from athenet.algorithm.derest.layers import *
 from athenet.layers import *
 
-# TODO - add normalization of inputs and outputs between layers in count_activations and count_derivatives
-
 
 def get_derest_layer(layer):
     if isinstance(layer, Softmax):

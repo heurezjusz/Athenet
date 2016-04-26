@@ -34,4 +34,5 @@ def derest(network, fraction, (min_value, max_value)=(0., 255.)):
         theano.shared(numpy.full(input_shape, max_value))
     )
     indicators = get_derest_indicators(network, input, sum_max)
-    delete_weights_by_global_fraction(network.weighted_layers, fraction, indicators)
+    delete_weights_by_global_fraction(network.weighted_layers,
+                                      fraction, indicators)

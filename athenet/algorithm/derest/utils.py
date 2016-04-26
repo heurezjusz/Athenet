@@ -15,5 +15,3 @@ def add_tuples(a, b):
     if not isinstance(b, tuple):
         b = (b, )
     return a + b
-
-
