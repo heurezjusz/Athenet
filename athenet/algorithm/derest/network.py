@@ -1,3 +1,5 @@
+import numpy
+
 from athenet.algorithm.derest.utils import change_order, add_tuples
 from athenet.algorithm.derest.layers import *
 from athenet.layers import *
@@ -38,15 +40,24 @@ class DerestNetwork(object):
             return self.layers[i - 1].layer.output_shape
         return self.layers[i].layer.input_shape
 
-    def count_activations(self, inp):
+    @staticmethod
+    def _normalize(data):
+        a = max(numpy.abs(data.amax().eval()))
+        return data / a
+
+    def count_activations(self, inp, normalize=False):
         for layer in self.layers:
+            if normalize:
+                inp = self._normalize(inp)
             layer.activations = inp
             inp = layer.count_activation(inp)
         return inp
 
-    def count_derivatives(self, outp):
+    def count_derivatives(self, outp, normalize=False):
         batches = outp.shape.eval()[0]
         for i in range(len(self.layers) - 1, -1, -1):
+            if normalize:
+                outp = self._normalize(outp)
             input_shape = add_tuples(
                 batches,
                 change_order(self._get_layer_input_shape(i))
@@ -61,5 +72,6 @@ class DerestNetwork(object):
     def count_derest(self, f):
         result = []
         for layer in self.layers:
-            result.extend(layer.count_derest(f))
+            indicators = layer.count_derest(f)
+            result.extend(indicators)
         return result

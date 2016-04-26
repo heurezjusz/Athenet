@@ -8,8 +8,8 @@ class DerestReluLayer(DerestLayer):
         return a_relu(input)
 
     def count_derivatives(self, output, input_shape):
-        assert self.activation is not None
-        return d_relu(output, self.activation)
+        assert self.activations is not None
+        return d_relu(output, self.activations)
 
 
 def a_relu(layer_input):

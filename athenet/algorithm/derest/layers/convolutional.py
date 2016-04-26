@@ -43,7 +43,7 @@ class DerestConvolutionalLayer(DerestLayer):
                 indicators[j1, j2, j3, j4] = f(indicators[j1, j2, j3, j4],
                                                x, True)
 
-        return indicators
+        return [indicators]
 
 
 def a_conv(layer_input, image_shape, weights, filter_shape, biases,
