@@ -100,8 +100,8 @@ class Results(object):
         return sum(zeros), error_rate
 
     def _sum_zeros(self, layers=None):
-        return {config : self._sum_zeros_in_test(test, layers)
-                            for config, test in self.tests.iteritems()}
+        return {config: self._sum_zeros_in_test(test, layers)
+                for config, test in self.tests.iteritems()}
 
     def get_zeros_fraction(self, layers=None):
         """
