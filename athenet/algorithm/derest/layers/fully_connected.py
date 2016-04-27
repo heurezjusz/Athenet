@@ -1,7 +1,5 @@
 import numpy
-
 from itertools import product
-    
 
 from athenet.algorithm.derest.layers import DerestLayer
 from athenet.algorithm.numlike import assert_numlike
