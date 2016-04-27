@@ -8,7 +8,7 @@ from athenet.layers import Layer
 
 class LRN(Layer):
     """Local Response Normalization layer."""
-    def __init__(self, local_range=5, k=1, alpha=0.0002, beta=0.75,
+    def __init__(self, local_range=5, k=1, alpha=0.0001, beta=0.75,
                  input_layer_name=None, name='lrn'):
         """Create Local Response Normalization layer.
 

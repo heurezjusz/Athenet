@@ -96,7 +96,22 @@ class Layer(object):
         self.input_shape = input_layer.output_shape
 
         self.input = input_layer.output
-        self.train_input = input_layer.train_output
+        if input_layer.train_output is not None:
+            self.train_input = input_layer.train_output
+
+    def set_params(self, params):
+        """Set layer's weights and biases, if it has any.
+
+        :param params: Weights and biases. Exact format depends on layer type.
+        """
+        pass
+
+    def get_params(self, params):
+        """Get layer's weights and biases, if it has any.
+
+        :returns: Weights and biases. Exact format depends on layer type.
+        """
+        pass
 
 
 class WeightedLayer(Layer):
@@ -127,13 +142,6 @@ class WeightedLayer(Layer):
     def b(self, value):
         self.b_shared.set_value(value)
 
-    def set_params(self, params):
-        """Set layer's weights and biases.
-
-        :param params: Weights and biases. Exact format depends on layer type.
-        """
-        pass
-
     def alloc_velocity(self):
         """Create velocity tensors for weights and biases.
 
@@ -153,3 +161,9 @@ class WeightedLayer(Layer):
         """Remove velocity tensors."""
         self.W_velocity = None
         self.b_velocity = None
+
+    def set_params(self, params):
+        self.W, self.b = params
+
+    def get_params(self, params):
+        return self.W, self.b

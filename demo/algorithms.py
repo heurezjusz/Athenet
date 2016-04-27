@@ -16,8 +16,8 @@ from athenet.utils import run_algorithm, plot_2d_results
 
 
 parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
-                  description="Runs chosen algorithm on chosen type of network"
-                  " and prints results.")
+                                 description="Runs chosen algorithm on chosen "
+                                 "type of network and prints results.")
 
 parser.add_argument("-a", "--algorithm",
                     help="Chooses algorithm of which result will be "
@@ -25,8 +25,9 @@ parser.add_argument("-a", "--algorithm",
                          "(shortcut: called function):\n"
                          " * sender: simple_neuron_deleter (default)\n"
                          " * sender2: simple_neuron_deleter2\n"
-                         " * rat: sparsify_smallest_on_network",
-                    choices=["sender", "sender2", "rat"],
+                         " * rat: sparsify_smallest_on_network\n"
+                         " * filters: sharpen_filters",
+                    choices=["sender", "sender2", "rat", "filters"],
                     default="sender")
 
 parser.add_argument("-n", "--network",
@@ -53,7 +54,8 @@ parser.add_argument("-d", "--dataset", type=int,
                          "Amount of datasets depends on algorithm:\n"
                          " * simple_neuron_deleter (sender): 2\n"
                          " * simple_neuron_deleter2 (sender2): 2\n"
-                         " * sparsify_smallest_on_network (rat): 3\n",
+                         " * sparsify_smallest_on_network (rat): 3\n"
+                         " * sharpen_filters (filters): 3\n",
                     default=0)
 
 
@@ -74,7 +76,7 @@ network = get_network(args.network)
 ok()
 
 print "generating results..."
-results = run_algorithm(network, algorithm, dataset)
+results = run_algorithm(network, algorithm, dataset, verbose=True)
 ok()
 
 for config in dataset:
