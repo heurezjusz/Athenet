@@ -100,8 +100,8 @@ class Results(object):
         return sum(zeros), error_rate
 
     def _sum_zeros(self, layers=None):
-        return numpy.array([self._sum_zeros_in_test(test, layers)
-                            for test in self.tests.itervalues()])
+        return {config : self._sum_zeros_in_test(test, layers)
+                            for config, test in self.tests.iteritems()}
 
     def get_zeros_fraction(self, layers=None):
         """
@@ -114,8 +114,8 @@ class Results(object):
         """
         results = self._sum_zeros(layers)
         number_of_weights = sum(self._get_number_of_weights(layers))
-        return [(float(zeros) / number_of_weights, error_rate)
-                for zeros, error_rate in results]
+        return {config: (float(zeros) / number_of_weights, error_rate)
+                for config, (zeros, error_rate) in results.iteritems()}
 
     def get_zeros_fraction_in_conv_layers(self):
         """
