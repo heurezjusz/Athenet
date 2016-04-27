@@ -115,7 +115,7 @@ def check_params(net, p, layer_limit):
     return all_deleted / 1. / all_neurons <= p
 
 
-class TestAlgorithms(TestCase):
+class TestSenders(TestCase):
     def test_sender(self):
         params = [((0.4, 0.5), (0.4, 0.5)),
                   ((1., 0.5), (0.5, 0.5)),
@@ -125,7 +125,7 @@ class TestAlgorithms(TestCase):
 
         for config, (check_p, check_layer_limit) in params:
             net = get_prepared_network()
-            simple_neuron_deleter(net, config)
+            simple_neuron_deleter(net, *config)
             self.assertTrue(check_params(net, check_p, check_layer_limit))
             self.assertTrue(net.weighted_layers[-1].W[3][0] != 0)
 
@@ -138,7 +138,7 @@ class TestAlgorithms(TestCase):
 
         for config, (check_p, check_layer_limit) in params:
             net = get_prepared_network()
-            simple_neuron_deleter2(net, config)
+            simple_neuron_deleter2(net, *config)
             self.assertTrue(check_params(net, check_p, check_layer_limit))
             self.assertTrue(net.weighted_layers[-1].W[3][0] != 0)
 
