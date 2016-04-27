@@ -79,7 +79,7 @@ def get_filters_indicators(layers, bilateral_filter_args):
         if len(layer.W.shape) == 4])  # only layers with 3d filters
 
 
-def sharpen_filters(network, fraction, filters_importance,
+def sharpen_filters(network, fraction, filters_importance=1.,
                     bilateral_filter_args=(5, 75, 75)):
     """
     Delete weights in network.
@@ -94,11 +94,12 @@ def sharpen_filters(network, fraction, filters_importance,
     :param tuple bilateral_filter_args: args for filter algorithm
     """
 
+    assert filters_importance > 0
+
     layers = [layer for layer in network.convolutional_layers]
     filter_indicators = get_filters_indicators(layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(layers)
-    delete_weights_by_layer_fractions(
-        layers, fraction,
-        (filter_indicators ** filters_importance) * smallest_indicators
-    )
+    indicators = (filter_indicators ** (1. / filters_importance))\
+                 * smallest_indicators
+    delete_weights_by_layer_fractions(layers, fraction, indicators)
