@@ -277,8 +277,8 @@ class Interval(Numlike):
         return Interval(l, u)
 
     def dot(self, other):
-        """Returns dot product of Interval(self) vector and a number array or Interval
-        (other).
+        """Returns dot product of Interval(self) vector and a number array
+        or Interval (other).
 
         :param Interval or numpy.ndarray or theano.tensor other: array to be
                                                      multiplied
