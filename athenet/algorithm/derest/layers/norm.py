@@ -5,14 +5,27 @@ from athenet.algorithm.derest.utils import change_order
 
 class DerestNormLayer(DerestLayer):
 
-    def count_activation(self, input):
-        return a_norm(input, change_order(self.layer.input_shape),
+    def count_activation(self, layer_input):
+        """
+        Returns estimated activations
+
+        :param Numlike layer_input:
+        :return Numlike:
+        """
+        return a_norm(layer_input, change_order(self.layer.input_shape),
                       self.layer.local_range, self.layer.k,
                       self.layer.alpha, self.layer.beta)
 
-    def count_derivatives(self, output, input_shape):
+    def count_derivatives(self, layer_output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of network
+
+        :param Numlike layer_output:
+        :param tuple input_shape:
+        :return Numlike:
+        """
         assert(self.activations is not None)
-        return d_norm(output, self.activations, input_shape,
+        return d_norm(layer_output, self.activations, input_shape,
                       self.layer.local_range, self.layer.k,
                       self.layer.alpha, self.layer.beta)
 

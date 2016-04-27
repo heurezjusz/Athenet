@@ -5,13 +5,26 @@ from athenet.algorithm.derest.utils import change_order
 
 class DerestPoolLayer(DerestLayer):
 
-    def count_activation(self, input):
-        return a_pool(input, change_order(self.layer.input_shape),
+    def count_activation(self, layer_input):
+        """
+        Returns estimated activations
+
+        :param Numlike layer_input:
+        :return Numlike:
+        """
+        return a_pool(layer_input, change_order(self.layer.input_shape),
                       self.layer.poolsize, self.layer.stride, self.layer.mode)
 
-    def count_derivatives(self, output, input_shape):
+    def count_derivatives(self, layer_output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of network
+
+        :param Numlike layer_output:
+        :param tuple input_shape:
+        :return Numlike:
+        """
         assert(self.activations is not None)
-        return d_pool(output, self.activations, input_shape,
+        return d_pool(layer_output, self.activations, input_shape,
                       self.layer.poolsize, self.layer.stride,
                       self.layer.padding, self.layer.mode)
 
