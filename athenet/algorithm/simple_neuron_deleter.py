@@ -12,14 +12,13 @@ from athenet.layers import FullyConnectedLayer
 from athenet.algorithm.utils import list_of_percentage_rows, delete_row
 
 
-def simple_neuron_deleter(network, config):
+def simple_neuron_deleter(network, p, layer_limit):
     """
-        :network: - an instance of athenet.Network.
-        :config: - tuple of 2 foats, p and layer_limit
-        :p, layer_limit: - floats between 0 and 1. [p] reprezents the fraction
-        of neurons to be deleted from fully connected layers, [layer_limit]
-        is maximum fraction of neurons which will be deleted from single
-        layer.
+        :param network: an instance of athenet.Network.
+        :param p: float between 0 and 1, represents the fraction
+        of neurons to be deleted from fully connected layers
+        :param layer_limit: float between 0 and 1, maximum fraction of neurons
+        which will be deleted from single layer.
 
         Modifies [network]. Deletes [p] neurons from layers connected direclty
         to fully connected layer's. Do not delete more than [layer_limit]
@@ -31,7 +30,6 @@ def simple_neuron_deleter(network, config):
         form to it by 0. In athenet.network they are reprezented as rows
         of next layer's weights matrix.
     """
-    p, layer_limit = config
     assert p >= 0. and p <= 1.
     assert layer_limit >= 0. and layer_limit <= 1.
     if layer_limit < p:

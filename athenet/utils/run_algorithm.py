@@ -29,10 +29,14 @@ def run_test(network, algorithm, config):
 
     :param Network network: network
     :param function algorithm: algorithm changing network
-    :param float or tuple config: parameters for algorithm
+    :param float or iterable config: parameters for algorithm
     :return tuple(int, float): number of zeros and error rate
     """
-    algorithm(network, config)
+    try:
+        algorithm(network, *config)
+    except TypeError:
+        algorithm(network, config)
+
     zeros = count_zeros(network)
     return zeros, get_error_rate(network)
 
