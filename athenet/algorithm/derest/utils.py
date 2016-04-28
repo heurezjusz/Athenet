@@ -5,7 +5,7 @@ def change_order(a):
     """
     try:
         return (a[-1], ) + a[:-1]
-    except TypeError:
+    except:
         return a
 
 
