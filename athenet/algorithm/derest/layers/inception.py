@@ -1,9 +1,10 @@
-import theano.tensor as T
 from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
-    DerestReluLayer, DerestPoolLayer, DerestNormLayer,\
+    DerestReluLayer, DerestPoolLayer, DerestNormLayer, DerestLayer, \
     DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
 from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
     ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
+from athenet.algorithm.derest.utils import change_order, make_iterable
+
 
 def get_derest_layer(layer):
     """
@@ -44,17 +45,30 @@ class DerestInceptionLayer(DerestLayer):
             self.derest_layer_lists.append(derest_layer_list)
 
     def count_activation(self, input):
-        results = None
+        print "<count actovation>", input.shape
+        #results = None
+        results = []
+
         for derest_layer_list in self.derest_layer_lists:
             inp = input
+            print "\033[31mNEW LIST\033[39m"
             for derest_layer in derest_layer_list:
+                print "put counting activation to ", derest_layer
+                print "shape: ", inp.shape
+                input_shape = change_order(make_iterable(derest_layer.layer.input_shape))
+                print "layer.input_shape: ", input_shape
+                inp = inp.reshape(input_shape)
+                print "shape after: ", inp.shape
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
-            if results is None:
-                results = inp
-            else:
-                results = results.concat(inp)
-        return results
+
+            results.append(inp)
+            #if results is None:
+            #    results = inp[0]
+            #else:
+            #    results = results.concat(inp[0])
+
+        return results[3]#.concat(results[1])
 
     def count_derivatives(self, output, input_shape):
         output_list = []

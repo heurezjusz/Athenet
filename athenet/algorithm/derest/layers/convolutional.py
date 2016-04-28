@@ -19,7 +19,8 @@ class DerestConvolutionalLayer(DerestLayer):
         return a_conv(
             layer_input, change_order(self.layer.input_shape),
             self.layer.W, change_order(self.layer.filter_shape),
-            theano.shared(self.layer.b), self.layer.stride, self.layer.padding
+            theano.shared(self.layer.b), self.layer.stride, self.layer.padding,
+            self.layer.n_groups
         )
 
     def count_derivatives(self, layer_output, input_shape):
@@ -118,6 +119,7 @@ def a_conv(layer_input, image_shape, weights, filter_shape, biases,
     """
     assert_numlike(layer_input)
     try:
+        print "n_groups = ", n_groups
         return layer_input.op_conv(weights, image_shape, filter_shape, biases,
                                    stride, padding, n_groups)
     except NotImplementedError:
