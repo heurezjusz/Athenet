@@ -9,41 +9,78 @@ from athenet.algorithm.numlike import assert_numlike
 
 class DerestConvolutionalLayer(DerestLayer):
 
-    def count_activation(self, input):
+    def count_activation(self, layer_input):
+        """
+        Return estimated activations
+
+        :param Numlike layer_input: input for layer
+        :return Numlike:
+        """
         return a_conv(
-            input, change_order(self.layer.input_shape),
+            layer_input, change_order(self.layer.input_shape),
             self.layer.W, change_order(self.layer.filter_shape),
             theano.shared(self.layer.b), self.layer.stride, self.layer.padding
         )
 
-    def count_derivatives(self, output, input_shape):
+    def count_derivatives(self, layer_output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of
+        network.
+
+        :param Numlike layer_output: impact of input of next layer
+            on output of network
+        :param tuple input_shape:
+        :return Numlike:
+        """
         return d_conv(
-            output, input_shape,
+            layer_output, input_shape,
             change_order(self.layer.filter_shape), self.layer.W,
             self.layer.stride, self.layer.padding, self.layer.n_groups
         )
 
-    def _get_activation_for_weight(self, i1, i2, i3):
-        #no padding or strides yet considered
+    def _get_activation_for_weight(self, i0, i1, i2):
+        """
+        For given weight returns activations for inputs used by this weight.
+
+        :param integer i0:
+        :param interger i1:
+        :param integer i2;
+        :return Numlike: activations for weight
+        """
         n1, n2, _ = self.layer.input_shape
         m1, m2, _ = self.layer.filter_shape
-        return self.activations[i1, i2:(n1-m2+i2+1), i3:(n2-m2+i3+1)]
+        p1, p2 = self.layer.padding
+        s1, s2 = self.layer.stride
 
-    def count_derest(self, f):
+        #first elements
+        f1 = max(i1 - p1, 0)
+        f2 = max(i2 - p2, 0)
+
+        #last + 1 elements
+        l1 = min(n1 - m2 + 1 + i1 + p1, n1)
+        l2 = min(n2 - m2 + 1 + i2 + p2, n2)
+
+        return self.activations[i0, f1:l1:s1, f2:l2:s2]
+
+    def count_derest(self, count_function):
+        """
+        Returns indicators of each weight importance
+
+        :param function count_function: function to count indicators,
+            takes Numlike and returns float
+        :return list of numpy arrays:
+        """
         indicators = numpy.zeros_like(self.layer.W)
 
         i0, i1, i2, i3 = self.layer.W.shape
-        for batch_nr in range(self.derivatives.shape.eval()[0]):
-            # for every batch
-            der = self.derivatives[batch_nr]
-            for j1, j2, j3, j4 in product(range(i0), range(i1),
-                                          range(i2), range(i3)):
-                y = self._get_activation_for_weight(j2, j3, j4)
-                x = (der[j1] * y * self.layer.W[j1, j2, j3, j4]).eval()
-                indicators[j1, j2, j3, j4] = f(indicators[j1, j2, j3, j4],
-                                               x, True)
+        for j1, j2, j3, j4 in product(range(i0), range(i1),
+                                      range(i2), range(i3)):
+            act = self._get_activation_for_weight(j2, j3, j4)
+            der = self.derivatives[:, j1]
+            inf = der * act * self.layer.W[j1, j2, j3, j4]
+            indicators[j1, j2, j3, j4] = count_function(inf.sum((1, 2)))
 
-        return indicators
+        return [indicators]
 
 
 def a_conv(layer_input, image_shape, weights, filter_shape, biases,

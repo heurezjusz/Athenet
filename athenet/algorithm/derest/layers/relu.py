@@ -4,12 +4,25 @@ from athenet.algorithm.numlike import assert_numlike
 
 class DerestReluLayer(DerestLayer):
 
-    def count_activation(self, input):
-        return a_relu(input)
+    def count_activation(self, layer_input):
+        """
+        Returns estimated activations
 
-    def count_derivatives(self, output, input_shape):
-        assert self.activation is not None
-        return d_relu(output, self.activation)
+        :param Numlike layer_input:
+        :return Numlike:
+        """
+        return a_relu(layer_input)
+
+    def count_derivatives(self, layer_output, input_shape):
+        """
+        Returns estimated impact of input of layer on output of network
+
+        :param Numlike layer_output:
+        :param tuple input_shape:
+        :return Numlike:
+        """
+        assert self.activations is not None
+        return d_relu(layer_output, self.activations)
 
 
 def a_relu(layer_input):

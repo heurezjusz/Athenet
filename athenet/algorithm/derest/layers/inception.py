@@ -1,11 +1,18 @@
 import theano.tensor as T
-from athenet.algorithm.derest.layers import DerestReluLayer, DerestLayer, \
-    DerestConvolutionalLayer, DerestPoolLayer, DerestFullyConnectedLayer, \
-    DerestNormLayer, DerestSoftmaxLayer, DerestDropoutLayer
-from athenet.layers import *
-
+from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
+    DerestReluLayer, DerestPoolLayer, DerestNormLayer,\
+    DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
+from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
+    ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
 
 def get_derest_layer(layer):
+    """
+    Return derest layer on which we can count activations, derivatives
+        and derest algorithm
+
+    :param Layer layer: network's original layer
+    :return DerestLayer: new better derest layer
+    """
     if isinstance(layer, Softmax):
         return DerestSoftmaxLayer(layer)
     if isinstance(layer, ReLU):
