@@ -28,8 +28,10 @@ def eval_tensor_on_layers(layer1, layer2, tensor):
 
 
 def testa():
-    dummy_layer = ConvolutionalLayer((1,1,1),(10,10,1))
-    input = np.ones((1, 1, 10, 10), dtype=theano.config.floatX)
+    n = 10
+    
+    dummy_layer = ConvolutionalLayer((1,1,1),(n,n,1))
+    input = np.ones((1, 1, n, n), dtype=theano.config.floatX)
     dummy_layer.input = input
     layer = InceptionLayer([1,2,3,4,5,6])
     layer.input_layer = dummy_layer
@@ -42,17 +44,17 @@ def testa():
     print layer.input_shape
     derest_layer = get_derest_layer(layer)
     print "Derest layer exist"
-    act = Interval(np.zeros((1,10,10)), np.ones((1,10,10)))
+    act = Interval(np.zeros((1,n,n)), np.ones((1,n,n)))
 
     a = T.tensor3(name = "llower", dtype=theano.config.floatX)
     b = T.tensor3(name="lupper", dtype=theano.config.floatX)
     act_in_theory = Interval(a,b)
     out_in_theory = derest_layer.count_activation(act_in_theory)
-    #foo = theano.function([a,b], out_in_theory.eval())
     print "run!"
-    res = [r.eval({b: act.upper, a:act.lower}) for r in out_in_theory]
+    res = [r.eval({b: act.upper, a:act.lower})[0] for r in out_in_theory]
     print res
-    print layer.output_shape
+    shapes = [r.shape for r in res]
+    print shapes
 
 
 def test_numlike():

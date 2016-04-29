@@ -46,10 +46,13 @@ class DerestInceptionLayer(DerestLayer):
 
     def count_activation(self, input):
         print "<count actovation>", input.shape
-        #results = None
         results = []
+        results = None
 
+        i = 0
         for derest_layer_list in self.derest_layer_lists:
+            if i == 4:
+                break
             inp = input
             print "\033[31mNEW LIST\033[39m"
             for derest_layer in derest_layer_list:
@@ -62,14 +65,15 @@ class DerestInceptionLayer(DerestLayer):
                 print "shape after: ", inp.shape
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
+            i += 1
 
-            results.append(inp)
-            #if results is None:
-            #    results = inp[0]
-            #else:
-            #    results = results.concat(inp[0])
+            #results.append(inp)
+            if results is None:
+                results = inp
+            else:
+                results = results.concat(inp)
 
-        return [results[0].concat(results[1])]#.concat(results[1])
+        return [results]
 
     def count_derivatives(self, output, input_shape):
         output_list = []
