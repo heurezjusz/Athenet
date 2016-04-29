@@ -3,10 +3,10 @@ from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
     DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
 from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
     ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
-from athenet.algorithm.derest.utils import change_order, make_iterable
+from athenet.algorithm.derest.utils import derest_normalize
 
 
-def get_derest_layer(layer):
+def get_derest_layer(layer, normalize=False):
     """
     Return derest layer on which we can count activations, derivatives
         and derest algorithm
@@ -50,6 +50,8 @@ class DerestInceptionLayer(DerestLayer):
         for derest_layer_list in self.derest_layer_lists:
             inp = input
             for derest_layer in derest_layer_list:
+                if self.normalize:
+                    inp = derest_normalize(inp)
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
 
