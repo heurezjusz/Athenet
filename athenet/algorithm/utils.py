@@ -44,14 +44,7 @@ def clever_max(weights):
         return np.amax([clever_max(w) for w in weights])
 
 
-def to_indicator(weights):
-    weights = abs(np.array(weights))
-    max_value = clever_max(weights)
-    return 1. - weights/max_value
-
-
 def to_indicators(weights):
-    return [to_indicator(w) for w in weights]
-
-
-
+    weights = [np.abs(w) for w in weights]
+    max_value = clever_max(weights)
+    return [1. - w / max_value for w in weights]
