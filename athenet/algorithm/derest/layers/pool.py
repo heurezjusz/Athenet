@@ -13,7 +13,8 @@ class DerestPoolLayer(DerestLayer):
         :return Numlike:
         """
         return a_pool(layer_input, change_order(self.layer.input_shape),
-                      self.layer.poolsize, self.layer.stride, self.layer.mode)
+                      self.layer.poolsize, self.layer.stride,
+                      self.layer.padding, self.layer.mode)
 
     def count_derivatives(self, layer_output, input_shape):
         """
@@ -29,7 +30,8 @@ class DerestPoolLayer(DerestLayer):
                       self.layer.padding, self.layer.mode)
 
 
-def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
+def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
+           mode="max"):
     """Returns estimated activation of pool layer.
 
     :param Numlike layer_input: Numlike input in input_shp format
@@ -48,6 +50,12 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     # n_in, h, w - number of input channels, image height, image width
     n_in, h, w = input_shp
     n_out = n_in
+
+    # padding
+    pad_h, pad_w = padding
+    h += 2 * pad_h
+    w += 2 * pad_w
+
     # fh, fw - pool height, pool width
     fh, fw = poolsize
     stride_h, stride_w = stride
