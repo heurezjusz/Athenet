@@ -57,7 +57,8 @@ class DerestInceptionLayer(DerestLayer):
                 print "shape: ", inp.shape
                 input_shape = change_order(make_iterable(derest_layer.layer.input_shape))
                 print "layer.input_shape: ", input_shape
-                inp = inp.reshape(input_shape)
+                print "layer.output_shape: ", derest_layer.layer.output_shape
+                #inp = inp.reshape(input_shape)
                 print "shape after: ", inp.shape
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
@@ -68,7 +69,7 @@ class DerestInceptionLayer(DerestLayer):
             #else:
             #    results = results.concat(inp[0])
 
-        return results[3]#.concat(results[1])
+        return [results[0].concat(results[1])]#.concat(results[1])
 
     def count_derivatives(self, output, input_shape):
         output_list = []
