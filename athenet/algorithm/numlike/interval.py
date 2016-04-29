@@ -465,8 +465,6 @@ class Interval(Numlike):
                 return self.lower, self.upper
         keys = eval_map.keys()
         values = eval_map.values()
-        print "keys", keys
-        print "values", values
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
         return rlower, rupper

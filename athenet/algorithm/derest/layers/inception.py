@@ -45,29 +45,14 @@ class DerestInceptionLayer(DerestLayer):
             self.derest_layer_lists.append(derest_layer_list)
 
     def count_activation(self, input):
-        print "<count actovation>", input.shape
-        results = []
         results = None
 
-        i = 0
         for derest_layer_list in self.derest_layer_lists:
-            if i == 4:
-                break
             inp = input
-            print "\033[31mNEW LIST\033[39m"
             for derest_layer in derest_layer_list:
-                print "put counting activation to ", derest_layer
-                print "shape: ", inp.shape
-                input_shape = change_order(make_iterable(derest_layer.layer.input_shape))
-                print "layer.input_shape: ", input_shape
-                print "layer.output_shape: ", derest_layer.layer.output_shape
-                #inp = inp.reshape(input_shape)
-                print "shape after: ", inp.shape
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
-            i += 1
 
-            #results.append(inp)
             if results is None:
                 results = inp
             else:
