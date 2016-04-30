@@ -93,7 +93,7 @@ class DerestInceptionLayer(DerestLayer):
             else:
                 result += out
 
-        return [result]
+        return result
 
     def count_derest(self, f):
         results = []
