@@ -3,7 +3,6 @@ from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
     DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
 from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
     ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
-from athenet.algorithm.derest.utils import derest_normalize
 
 
 def get_derest_layer(layer, normalize=False):
@@ -44,14 +43,19 @@ class DerestInceptionLayer(DerestLayer):
                 derest_layer_list.append(get_derest_layer(l))
             self.derest_layer_lists.append(derest_layer_list)
 
+    @staticmethod
+    def _normalize(data):
+        a = data.max(-data).amax()
+        return data / a
+
     def count_activation(self, input):
         results = None
 
         for derest_layer_list in self.derest_layer_lists:
             inp = input
             for derest_layer in derest_layer_list:
-                if self.normalize:
-                    inp = derest_normalize(inp)
+                if self.normalize_activations:
+                    inp = self._normalize(inp)
                 derest_layer.activation = inp
                 inp = derest_layer.count_activation(inp)
 
