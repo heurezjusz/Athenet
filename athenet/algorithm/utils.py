@@ -35,3 +35,16 @@ def delete_row(layer, i):
     W = layer.W
     W[i] = 0.
     layer.W = W
+
+
+def clever_max(weights):
+    try:
+        return np.amax(weights)
+    except ValueError:
+        return np.amax([clever_max(w) for w in weights])
+
+
+def to_indicators(weights):
+    weights = abs(np.array(weights))
+    max_value = clever_max(weights)
+    return 1. - weights/max_value
