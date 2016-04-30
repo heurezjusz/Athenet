@@ -87,6 +87,9 @@ class DerestInceptionLayer(DerestLayer):
             for derest_layer in reversed(derest_list):
                 print derest_layer
                 print derest_layer.layer.output_shape
+
+                if self.normalize_derivatives:
+                    out = self._normalize(out)
                 derest_layer.derivatives = out
                 local_input_shape = add_tuples(
                     batches, change_order(derest_layer.layer.input_shape))
