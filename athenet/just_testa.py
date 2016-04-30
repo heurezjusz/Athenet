@@ -1,9 +1,8 @@
-# from athenet.network import Network
 from athenet.layers import InceptionLayer, ConvolutionalLayer
-import theano
 from athenet.algorithm.derest.network import get_derest_layer
+from athenet.algorithm.derest.utils import change_order, add_tuples
 from athenet.algorithm.numlike import Nplike, Interval
-# from athenet.algorithm.numlike.interval import Interval
+import theano
 import theano.tensor as T
 
 import numpy as np
@@ -37,13 +36,14 @@ def testa():
     layer.input_layer = dummy_layer
 
     print "Layer exists"
-    print eval_tensor_on_layers(dummy_layer, layer, input)
+    eval_tensor_on_layers(dummy_layer, layer, input)
 
     print "Layer evaluated"
     print layer.output_shape
     print layer.input_shape
     derest_layer = get_derest_layer(layer)
     print "Derest layer exist"
+    derest_layer.normalize = True
     act = Interval(np.zeros((1,n,n)), np.ones((1,n,n)))
 
     a = T.tensor3(name = "llower", dtype=theano.config.floatX)
@@ -55,6 +55,26 @@ def testa():
     print res
     shapes = [r.shape for r in res]
     print shapes
+
+    da = T.tensor4(name="ochlower", dtype=theano.config.floatX)
+    db = T.tensor4(name="ochupper", dtype=theano.config.floatX)
+    print "and now test derivatives..."
+
+    batches = 1
+    input_shape = theano.shared(add_tuples(batches,
+                             change_order(derest_layer.layer.input_shape)))
+    output_shape = add_tuples(batches,
+                              change_order(derest_layer.layer.output_shape))
+    der_in_theory = Interval(da,db)
+
+    layer.derivatives = der_in_theory
+    derivatives_in_theory = derest_layer.count_derivatives(der_in_theory, input_shape)
+    der_low = np.ones(output_shape)
+    der_up = 2 * np.ones(output_shape)
+    print output_shape
+    res = derivatives_in_theory.eval({da:der_low, db:der_up})[0]
+    print res
+    print res.shape
 
 
 def test_numlike():

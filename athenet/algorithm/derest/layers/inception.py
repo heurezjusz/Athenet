@@ -50,9 +50,10 @@ class DerestInceptionLayer(DerestLayer):
         for derest_layer_list in self.derest_layer_lists:
             inp = input
             for derest_layer in derest_layer_list:
-                if self.normalize:
-                    inp = derest_normalize(inp)
-                derest_layer.activation = inp
+                #do not work for a moment
+                #if self.normalize:
+                #    inp = derest_normalize(inp)
+                derest_layer.activations = inp
                 inp = derest_layer.count_activation(inp)
 
             if results is None:
@@ -66,22 +67,31 @@ class DerestInceptionLayer(DerestLayer):
         output_list = []
         last = 0
         for layer in self.layer.top_layers:
-            width = layer.output_shape[1]
-            output_list.append(output[:, last : (last + width), ::])
-            last += width
+            channels = layer.output_shape[2]
+            output_list.append(output[:, last : (last + channels), ::])
+            last += channels
 
         result = None
-        for output, derest_list in zip(output, self.derest_layer_lists):
+        result = []
+        i = 0
+        for output, derest_list in zip(output_list, self.derest_layer_lists):
+            if i == 1:
+                break
             out = output
             for derest_layer in reversed(derest_list):
-                out = derest_list.count_derivatives(out)
+                print derest_layer
                 derest_layer.derivatives = out
-            if result is None:
-                result = out
-            else:
-                result += out
+                out = derest_layer.count_derivatives(out, input_shape)
+                return out
 
-        return result
+            result.append(out)
+            i += 1
+            #if result is None:
+            #    result = out
+            #else:
+            #    result += out
+
+        return result[0]
 
     def count_derest(self, f):
         results = []

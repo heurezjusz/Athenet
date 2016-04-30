@@ -465,6 +465,8 @@ class Interval(Numlike):
                 return self.lower, self.upper
         keys = eval_map.keys()
         values = eval_map.values()
+        print "keys = ", keys
+        print "values = ", values
         f = function(keys, [self.lower, self.upper])
         rlower, rupper = f(*values)
         return rlower, rupper
@@ -1071,12 +1073,24 @@ class Interval(Numlike):
             rev_pad_h = fh - 1 - pad_h
             rev_pad_w = fw - 1 - pad_w
             rev_padding = (rev_pad_h, rev_pad_w)
+
+            try:
+                print "\033[31m output.lower dim: ", output.lower.ndim
+            except ValueError:
+                pass
+
             output_lower = \
                 misc_reshape_for_padding(output.lower, rev_image_shape,
                                          n_batches, rev_padding)
             output_upper = \
                 misc_reshape_for_padding(output.upper, rev_image_shape,
                                          n_batches, rev_padding)
+
+            try:
+                print "\033[31m output_lower dim: ", output_lower.ndim
+            except ValueError:
+                pass
+
             res_low_pos = convolution(output_lower, rev_weights_pos, stride,
                                       n_groups, rev_image_shape,
                                       rev_padding, n_batches, rev_filter_shape)

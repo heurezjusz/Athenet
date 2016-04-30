@@ -18,8 +18,8 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
+            layer.normalize = normalize
             if normalize:
-                layer.normalize = normalize
                 inp = derest_normalize(inp)
             input_shape = change_order(make_iterable(layer.layer.input_shape))
             inp = inp.reshape(input_shape)
@@ -37,8 +37,8 @@ class DerestNetwork(object):
         """
         batches = outp.shape.eval()[0]
         for layer in reversed(self.layers):
+            layer.normalize = normalize
             if normalize:
-                layer.normalize = normalize
                 outp = derest_normalize(outp)
             input_shape = add_tuples(batches,
                                      change_order(layer.layer.input_shape))
