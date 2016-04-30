@@ -294,12 +294,9 @@ class MaxPoolDerivativeTest(DerivativeTest2):
         doutu = theano.shared(doutu)
         iinp = Itv(inpl, inpu)
         idout = Itv(doutl, doutu)
-        print 'making din'
         din = d_pool(idout, iinp, shp, poolsize=(3, 3), padding=(1, 1),
                      stride=(1, 1), mode='max')
-        print 'din ready'
         l, u = din.eval()
-        print 'din evaled'
         # arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
         # arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
 
