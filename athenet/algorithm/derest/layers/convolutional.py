@@ -33,8 +33,6 @@ class DerestConvolutionalLayer(DerestLayer):
         :param tuple input_shape:
         :return Numlike:
         """
-        print "-->", self.layer.W
-        print "--->", self.layer.W.shape
         return d_conv(
             layer_output, input_shape,
             change_order(self.layer.filter_shape), self.layer.W,
@@ -216,11 +214,6 @@ def d_conv(output, input_shape, filter_shape, weights,
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
-    print "d_conv: input_shape:", input_shape
-    try:
-        print "\033[31m output_dim: ", output.lower.ndim, output.upper.ndim
-    except ValueError:
-        pass
     res = output.op_d_conv(input_shape, filter_shape,
                            weights, stride, padding, n_groups)
     return res

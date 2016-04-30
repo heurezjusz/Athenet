@@ -46,8 +46,8 @@ def testa():
     derest_layer.normalize = True
     act = Interval(np.zeros((1,n,n)), np.ones((1,n,n)))
 
-    a = T.tensor3(name = "llower", dtype=theano.config.floatX)
-    b = T.tensor3(name="lupper", dtype=theano.config.floatX)
+    a = T.tensor3(name = "lollower", dtype=theano.config.floatX)
+    b = T.tensor3(name="lolupper", dtype=theano.config.floatX)
     act_in_theory = Interval(a,b)
     out_in_theory = derest_layer.count_activation(act_in_theory)
     print "run!"
@@ -61,8 +61,8 @@ def testa():
     print "and now test derivatives..."
 
     batches = 1
-    input_shape = theano.shared(add_tuples(batches,
-                             change_order(derest_layer.layer.input_shape)))
+    input_shape = add_tuples(batches,
+                             change_order(derest_layer.layer.input_shape))
     output_shape = add_tuples(batches,
                               change_order(derest_layer.layer.output_shape))
     der_in_theory = Interval(da,db)
@@ -72,9 +72,12 @@ def testa():
     der_low = np.ones(output_shape)
     der_up = 2 * np.ones(output_shape)
     print output_shape
-    res = derivatives_in_theory.eval({da:der_low, db:der_up})[0]
+
+    #res = derivatives_in_theory.eval({da:der_low, db:der_up, a:act.lower, b:act.upper})[0]
+    res = [r.eval({da:der_low, db:der_up, a:act.lower, b:act.upper})[0] for r in derivatives_in_theory]
     print res
-    print res.shape
+    #print res.shape
+    print [r.shape for r in res]
 
 
 def test_numlike():

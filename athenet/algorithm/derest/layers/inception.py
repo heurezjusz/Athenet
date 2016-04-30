@@ -3,7 +3,7 @@ from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
     DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
 from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
     ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
-from athenet.algorithm.derest.utils import derest_normalize
+from athenet.algorithm.derest.utils import add_tuples, change_order
 
 
 def get_derest_layer(layer, normalize=False):
@@ -71,27 +71,36 @@ class DerestInceptionLayer(DerestLayer):
             output_list.append(output[:, last : (last + channels), ::])
             last += channels
 
+        batches = input_shape[0]
         result = None
         result = []
         i = 0
         for output, derest_list in zip(output_list, self.derest_layer_lists):
-            if i == 1:
+            if i == 4:
                 break
             out = output
+            j = 0
             for derest_layer in reversed(derest_list):
                 print derest_layer
+                print derest_layer.layer.output_shape
                 derest_layer.derivatives = out
-                out = derest_layer.count_derivatives(out, input_shape)
-                return out
-
+                local_input_shape = add_tuples(
+                    batches, change_order(derest_layer.layer.input_shape))
+                out = derest_layer.count_derivatives(out, local_input_shape)
+                if i == 3 and j == 2:
+                    return [out]
+                j += 1
             result.append(out)
+            print "\033[39msuch a bigga lista"
+
+            #result.append(out)
             i += 1
             #if result is None:
             #    result = out
             #else:
-            #    result += out
+            #    result = result + out
 
-        return result[0]
+        return result
 
     def count_derest(self, f):
         results = []
