@@ -89,7 +89,7 @@ def sharpen_filters(network, fraction, filters_importance=1.,
     and which possibility of being a noise is greater than min_noise_value,
 
     :param Network network: network for sparsifying
-    :param float fraction: fraction of weights to be changes into zero
+    :param float fraction: fraction of weights to be changed into zero
     :param float filters_importance: how much sharpen filters in the process
     :param tuple bilateral_filter_args: args for filter algorithm
     """
@@ -100,6 +100,6 @@ def sharpen_filters(network, fraction, filters_importance=1.,
     filter_indicators = get_filters_indicators(layers,
                                                bilateral_filter_args)
     smallest_indicators = get_smallest_indicators(layers)
-    indicators = (filter_indicators ** (1. / filters_importance))\
-                 * smallest_indicators
+    indicators = (filter_indicators ** (1. / filters_importance)) \
+        * smallest_indicators
     delete_weights_by_layer_fractions(layers, fraction, indicators)
