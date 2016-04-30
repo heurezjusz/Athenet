@@ -1,4 +1,4 @@
-from athenet.layers import InceptionLayer, ConvolutionalLayer
+from athenet.layers import InceptionLayer, ConvolutionalLayer, MaxPool
 from athenet.algorithm.derest.network import get_derest_layer
 from athenet.algorithm.derest.utils import change_order, add_tuples
 from athenet.algorithm.numlike import Nplike, Interval
@@ -49,6 +49,8 @@ def testa():
     a = T.tensor3(name = "lollower", dtype=theano.config.floatX)
     b = T.tensor3(name="lolupper", dtype=theano.config.floatX)
     act_in_theory = Interval(a,b)
+
+    derest_layer.activations = act_in_theory
     out_in_theory = derest_layer.count_activation(act_in_theory)
     print "run!"
     res = [r.eval({b: act.upper, a:act.lower})[0] for r in out_in_theory]
@@ -67,7 +69,7 @@ def testa():
                               change_order(derest_layer.layer.output_shape))
     der_in_theory = Interval(da,db)
 
-    layer.derivatives = der_in_theory
+    derest_layer.derivatives = der_in_theory
     derivatives_in_theory = derest_layer.count_derivatives(der_in_theory, input_shape)
     der_low = np.ones(output_shape)
     der_up = 2 * np.ones(output_shape)
@@ -92,5 +94,7 @@ def test_numlike():
     print ia
 
     print ia.concat(ib).eval()
+
+
 
 testa()

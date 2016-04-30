@@ -57,7 +57,7 @@ class DerestInceptionLayer(DerestLayer):
             for derest_layer in derest_layer_list:
                 if self.normalize_activations:
                     inp = self._normalize(inp)
-                derest_layer.activation = inp
+                derest_layer.activations = inp
                 inp = derest_layer.count_activation(inp)
 
             if results is None:
