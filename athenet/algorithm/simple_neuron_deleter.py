@@ -20,7 +20,7 @@ def simple_neuron_deleter(network, p, layer_limit):
         :param layer_limit: float between 0 and 1, maximal fraction of neurons
         which will be deleted from a single layer.
 
-        Modifies [network]. Deletes [p] neurons from layers connected direclty
+        Modifies [network]. Deletes [p] neurons from layers connected directly
         to fully connected layers. Do not delete more than [layer_limit]
         neurons from a single layer.
         If [layer_limit] < [p] then at most [layer_limit] neurons will be
