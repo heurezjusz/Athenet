@@ -359,9 +359,9 @@ class Numlike(object):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
-        :param Numlike output: estimated impact of output of layer on output
-                               of network in shape (batch_size,
-                               number of channels, height, width)
+        :param Numlike self: estimated impact of output of layer on output
+                             of network in shape (batch_size,
+                             number of channels, height, width)
         :param input_shape: shape of layer input in the format
                             (number of batches,
                              number of input channels,
