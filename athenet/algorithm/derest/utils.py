@@ -34,8 +34,3 @@ def add_tuples(a, b):
     if not isinstance(b, tuple):
         b = (b, )
     return a + b
-
-
-def derest_normalize(data):
-    a = max(numpy.abs(data.amax().eval()))
-    return data / a

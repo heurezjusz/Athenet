@@ -1,6 +1,6 @@
 from athenet.algorithm.derest.layers import get_derest_layer
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
-    make_iterable, derest_normalize
+    make_iterable
 
 class DerestNetwork(object):
 
@@ -8,6 +8,11 @@ class DerestNetwork(object):
         self.network = network
         self.layers = [get_derest_layer(layer)
                        for layer in network.layers]
+
+    @staticmethod
+    def _normalize(data):
+        a = max(numpy.abs(data.amax().eval()))
+        return data / a
 
     def count_activations(self, inp, normalize=False):
         """
@@ -18,9 +23,9 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            layer.normalize = normalize
+            layer.normalize_activations = normalize
             if normalize:
-                inp = derest_normalize(inp)
+                inp = self._normalize(inp)
             input_shape = change_order(make_iterable(layer.layer.input_shape))
             inp = inp.reshape(input_shape)
             layer.activations = inp
@@ -37,9 +42,9 @@ class DerestNetwork(object):
         """
         batches = outp.shape.eval()[0]
         for layer in reversed(self.layers):
-            layer.normalize = normalize
+            layer.normalize_derivatives = normalize
             if normalize:
-                outp = derest_normalize(outp)
+                outp = self._normalize(outp)
             input_shape = add_tuples(batches,
                                      change_order(layer.layer.input_shape))
             output_shape = add_tuples(batches,

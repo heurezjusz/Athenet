@@ -4,7 +4,8 @@ class DerestLayer(object):
         self.layer = layer
         self.activations = None
         self.derivatives = None
-        self.normalize = False
+        self.normalize_activations = False
+        self.normalize_derivatives = False
 
     def count_activation(self, layer_input):
         """
