@@ -76,36 +76,32 @@ class DerestInceptionLayer(DerestLayer):
             last += channels
 
         batches = input_shape[0]
-        result = []
         result = None
         i = 0
         for output, derest_list in zip(output_list, self.derest_layer_lists):
-            if i == 4:
-                break
             out = output
             j = 0
-            for derest_layer in reversed(derest_list):
-                print derest_layer
-                print derest_layer.layer.output_shape
 
+            for derest_layer in reversed(derest_list):
                 if self.normalize_derivatives:
                     out = self._normalize(out)
+                print derest_layer
+                print derest_layer.layer.output_shape
                 derest_layer.derivatives = out
                 local_input_shape = add_tuples(
                     batches, change_order(derest_layer.layer.input_shape))
+                print local_input_shape
                 out = derest_layer.count_derivatives(out, local_input_shape)
                 if i == 3 and j == 7:
                     return [out]
                 j += 1
-            #result.append(out)
-            print "\033[39msuch a bigga lista"
-
-            #result.append(out)
+            print "such a bigga lista"
             i += 1
+
             if result is None:
                 result = out
             else:
-                result = result + out
+                result += out
 
         return [result]
 
