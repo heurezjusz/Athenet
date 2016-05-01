@@ -71,7 +71,7 @@ class DerestInceptionLayer(DerestLayer):
         last = 0
         for layer in self.layer.top_layers:
             width = layer.output_shape[1]
-            output_list.append(output[:, last : (last + width), ::])
+            output_list.append(output[:, last:(last + width), ::])
             last += width
 
         result = None

@@ -4,6 +4,7 @@ from athenet.algorithm.derest.layers import get_derest_layer
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
 
+
 class DerestNetwork(object):
 
     def __init__(self, network):
