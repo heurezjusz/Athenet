@@ -10,7 +10,14 @@ from nose.tools import assert_almost_equal as aae, \
     assert_greater as ag
 from numpy.testing import assert_array_almost_equal as arae
 from athenet.algorithm.numlike import Interval as Itv, Nplike
-from athenet.algorithm.derest.derivative import *
+
+from athenet.algorithm.derest.layers.fully_connected import d_fully_connected
+from athenet.algorithm.derest.layers.convolutional import d_conv
+from athenet.algorithm.derest.layers.pool import d_pool
+from athenet.algorithm.derest.layers.dropout import d_dropout
+from athenet.algorithm.derest.layers.norm import d_norm
+from athenet.algorithm.derest.layers.relu import d_relu
+from athenet.algorithm.derest.layers.softmax import d_softmax
 
 theano.config.exception_verbosity = 'high'
 
@@ -52,7 +59,7 @@ class DerivativeTest2(unittest.TestCase):
         return a.reshape(shp)
 
 
-class DerivativeTest(object):
+class DerivativeTest(unittest.TestCase):
     pass
 
 
