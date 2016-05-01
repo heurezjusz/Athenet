@@ -1,5 +1,3 @@
-import numpy
-
 def change_order(a):
     """
     Change order so the last will be first if passed element is a tuple
