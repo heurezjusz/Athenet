@@ -75,11 +75,10 @@ def testa():
     der_up = 2 * np.ones(output_shape)
     print output_shape
 
-    #res = derivatives_in_theory.eval({da:der_low, db:der_up, a:act.lower, b:act.upper})[0]
-    res = [r.eval({da:der_low, db:der_up, a:act.lower, b:act.upper})[0] for r in derivatives_in_theory]
+    res = derivatives_in_theory.eval({da:der_low, db:der_up, a:act.lower, b:act.upper})[0]
     print res
-    #print res.shape
-    print [r.shape for r in res]
+    print res.shape
+
 
 
 def test_numlike():
