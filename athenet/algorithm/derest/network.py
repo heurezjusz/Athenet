@@ -1,3 +1,5 @@
+import numpy
+
 from athenet.algorithm.derest.layers import get_derest_layer
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
