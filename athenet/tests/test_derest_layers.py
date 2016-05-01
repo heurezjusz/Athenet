@@ -102,10 +102,13 @@ class TestInceptionLayer(TestActivationAndDerivativesShapes):
 
 
 class TestConvolutionalLayer(TestActivationAndDerivativesShapes):
-    def _run_test(self, filter_shape, image_shape, batches, padding=(0, 0)):
+    def _run_test(self, filter_shape, image_shape, batches, padding=(0, 0),
+                  stride=(1, 1), n_groups=1):
         layer = ConvolutionalLayer(filter_shape=filter_shape,
                                    image_shape=image_shape,
-                                   padding=padding)
+                                   padding=padding, stride=stride,
+                                   n_groups=n_groups)
+
         input_shape = add_tuples((1,), change_order(image_shape))
         input = np.ones(input_shape)
         layer.input = input
@@ -126,6 +129,12 @@ class TestConvolutionalLayer(TestActivationAndDerivativesShapes):
 
 #    def test_paddig(self):
 #        self._run_test((2, 3, 5), (12, 6, 8), 3, padding=(1, 1))
+
+    def test_stride(self):
+        self._run_test((2, 3, 5), (10, 10, 2), 2, stride=(2, 3))
+
+    #def test_n_groups(self):
+    #    self._run_test((2, 2, 3), (10, 5, 2), 2, n_groups=2)
 
 
 if __name__ == '__main__':
