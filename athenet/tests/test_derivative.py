@@ -282,24 +282,6 @@ class MaxPoolDerivativeTest(DerivativeTest2):
         arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
         arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
 
-    def test_for_inception(self):
-        shp = (1, 1, 5, 5)
-        inpl = np.ones(shp)
-        inpu = np.ones(shp)
-        doutl = np.ones(shp)
-        doutu = np.ones(shp)
-        inpl = theano.shared(inpl)
-        inpu = theano.shared(inpu)
-        doutl = theano.shared(doutl)
-        doutu = theano.shared(doutu)
-        iinp = Itv(inpl, inpu)
-        idout = Itv(doutl, doutu)
-        din = d_pool(idout, iinp, shp, poolsize=(3, 3), padding=(1, 1),
-                     stride=(1, 1), mode='max')
-        l, u = din.eval()
-        # arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
-        # arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
-
 
 class AvgPoolDerivativeTest(DerivativeTest):
 
