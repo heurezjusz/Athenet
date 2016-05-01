@@ -726,15 +726,15 @@ class Interval(Numlike):
                         neigh_max_low = shared(-numpy.inf)
                         neigh_max_upp = shared(-numpy.inf)
                         neigh_max_itv = Interval(neigh_max_low, neigh_max_upp)
-                        act_slice = activation[:, at_f_h, at_f_w]
+                        act_slice = activation[:, :, at_f_h, at_f_w]
                         # setting maximum lower and upper of neighbours
                         for at_f_h_neigh in xrange(at_h, at_h + fh):
                             for at_f_w_neigh in xrange(at_w, at_w + fw):
                                 if (at_f_h_neigh, at_f_w_neigh) != (
                                         at_f_h, at_f_w):
-                                    neigh_slice = activation[:,
-                                                             at_f_h_neigh,
-                                                             at_f_w_neigh]
+                                    neigh_slice = activation[:, :,
+                                                  at_f_h_neigh,
+                                                  at_f_w_neigh]
                                     neigh_max_itv = \
                                         neigh_max_itv.max(neigh_slice)
                         # must have impact on output

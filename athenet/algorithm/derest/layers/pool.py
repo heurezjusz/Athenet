@@ -99,6 +99,7 @@ def d_pool(output, activation, input_shape, poolsize, stride=(1, 1),
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
+
     assert_numlike(activation)
     assert_numlike(output)
     if mode not in ['max', 'avg']:

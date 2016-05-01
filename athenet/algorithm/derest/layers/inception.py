@@ -76,8 +76,8 @@ class DerestInceptionLayer(DerestLayer):
             last += channels
 
         batches = input_shape[0]
-        result = None
         result = []
+        result = None
         i = 0
         for output, derest_list in zip(output_list, self.derest_layer_lists):
             if i == 4:
@@ -94,20 +94,20 @@ class DerestInceptionLayer(DerestLayer):
                 local_input_shape = add_tuples(
                     batches, change_order(derest_layer.layer.input_shape))
                 out = derest_layer.count_derivatives(out, local_input_shape)
-                if i == 3 and j == 2:
+                if i == 3 and j == 7:
                     return [out]
                 j += 1
-            result.append(out)
+            #result.append(out)
             print "\033[39msuch a bigga lista"
 
             #result.append(out)
             i += 1
-            #if result is None:
-            #    result = out
-            #else:
-            #    result = result + out
+            if result is None:
+                result = out
+            else:
+                result = result + out
 
-        return result
+        return [result]
 
     def count_derest(self, f):
         results = []
