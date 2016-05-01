@@ -27,7 +27,7 @@ def eval_tensor_on_layers(layer1, layer2, tensor):
 
 
 def testa():
-    n = 10
+    n = 3
     
     dummy_layer = ConvolutionalLayer((1,1,1),(n,n,1))
     input = np.ones((1, 1, n, n), dtype=theano.config.floatX)
