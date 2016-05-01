@@ -77,23 +77,33 @@ class DerestInceptionLayer(DerestLayer):
 
         batches = input_shape[0]
         result = None
+        i = 0
         for output, derest_list in zip(output_list, self.derest_layer_lists):
             out = output
+            j = 0
 
             for derest_layer in reversed(derest_list):
                 if self.normalize_derivatives:
                     out = self._normalize(out)
+                print derest_layer
+                print derest_layer.layer.output_shape
                 derest_layer.derivatives = out
                 local_input_shape = add_tuples(
                     batches, change_order(derest_layer.layer.input_shape))
+                print local_input_shape
                 out = derest_layer.count_derivatives(out, local_input_shape)
+                if i == 3 and j == 2:
+                    return [out]
+                j += 1
+            print "such a bigga lista"
+            i += 1
 
             if result is None:
                 result = out
             else:
                 result += out
 
-        return result
+        return [result]
 
     def count_derest(self, f):
         results = []
