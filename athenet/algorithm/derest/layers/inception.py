@@ -65,7 +65,7 @@ class DerestInceptionLayer(DerestLayer):
             else:
                 results = results.concat(inp)
 
-        return [results]
+        return results
 
     def count_derivatives(self, output, input_shape):
         output_list = []
@@ -99,5 +99,5 @@ class DerestInceptionLayer(DerestLayer):
         results = []
         for derest_layer_list in self.derest_layer_lists:
             for derest_layer in derest_layer_list:
-                results += derest_layer.count_derest(f)
+                results.extend(derest_layer.count_derest(f))
         return results
