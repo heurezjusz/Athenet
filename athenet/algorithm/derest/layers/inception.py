@@ -48,7 +48,7 @@ class DerestInceptionLayer(DerestLayer):
         a = data.max(-data).amax()
         return data / a
 
-    def count_activation(self, input):
+    def count_activation(self, input, normalize=False):
         results = None
 
         for derest_layer_list in self.derest_layer_lists:
@@ -57,7 +57,7 @@ class DerestInceptionLayer(DerestLayer):
                 if self.normalize_activations:
                     inp = self._normalize(inp)
                 derest_layer.activations = inp
-                inp = derest_layer.count_activation(inp)
+                inp = derest_layer.count_activation(inp, normalize)
 
             if results is None:
                 results = inp
@@ -66,7 +66,7 @@ class DerestInceptionLayer(DerestLayer):
 
         return results
 
-    def count_derivatives(self, output, input_shape):
+    def count_derivatives(self, output, input_shape, normalize=False):
         output_list = []
         last = 0
         for layer in self.layer.top_layers:
@@ -78,7 +78,7 @@ class DerestInceptionLayer(DerestLayer):
         for output, derest_list in zip(output, self.derest_layer_lists):
             out = output
             for derest_layer in reversed(derest_list):
-                out = derest_list.count_derivatives(out)
+                out = derest_list.count_derivatives(out, normalize)
                 derest_layer.derivatives = out
             if result is None:
                 result = out

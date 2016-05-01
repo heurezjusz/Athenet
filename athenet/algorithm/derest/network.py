@@ -26,13 +26,12 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            layer.normalize_activations = normalize
             if normalize:
                 inp = self._normalize(inp)
             input_shape = change_order(make_iterable(layer.layer.input_shape))
             inp = inp.reshape(input_shape)
             layer.activations = inp
-            inp = layer.count_activation(inp)
+            inp = layer.count_activation(inp, normalize)
         return inp
 
     def count_derivatives(self, outp, normalize=False):
@@ -45,7 +44,6 @@ class DerestNetwork(object):
         """
         batches = outp.shape.eval()[0]
         for layer in reversed(self.layers):
-            layer.normalize_derivatives = normalize
             if normalize:
                 outp = self._normalize(outp)
             input_shape = add_tuples(batches,
@@ -54,7 +52,7 @@ class DerestNetwork(object):
                                       change_order(layer.layer.output_shape))
             outp = outp.reshape(output_shape)
             layer.derivatives = outp
-            outp = layer.count_derivatives(outp, input_shape)
+            outp = layer.count_derivatives(outp, input_shape, normalize)
         return outp
 
     def count_derest(self, count_function):
