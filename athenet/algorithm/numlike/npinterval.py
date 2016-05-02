@@ -16,20 +16,21 @@ class NpInterval(Numlike):
         self.upper = upper
 
     def __getitem__(self, at):
-        """Returns specified slice of numlike.
+        """Returns specified slice of NpInterval.
 
         :at: Coordinates / slice to be taken.
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        return NpInterval(self.lower[at], self.upper[at])
 
     def __setitem__(self, at, other):
-        """Just like Theano set_subtensor function, but as a operator.
+        """Just like numpy __setitem__ function, but as a operator.
 
         :at: Coordinates / slice to be set.
         :other: Data to be put at 'at'.
         """
-        raise NotImplementedError
+        self.lower[at] = other.lower
+        self.upper[at] = other.upper
 
     def __str__(self):
         return "<<<\n" + self.lower.__str__() + "\n;;;\n" + self.upper.__str__() + "\n>>>"
@@ -364,6 +365,7 @@ class NpInterval(Numlike):
         """
         result = NpInterval(np.zeros_like(activation.lower),
                             np.zeros_like(activation.upper))
+        activation_sqares = activation.square()
 
         # some piece of math, unnecessary in any other place:
         # derivative for x placed in denominator of norm function
@@ -430,7 +432,12 @@ class NpInterval(Numlike):
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
                                               xrange(h), xrange(w)):
-            print
+            pass
+            #c =
+            #for i in xrange(-local_range, local_range):
+            #    if 0 <= i <= channels:
+
+
 
         return result
 

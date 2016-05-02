@@ -79,11 +79,53 @@ class TestMultiplying(TestCase):
             self.assertEqual(R.shape, shape)
 
 
+class TestGetSetitem(TestCase):
+    def test_1D(self):
+        n = 100
+        I = NpInterval(np.zeros((n,)), np.zeros((n,)))
+        for i in xrange(n):
+            I[i] = NpInterval(np.asarray([-i]),np.asarray([i]))
+        for i in xrange(n):
+            self.assertEquals(I[i].lower, -i)
+            self.assertEquals(I[i].upper, i)
+
+    def test_2D(self):
+        n = 100
+        I = NpInterval(np.zeros((n,n)), np.zeros((n,n)))
+        for i, j in product(xrange(n), xrange(n)):
+            I[i][j] = NpInterval(np.asarray([i ^ (j**2) - 42]),
+                                 np.asarray([i**2 + j**3 / 7]))
+        for i, j in product(xrange(n), xrange(n)):
+            self.assertEquals(I[i][j].lower, i ^ (j**2) - 42)
+            self.assertEquals(I[i][j].upper, i**2 + j**3 / 7)
+
+    def test_3D(self):
+        n = 10
+        I = NpInterval(np.zeros((n, n, n)), np.zeros((n, n, n)))
+        for i, j, k in product(xrange(n), xrange(n), xrange(n)):
+            I[i][j][k] = NpInterval(np.asarray([i + j - k ^ 67]),
+                                    np.asarray([i * j + 42 * k]))
+        for i, j, k in product(xrange(n), xrange(n), xrange(n)):
+            self.assertEquals(I[i][j][k].lower, i + j - k ^ 67)
+            self.assertEquals(I[i][j][k].upper, i * j + 42 * k)
+
+    def test_4D(self):
+        n = 10
+        I = NpInterval(np.zeros((n, n, n, n)), np.zeros((n, n, n, n)))
+        for i, j, k, l in product(xrange(n), xrange(n), xrange(n), xrange(n)):
+            I[i][j][k][l] = NpInterval(np.asarray([i*l ^ j*k]),
+                                        np.asarray([(i*j ^ l*k) + 1000]))
+        for i, j, k, l in product(xrange(n), xrange(n), xrange(n), xrange(n)):
+            self.assertEquals(I[i][j][k][l].lower, i*l ^ j*k)
+            self.assertEquals(I[i][j][k][l].upper, (i*j ^ l*k) + 1000)
+
+
 class Just(TestCase):
     def test(self):
-        shape = (2, 5, 3, 3)
-        act = NpInterval(np.ones(shape), np.ones(shape) * 2)
-        norm = act.op_d_norm(act, shape, 5, 1, 1, 0.5)
+        pass
+        #shape = (2, 5, 3, 3)
+        #act = NpInterval(np.ones(shape), np.ones(shape) * 2)
+        #norm = act.op_d_norm(act, shape, 5, 1, 1, 0.5)
 
 
 if __name__ == '__main__':
