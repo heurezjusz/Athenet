@@ -44,13 +44,13 @@ class NpInterval(Numlike):
         return self.lower.shape # moreover equals self.upper.shape
 
     def __add__(self, other):
-        """Returns sum of two numlikes.
+        """Returns sum of two NpIntervals.
 
         :param other: value to be added.
-        :type other: Numlike or np.ndarray or theano.tensor
-        :rtype: Numlike
+        :type other: NpInterval
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        return NpInterval(self.lower + other.lower, self.upper + other.upper)
 
     def __sub__(self, other):
         """Returns difference between two numlikes.
@@ -438,6 +438,7 @@ class NpInterval(Numlike):
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
                                               xrange(h), xrange(w)):
+            pass
             pass
             #c =
             #for i in xrange(-local_range, local_range):
