@@ -25,7 +25,6 @@ class NpInterval(Numlike):
 
     def __setitem__(self, at, other):
         """Just like numpy __setitem__ function, but as a operator.
-
         :at: Coordinates / slice to be set.
         :other: Data to be put at 'at'.
         """
