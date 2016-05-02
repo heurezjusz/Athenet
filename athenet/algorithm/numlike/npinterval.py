@@ -5,7 +5,9 @@ This module contains NpInterval class and auxiliary objects.
 """
 
 from athenet.algorithm.numlike import Numlike
+from itertools import product
 import numpy as np
+import math
 
 class NpInterval(Numlike):
     def __init__(self, lower = None, upper = None):
@@ -59,13 +61,18 @@ class NpInterval(Numlike):
         raise NotImplementedError
 
     def __mul__(self, other):
-        """Returns product of two numlikes.
+        """Returns product of two NpIntervals
 
         :param other: value to be multiplied.
-        :type other: Numlike or np.ndarray or theano.tensor
+        :type other: NpInterval
         :rtype: Numlike
         """
-        raise NotImplementedError
+        ll = self.lower * other.lower
+        lu = self.lower * other.upper
+        ul = self.upper * other.lower
+        uu = self.upper * other.upper
+        return NpInterval(np.minimum(np.minimum(ll, lu), np.minimum(ul, uu)),
+                          np.maximum(np.maximum(ll, lu), np.maximum(ul, uu)))
 
     def __div__(self, other):
         """Returns quotient of self and other.
@@ -334,6 +341,8 @@ class NpInterval(Numlike):
         """
         raise NotImplementedError
 
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HERE YOU WORK
+
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
         """Returns estimated impact of input of norm layer on output of
@@ -355,6 +364,74 @@ class NpInterval(Numlike):
         """
         result = NpInterval(np.zeros_like(activation.lower),
                             np.zeros_like(activation.upper))
+
+        # some piece of math, unnecessary in any other place:
+        # derivative for x placed in denominator of norm function
+        def der_eq(x, c):
+            """
+            Return derivative of norm function for value in denominator
+            :param x: value in denominator
+            :param c: k + sum of squares of other values
+
+            In this representation norm function equals to
+            x / (c + alpha * (x ** 2)) ** beta
+
+            :return: value of derivative of norm function
+            """
+            return (alpha * (1-2*beta) * x**2 + c) / \
+                   (alpha * x**2 + c) ** (beta + 1)
+
+        # possible extremas
+        def root1_2d(c_low, c_up, x_low, x_up):
+            # returns roots of derivative of derivetive of norm function
+            # x = 0
+            # intersects solution rectangle with x = 0
+            if x_low <= 0 and x_up >= 0:
+                return [(0, c_low), (0, c_up)]
+            return []
+
+        def root2_2d(c_low, c_up, x_low, x_up):
+            # returns roots of derivative of derivetive of norm function
+            # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
+            # intersects solution rectangle with half-parabola above
+            possibilities_c = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
+                             for c in [c_low, c_up]]
+            possibilities_x = [(x, alpha*(2*beta+1) * x**2)
+                               for x in [x_low, x_up]]
+
+            return [(x,c) for x,c in possibilities_x + possibilities_c
+                    if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
+
+        # derivative for x not from denominator
+        def der_not_eq(x, y, c):
+            """
+            Returns value of derivative of norm function for element not
+            placed in derivative
+            :param x: element to compute derivative after
+            :param y: element placed in derivative
+            :param c: k + alpha * sum of squares of other elements
+
+            In this representation norm function equals to
+            y / (c + aplha * x**2 + alpha * y**2) ** beta
+
+            :return: Returns value of derivative of norm function
+            """
+            return 2 * alpha*beta * x*y / \
+                   (c + alpha*(x**2 + y**2)) ** (beta+1)
+
+        # possible extremas of this derivative
+        def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
+            # as far as wolfram knows, possible extremas are for x=0 and y=0
+            return [(x,y,c) for x,y,c in
+                    product([x_low, x_up, 0], [y_low, y_up, 0], [c_low, c_up])
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
+
+        batches, channels, h, w = input_shape
+        for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
+                                              xrange(h), xrange(w)):
+            print
+
         return result
 
     def op_d_conv(self, input_shape, filter_shape, weights,
