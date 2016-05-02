@@ -79,6 +79,42 @@ class TestMultiplying(TestCase):
             self.assertEqual(R.shape, shape)
 
 
+class TestSquare(TestCase):
+    def test_case(self):
+        al = np.asarray([[1, -2, -1], [-42, -5, -1]])
+        au = np.asarray([[2, -1,  1], [  4, -4, 7]])
+        A = NpInterval(al, au)
+
+        rl = np.asarray([[1, 1, 0], [   0, 16, 0]])
+        ru = np.asarray([[4, 4, 1], [1764, 25, 49]])
+
+        R = A.square()
+        self.assertTrue((rl == R.lower).all())
+        self.assertTrue((ru == R.upper).all())
+
+    def _check_result(self, A, R):
+        al, au = A.lower[0], A.upper[0]
+        rl, ru = R.lower[0], R.upper[0]
+        for a in xrange(al, au):
+            self.assertTrue(rl <= a * a <= ru)
+        bigger = max(al*al, au*au) + 1
+        self.assertTrue(bigger > ru)
+
+    def test_correct(self):
+        for i in xrange(100):
+            a, b = randrange(-10, 10), randrange(-10, 10)
+            if a > b:
+                a, b = b, a
+            A = NpInterval(np.asarray([a]), np.asarray([b]))
+            self._check_result(A, A.square())
+
+    def test_shape(self):
+        for i in xrange(100):
+            shape = _random_shape()
+            A = NpInterval(np.ones(shape), 2 * np.ones(shape))
+            self.assertEqual(A.square().shape, shape)
+
+
 class TestGetSetitem(TestCase):
     def test_1D(self):
         n = 100

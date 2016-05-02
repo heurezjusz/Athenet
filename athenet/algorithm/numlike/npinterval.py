@@ -117,11 +117,17 @@ class NpInterval(Numlike):
         raise NotImplementedError
 
     def square(self):
-        """Returns square of the Numlike.
+        """Returns square of the NpInterval
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        uu = self.upper * self.upper
+        ll = self.lower * self.lower
+        res = NpInterval(np.minimum(ll, uu), np.maximum(ll, uu))
+        where_zero = np.logical_and(self.lower <= 0, self.upper >= 0)
+        np.copyto(res.lower, np.zeros(self.shape),
+                  casting='unsafe', where=where_zero)
+        return res
 
     def power(self, exponent):
         """For numlike N, returns N^exponent.
