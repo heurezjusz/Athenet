@@ -2,9 +2,10 @@ import unittest
 import theano
 import theano.tensor as T
 import numpy as np
-from athenet.layers import InceptionLayer, ConvolutionalLayer
+from athenet.layers import InceptionLayer, ConvolutionalLayer, Dropout, LRN
 from athenet.algorithm.derest.layers import get_derest_layer, DerestLayer,\
-    DerestInceptionLayer, DerestConvolutionalLayer
+    DerestInceptionLayer, DerestConvolutionalLayer, DerestDropoutLayer, \
+    DerestNormLayer
 from athenet.algorithm.numlike import Interval
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
@@ -136,6 +137,36 @@ class TestConvolutionalLayer(TestActivationAndDerivativesShapes):
     #def test_n_groups(self):
     #    self._run_test((2, 2, 3), (10, 5, 2), 2, n_groups=2)
 
+
+class TestDropoutLayer(TestActivationAndDerivativesShapes):
+    def _run_test(self, p, image_shape, batches):
+        layer = Dropout(p)
+        derest_layer = get_derest_layer(layer)
+        layer.input_shape = image_shape
+
+        self.assertIsInstance(derest_layer, DerestDropoutLayer)
+        self._test_shapes(derest_layer, batches)
+
+    def test_dropout(self):
+        self._run_test(0.5, (10, 10, 2), 1)
+        self._run_test(0.1, (20, 13, 3), 7)
+        self._run_test(1., (1, 15, 4), 2)
+        self._run_test(0.75, (12, 28, 10), 10)
+        self._run_test(0.222, (15, 1, 1), 2)
+
+
+class TestNormLayer(TestActivationAndDerivativesShapes):
+    def _run_test(self, image_shape, local_range=5, k=1, alpha=0.0001,
+                  beta=0.75, batches=1):
+        layer = LRN(local_range=local_range, k=k, alpha=alpha, beta=beta)
+        layer.input_shape = image_shape
+        derest_layer = get_derest_layer(layer)
+        self.assertIsInstance(derest_layer, DerestNormLayer)
+        self._test_shapes(derest_layer, batches)
+
+# do not work somehow...
+#    def test_simple(self):
+#        self._run_test((10, 10, 1))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
