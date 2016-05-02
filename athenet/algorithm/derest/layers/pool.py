@@ -52,9 +52,13 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
     n_out = n_in
 
     # padding
+    if mode == "max" and padding != (0, 0):
+        raise ValueError("padding for max pool is excluded")
     pad_h, pad_w = padding
-    h += 2 * pad_h
-    w += 2 * pad_w
+    if padding != (0, 0):
+        layer_input = layer_input.reshape_for_padding(input_shp, padding)
+        h += 2 * pad_h
+        w += 2 * pad_w
 
     # fh, fw - pool height, pool width
     fh, fw = poolsize
