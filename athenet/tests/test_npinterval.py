@@ -255,10 +255,9 @@ class TestGetSetitem(TestCase):
 
 class Just(TestCase):
     def test(self):
-        pass
-        #shape = (2, 5, 3, 3)
-        #act = NpInterval(np.ones(shape), np.ones(shape) * 2)
-        #norm = act.op_d_norm(act, shape, 5, 1, 1, 0.5)
+        shape = (2, 5, 3, 3)
+        act = NpInterval(np.ones(shape), np.ones(shape) * 2)
+        norm = act.op_d_norm(act, shape, 5, 1, 1, 0.5)
 
 
 if __name__ == '__main__':

@@ -421,7 +421,7 @@ class NpInterval(Numlike):
             Returns value of derivative of norm function for element not
             placed in derivative
             :param x: element to compute derivative after
-            :param y: element placed in derivative
+            :param y: element placed in denominator
             :param c: k + alpha * sum of squares of other elements
 
             In this representation norm function equals to
@@ -443,13 +443,46 @@ class NpInterval(Numlike):
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
                                               xrange(h), xrange(w)):
-            c = NpInterval(np.asarray[0.], np.asarray[0.])
+            C = NpInterval(np.asarray([0.]), np.asarray([0.]))
             for i in xrange(-local_range, local_range):
-                if 0 <= i + channel <= channels:
-                    c += activation[b][channel + i][at_h][at_w].square()
+                if 0 <= i + channel < channels and i != 0:
+                    C += activation_sqares[b][channel + i][at_h][at_w]
 
+            Y = activation[b][channel][at_h][at_w]
 
+            # eq case
+            extremas = [(x, c) for x, c in product([Y.lower, Y.upper],
+                                                   [C.lower, C.upper])]
+            extremas.extend(root1_2d(C.lower, C.upper, Y.lower, Y.upper))
+            extremas.extend(root2_2d(C.lower, C.upper, Y.lower, Y.upper))
+            der = NpInterval()
+            for x, c in extremas:
+                val = der_eq(x, c)
+                if der.lower is None or der.lower > val:
+                    der.lower = val
+                if der.upper is None or der.upper < val:
+                    der.upper = val
+            result[b][channel][at_h][at_w] += self[b][channel][at_h][at_w]*der
 
+            #not_eq_case
+            for i in xrange(-local_range, local_range):
+                if i != 0 and 0 <= i + channel < channels:
+                    X = activation_sqares[b][channel + i][at_h][at_w]
+                    C = NpInterval(np.asarray([0.]), np.asarray([0.]))
+                    for j in xrange(-local_range, local_range):
+                        if j != 0 and j != i and 0 <= j + channel < channels:
+                            C += activation_sqares[b][channel + j][at_h][at_w]
+                    extremas = extremas_3d(X.lower, X.upper, Y.lower, Y.upper,
+                                           C.lower, C.upper)
+                    der = NpInterval()
+                    for x, y, c in extremas:
+                        val = der_not_eq(x, y, c)
+                        if der.lower is None or der.lower > val:
+                            der.lower = val
+                        if der.upper is None or der.upper < val:
+                            der.upper = val
+                    result[b][channel + i][at_h][at_w] += \
+                        der * self[b][channel][at_h][at_w]
 
         return result
 
