@@ -120,21 +120,9 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         dout = thv([[3, 6], [1, 2]])
         idout = Itv(dout, dout)
         w = thv([[9, 15], [12, 18]])
-        shp = (1, 2)
+        shp = (2, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[117, 144], [39, 48]]))
-
-    def test_2D_batches2(self):
-        dout = A([[3, 6], [1, 2]])
-        tdout = T.dmatrix('tdout')
-        idout = Itv(tdout, tdout)
-        d = {tdout: dout}
-        w = thv([[9, 15], [12, 18]])
-        shp = (1, 2)
-        din = d_fully_connected(idout, w, shp)
-        l, u = din.eval(d)
         arae(l, u)
         arae(l, A([[117, 144], [39, 48]]))
 
