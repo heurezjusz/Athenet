@@ -59,7 +59,12 @@ class NpInterval(Numlike):
         :type other: Numlike or np.ndarray or theano.tensor
         :rtype: Numlike
         """
-        raise NotImplementedError
+        ll = self.lower - other.lower
+        lu = self.lower - other.upper
+        ul = self.upper - other.lower
+        uu = self.upper - other.upper
+        return NpInterval(np.minimum(np.minimum(ll, lu), np.minimum(ul, uu)),
+                          np.maximum(np.maximum(ll, lu), np.maximum(ul, uu)))
 
     def __mul__(self, other):
         """Returns product of two NpIntervals
@@ -438,11 +443,11 @@ class NpInterval(Numlike):
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
                                               xrange(h), xrange(w)):
-            pass
-            pass
-            #c =
-            #for i in xrange(-local_range, local_range):
-            #    if 0 <= i <= channels:
+            c = NpInterval(np.asarray[0.], np.asarray[0.])
+            for i in xrange(-local_range, local_range):
+                if 0 <= i + channel <= channels:
+                    c += activation[b][channel + i][at_h][at_w].square()
+
 
 
 
