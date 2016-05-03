@@ -66,7 +66,7 @@ class TestMultiplying(TestCase):
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
-            B = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
             self._check_result(A, B, B * A)
@@ -117,7 +117,7 @@ class TestAdding(TestCase):
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
-            B = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
             self._check_result(A, B, B + A)
@@ -161,7 +161,7 @@ class TestSub(TestCase):
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
-            B = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
             self._check_result(A, B, A - B)
@@ -196,6 +196,7 @@ class TestSquare(TestCase):
             self.assertTrue(rl <= a * a <= ru)
         bigger = max(al*al, au*au) + 1
         self.assertTrue(bigger > ru)
+        self.assertTrue(rl > -1)
 
     def test_correct(self):
         for i in xrange(100):
