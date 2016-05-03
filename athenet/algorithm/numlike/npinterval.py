@@ -58,12 +58,7 @@ class NpInterval(Numlike):
         :type other: Numlike or np.ndarray or theano.tensor
         :rtype: Numlike
         """
-        ll = self.lower - other.lower
-        lu = self.lower - other.upper
-        ul = self.upper - other.lower
-        uu = self.upper - other.upper
-        return NpInterval(np.minimum(np.minimum(ll, lu), np.minimum(ul, uu)),
-                          np.maximum(np.maximum(ll, lu), np.maximum(ul, uu)))
+        return NpInterval(self.lower - other.upper, self.upper - other.lower)
 
     def __mul__(self, other):
         """Returns product of two NpIntervals
