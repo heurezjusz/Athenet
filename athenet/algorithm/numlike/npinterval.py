@@ -437,7 +437,7 @@ class NpInterval(Numlike):
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
                                               xrange(h), xrange(w)):
-            C = NpInterval(np.asarray([0.]), np.asarray([0.]))
+            C = NpInterval(np.asarray([k]), np.asarray([k]))
             for i in xrange(-local_range, local_range):
                 if 0 <= i + channel < channels and i != 0:
                     C += activation_sqares[b][channel + i][at_h][at_w]
@@ -462,7 +462,7 @@ class NpInterval(Numlike):
             for i in xrange(-local_range, local_range):
                 if i != 0 and 0 <= i + channel < channels:
                     X = activation_sqares[b][channel + i][at_h][at_w]
-                    C = NpInterval(np.asarray([0.]), np.asarray([0.]))
+                    C = NpInterval(np.asarray([k]), np.asarray([k]))
                     for j in xrange(-local_range, local_range):
                         if j != 0 and j != i and 0 <= j + channel < channels:
                             C += activation_sqares[b][channel + j][at_h][at_w]
