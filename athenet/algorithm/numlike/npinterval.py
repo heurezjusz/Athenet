@@ -83,12 +83,19 @@ class NpInterval(Numlike):
         :type other: NpInterval
         :rtype: Numlike
         """
-        ll = self.lower * other.lower
-        lu = self.lower * other.upper
-        ul = self.upper * other.lower
-        uu = self.upper * other.upper
-        return NpInterval(np.minimum(np.minimum(ll, lu), np.minimum(ul, uu)),
-                          np.maximum(np.maximum(ll, lu), np.maximum(ul, uu)))
+        if isinstance(other, NpInterval):
+            ll = self.lower * other.lower
+            lu = self.lower * other.upper
+            ul = self.upper * other.lower
+            uu = self.upper * other.upper
+            lower = np.minimum(np.minimum(ll, lu), np.minimum(ul, uu))
+            upper = np.maximum(np.maximum(ll, lu), np.maximum(ul, uu))
+        else:
+            ll = self.lower * other
+            uu = self.upper * other
+            lower = np.minimum(ll, uu)
+            upper = np.maximum(ll, uu)
+        return NpInterval(lower, upper)
 
     def __div__(self, other):
         """Returns quotient of self and other.
@@ -208,19 +215,19 @@ class NpInterval(Numlike):
         raise NotImplementedError
 
     def abs(self):
-        """Returns absolute value of Numlike.
+        """Returns absolute value of NpInterval.
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        raise NpInterval(np.abs(self.lower), np.abs(self.upper))
 
     @property
     def T(self):
         """Tensor transposition like in numpy.ndarray.
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        raise NpInterval(self.lower.T, self.upper.T)
 
     @staticmethod
     def from_shape(shp, neutral=True):
@@ -247,7 +254,7 @@ class NpInterval(Numlike):
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
-        raise NotImplementedError
+        raise self
 
     def op_relu(self):
         """Returns result of relu operation on given Numlike.
