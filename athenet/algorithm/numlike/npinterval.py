@@ -10,8 +10,12 @@ import numpy as np
 import math
 
 class NpInterval(Numlike):
-    def __init__(self, lower = None, upper = None):
-        #Todo: should We swap lower and upper values if lower > upper?
+    def __init__(self, lower, upper):
+        """
+        :param numpy.ndarray lower:
+        :param numpy.ndarray upper:
+        :return:
+        """
         self.lower = lower
         self.upper = upper
 
@@ -40,25 +44,37 @@ class NpInterval(Numlike):
 
         :rtype: tuple of integers
         """
-        return self.lower.shape # moreover equals self.upper.shape
+        return self.lower.shape
 
     def __add__(self, other):
         """Returns sum of two NpIntervals.
 
         :param other: value to be added.
-        :type other: NpInterval
+        :type other: NpInterval or numpy.array or float
         :rtype: NpInterval
         """
-        return NpInterval(self.lower + other.lower, self.upper + other.upper)
+        if isinstance(other, NpInterval):
+            res_lower = self.lower + other.lower
+            res_upper = self.upper + other.upper
+        else:
+            res_lower = self.lower + other
+            res_upper = self.upper + other
+        return NpInterval(res_lower, res_upper)
 
     def __sub__(self, other):
         """Returns difference between two numlikes.
 
         :param other: value to be subtracted.
-        :type other: Numlike or np.ndarray or theano.tensor
-        :rtype: Numlike
+        :type other: NpInterval or np.ndarray or float
+        :rtype: NpInterval
         """
-        return NpInterval(self.lower - other.upper, self.upper - other.lower)
+        if isinstance(other, NpInterval):
+            res_lower = self.lower - other.upper
+            res_upper = self.upper - other.lower
+        else:
+            res_lower = self.lower - other
+            res_upper = self.upper - other
+        return NpInterval(res_lower, res_upper)
 
     def __mul__(self, other):
         """Returns product of two NpIntervals
