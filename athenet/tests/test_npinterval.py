@@ -64,11 +64,13 @@ class TestMultiplying(TestCase):
         for i in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
-            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
+
             self._check_result(A, B, B * A)
 
     def test_shape(self):
@@ -115,11 +117,13 @@ class TestAdding(TestCase):
         for i in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
-            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
+
             self._check_result(A, B, B + A)
 
     def test_shape(self):
@@ -159,11 +163,13 @@ class TestSub(TestCase):
         for i in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
-            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
+
             self._check_result(A, B, A - B)
 
     def test_shape(self):
