@@ -17,7 +17,7 @@ def sum_max(values):
     :param Numlike values: values to count indicator from
     :return: int
     """
-    return numpy.amax(values.abs().sum().eval())
+    return values.sum()
 
 
 def get_derest_indicators(network, input, count_function=sum_max):

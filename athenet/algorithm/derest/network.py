@@ -45,7 +45,7 @@ class DerestNetwork(object):
 
     @staticmethod
     def _normalize(data):
-        a = max(numpy.abs(data.amax().eval()))
+        a = data.abs().amax().upper
         return data / a
 
     def count_activations(self, inp, normalize=False):
