@@ -468,7 +468,9 @@ class NpInterval(Numlike):
                     der.lower = val
                 if der.upper is None or der.upper < val:
                     der.upper = val
-            result[b][channel][at_h][at_w] += self[b][channel - diff / 2][at_h][at_w]*der
+            result[b][channel][at_h][at_w] += der * \
+                                              self[b][channel -
+                                                      diff / 2][at_h][at_w]
 
             #not_eq_case
             for i in xrange(-local_range, local_range + 1):
