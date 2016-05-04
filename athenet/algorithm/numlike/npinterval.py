@@ -132,14 +132,14 @@ class NpInterval(Numlike):
 
         :rtype: Numlike
         """
-        raise NotImplementedError
+        return NpInterval(np.negative(self.upper), np.negative(self.lower))
 
     def exp(self):
         """Returns Numlike representing the exponential of the Numlike.
 
         :rtype: Numlike
         """
-        raise NotImplementedError
+        raise NpInterval(np.exp(self.lower), np.exp(self.upper))
 
     def square(self):
         """Returns square of the NpInterval
