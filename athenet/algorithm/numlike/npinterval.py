@@ -128,18 +128,25 @@ class NpInterval(Numlike):
                           np.maximum(upper_reciprocal, lower_reciprocal))
 
     def neg(self):
-        """Returns (-1) * Numlike.
+        """Returns (-1) * NpInterval
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         return NpInterval(np.negative(self.upper), np.negative(self.lower))
 
     def exp(self):
-        """Returns Numlike representing the exponential of the Numlike.
+        """Returns NpInterval representing the exponential of the Numlike.
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         raise NpInterval(np.exp(self.lower), np.exp(self.upper))
+
+    def _has_zero(self):
+        """For any interval in NpInterval, returns whether is contains zero.
+
+        :rtype: Boolean
+        """
+        return np.logical_and(self.lower <= 0, self.upper >= 0)
 
     def square(self):
         """Returns square of the NpInterval
@@ -148,11 +155,9 @@ class NpInterval(Numlike):
         """
         uu = self.upper * self.upper
         ll = self.lower * self.lower
-        res = NpInterval(np.minimum(ll, uu), np.maximum(ll, uu))
-        where_zero = np.logical_and(self.lower <= 0, self.upper >= 0)
-        np.copyto(res.lower, np.zeros(self.shape),
-                  casting='unsafe', where=where_zero)
-        return res
+        lower = np.select([self._has_zero(), True], [0, np.minimum(ll, uu)])
+        upper = np.maximum(ll, uu)
+        return NpInterval(lower, upper)
 
     def power(self, exponent):
         """For numlike N, returns N^exponent.
