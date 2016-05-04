@@ -487,7 +487,7 @@ class NpInterval(Numlike):
                         if der.upper is None or der.upper < val:
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
-                        der * self[b][channel - diff / 2 + i][at_h][at_w]
+                        der * self[b][channel - diff / 2][at_h][at_w]
                     C += X2
 
         return result
