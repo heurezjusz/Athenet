@@ -195,7 +195,7 @@ class DerivativeStressTest(unittest.TestCase):
         constr_time = timeit.default_timer()
         l, u = din.eval()
         ex_time = timeit.default_timer()
-        self.check_time('d_avg_pool', start_time, constr_time, ex_time)
+        self.check_time('d_max_pool', start_time, constr_time, ex_time)
 
     def test_softmax(self):
         dout = Itv.derest_output(1000)
