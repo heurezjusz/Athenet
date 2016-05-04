@@ -421,7 +421,7 @@ class Interval(Numlike):
         :rtype: Interval
         """
         if lower_val is None:
-            lower_val = NEUTRAL_INTERVAL_UPPER
+            lower_val = NEUTRAL_INTERVAL_LOWER
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER
         n_batches, n_in, h, w = shape
