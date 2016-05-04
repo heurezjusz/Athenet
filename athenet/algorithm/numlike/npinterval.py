@@ -360,7 +360,7 @@ class NpInterval(Numlike):
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HERE YOU WORK
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
-                  beta):
+                  beta, verbose = False):
         """Returns estimated impact of input of norm layer on output of
         network.
 
