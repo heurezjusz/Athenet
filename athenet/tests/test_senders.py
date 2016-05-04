@@ -111,10 +111,6 @@ def check_params(net, p, layer_limit):
         all_neurons += neurons
         all_deleted += deleted
         if deleted / 1. / neurons > layer_limit:
-            print "Limit for layer is sad"
-            print deleted
-            print deleted / 1. / neurons
-            print "layer_limit = ", layer_limit
             return False
 
     return all_deleted / 1. / all_neurons <= p
@@ -131,17 +127,11 @@ def check_indicators(indicator_list, p, layer_limit):
                 deleted += 1
             for c in xrange(indicator.shape[1]):
                 if c > 0 and indicator[r][c] != indicator[r][c - 1]:
-                    print "indicators rows are sad like very"
-                    print indicator[r]
                     return False
 
         all_neurons += neurons
         all_deleted += deleted
         if deleted / 1. / neurons > layer_limit:
-            print "Limit for layer is sad"
-            print deleted
-            print deleted / 1. / neurons
-            print "layer_limit = ", layer_limit
             return False
 
     return all_deleted / 1. / all_neurons <= p
