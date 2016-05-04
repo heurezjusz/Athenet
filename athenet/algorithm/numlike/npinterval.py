@@ -176,38 +176,47 @@ class NpInterval(Numlike):
         raise NotImplementedError
 
     def max(self, other):
-        """Returns maximum of self and other.
+        """Returns interval such that for any numbers (x, y) in a pair of
+        corresponding intervals in (self, other) arrays, max(x, y) is in result
+        and no other.
 
-        :param unspecified other: second masx param, type to be specified
-        :rtype: Numlike
+        :param other: interval to be compared
+        :type other: NpInterval or numpy.ndarray
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        if isinstance(other, NpInterval):
+            return NpInterval(np.maximum(self.lower, other.lower),
+                              np.maximum(self.upper, other.upper))
+        else:
+            return NpInterval(np.maximum(self.lower, other),
+                              np.maximum(self.upper, other))
 
     def amax(self, axis=None, keepdims=False):
-        """Returns maximum of a Numlike along an axis.
-
-        Works like theano.tensor.max
+        """Returns maximum of a NpInterval along an axis.
 
         :param axis: axis along which max is evaluated
         :param Boolean keepdims: whether flattened dimensions should remain
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        lower = self.lower.max(axis=axis, keepdims=keepdims)
+        upper = self.upper.max(axis=axis, keepdims=keepdims)
+        return NpInterval(lower, upper)
 
     def reshape(self, shape):
-        """Reshapes numlike tensor like theano Tensor.
+        """Reshapes NpInterval
 
-        :param integer tuple shape: shape to be set
-        :rtype: Numlike
+        :param tuple shape:
         """
-        raise NotImplementedError
+        return NpInterval(self.lower.reshape(shape),
+                          self.upper.reshape(shape))
 
     def flatten(self):
-        """Flattens numlike tensor like theano Tensor.
+        """Flattens NpInterval
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        return NpInterval(self.lower.flatten(),
+                          self.upper.flatten())
 
     def sum(self, axis=None, dtype=None, keepdims=False):
         """Sum of array elements over a given axis like in numpy.ndarray.
@@ -217,10 +226,13 @@ class NpInterval(Numlike):
                                    theano.tensor.sum
         :param Boolean keepdims: Whether to keep squashed dimensions of size 1
         :type axis: integer, tuple of integers or None
-        :rtype: Numlike
+        :rtype: NpInterval
 
         """
-        raise NotImplementedError
+        return NpInterval(
+            self.lower.sum(axis=axis, dtype=dtype, keepdims=keepdims),
+            self.upper.sum(axis=axis, dtype=dtype, keepdims=keepdims)
+        )
 
     def abs(self):
         """Returns absolute value of NpInterval.
