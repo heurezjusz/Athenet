@@ -311,9 +311,9 @@ class TestDNorm(TestCase):
         a = 1.
         b = 0.5
         k = 1.
-
-        act = np.asarray([[[[2.]]], [[[3.]]], [[[5.]]]])
-        der = np.asarray([[[[1.]]], [[[1.]]], [[[1.]]]])
+        # local range = 0
+        act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
+        der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
         activation = NpInterval(act, 1 * act)
         derivative = NpInterval(-der, der)
 
@@ -323,6 +323,64 @@ class TestDNorm(TestCase):
         R = derivative.op_d_norm(activation, act.shape, 0, k, a, b)
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(-res, R.lower).all())
+
+        # local range = 2
+        derivative = NpInterval(1 * der, 1 * der)
+
+        def foo(x, c):
+            return (a * (1 - 2 * b) * x ** 2 + c) / (a * x ** 2 + c) ** (b + 1)
+        def foo2(x, y, c):
+            return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b - 1))
+
+        c = k
+        for i in xrange(3):
+            c += act[0][i][0][0]**2
+        res = np.zeros(act.shape)
+
+        for i, j in product(xrange(3), xrange(3)):
+            x = act[0][i][0][0]
+            y = act[0][j][0][0]
+            if i == j:
+                res[:, i, ::] += foo(x, c - x ** 2)
+            else:
+                res[:, i, ::] += foo2(x, y, c - x**2 - y**2)
+
+        R = derivative.op_d_norm(activation, act.shape, 2, k, a, b)
+        self.assertTrue(np.isclose(res, R.upper).all())
+        self.assertTrue(np.isclose(res, R.lower).all())
+
+    def test_case1(self):
+        a = 1.
+        b = 0.5
+        k = 1.
+        act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
+        der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
+        activation = NpInterval(act, 1 * act)
+        derivative = NpInterval(-der, der)
+
+        def foo(x, c):
+            return (a * (1 - 2 * b) * x ** 2 + c) / (a * x ** 2 + c) ** (b + 1)
+
+        def foo2(x, y, c):
+            return -2 * a * b * x * y * (
+            (a * (x ** 2 + y ** 2) + c) ** (-b - 1))
+
+        c = k
+        for i in xrange(3):
+            c += act[0][i][0][0] ** 2
+        res = np.zeros(act.shape)
+
+        for i, j in product(xrange(3), xrange(3)):
+            x = act[0][i][0][0]
+            y = act[0][j][0][0]
+            if i == j:
+                res[:, i, ::] += foo(x, c - x ** 2)
+            else:
+                res[:, i, ::] += foo2(x, y, c - x ** 2 - y ** 2)
+
+        R = derivative.op_d_norm(activation, act.shape, 2, k, a, b)
+        self.assertTrue((R.lower <= -abs(res)).all())
+        self.assertTrue((abs(res) <= R.upper).all())
 
 
 class Just(TestCase):
