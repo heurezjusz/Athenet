@@ -17,6 +17,7 @@ DEFAULT_INTERVAL_LOWER = 0.0
 DEFAULT_INTERVAL_UPPER = 255.0
 DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
 
+
 class NpInterval(Numlike):
     def __init__(self, lower, upper):
         """
@@ -207,12 +208,19 @@ class NpInterval(Numlike):
         raise NotImplementedError
 
     def dot(self, other):
-        """Dot product of numlike vector and a other.
+        """Dot product of NpInterval and a other.
 
-        :param unspecified other: second dot param, type to be specified
-        :rtype: Numlike
+        :param numpy.ndarray other: second dot param
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        other_negative = np.minimum(other, 0.0)
+        other_positive = np.maximum(other, 0.0)
+        lower_pos_dot = np.dot(self.lower, other_positive)
+        lower_neg_dot = np.dot(self.lower, other_negative)
+        upper_pos_dot = np.dot(self.upper, other_positive)
+        upper_neg_dot = np.dot(self.upper, other_negative)
+        return NpInterval(lower_pos_dot + upper_neg_dot,
+                          upper_pos_dot + lower_neg_dot)
 
     def max(self, other):
         """Returns interval such that for any numbers (x, y) in a pair of
@@ -628,11 +636,12 @@ class NpInterval(Numlike):
 
     @staticmethod
     def derest_output(n_outputs):
-        """Generates Numlike of impact of output on output.
+        """Generates NpInterval of impact of output on output.
 
         :param int n_outputs: Number of outputs of network.
-        :returns: 2D square Numlike in shape (n_batches, n_outputs) with one
-                  different "1" in every batch.
-        :rtype: Numlike
+        :returns: 2D square NpInterval in shape (n_batches, n_outputs) with one
+                  different "1" in every batch, like numpy.eye(n_outputs)
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        np_matrix = np.eye(n_outputs)
+        return NpInterval(np_matrix, np_matrix)
