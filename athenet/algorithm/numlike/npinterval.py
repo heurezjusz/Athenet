@@ -239,7 +239,10 @@ class NpInterval(Numlike):
 
         :rtype: NpInterval
         """
-        raise NpInterval(np.abs(self.lower), np.abs(self.upper))
+        lower = np.select([self.lower > 0.0, self.upper < 0.0, True],
+                          [self.lower, -self.upper, 0.0])
+        upper = np.maximum(-self.lower, self.upper)
+        return NpInterval(lower, upper)
 
     @property
     def T(self):
