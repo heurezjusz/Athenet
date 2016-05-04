@@ -97,7 +97,7 @@ class ActivationStressTest(unittest.TestCase):
         constr_time = timeit.default_timer()
         l, u = iout.eval()
         ex_time = timeit.default_timer()
-        self.check_time('d_softmax', start_time, constr_time, ex_time)
+        self.check_time('softmax', start_time, constr_time, ex_time)
 
     def test_norm(self):
 
@@ -112,7 +112,7 @@ class ActivationStressTest(unittest.TestCase):
         constr_time = timeit.default_timer()
         l, u = iout.eval()
         ex_time = timeit.default_timer()
-        self.check_time('d_norm', start_time, constr_time, ex_time)
+        self.check_time('norm', start_time, constr_time, ex_time)
 
     def test_dropout(self):
         iinp = ithv((50, 1024, 1, 1))
@@ -121,7 +121,7 @@ class ActivationStressTest(unittest.TestCase):
         constr_time = timeit.default_timer()
         l, u = iout.eval()
         ex_time = timeit.default_timer()
-        self.check_time('d_dropout', start_time, constr_time, ex_time)
+        self.check_time('dropout', start_time, constr_time, ex_time)
 
     def test_relu(self):
         iinp = ithv((50, 1024, 1, 1))
@@ -130,7 +130,7 @@ class ActivationStressTest(unittest.TestCase):
         constr_time = timeit.default_timer()
         l, u = iout.eval()
         ex_time = timeit.default_timer()
-        self.check_time('d_relu', start_time, constr_time, ex_time)
+        self.check_time('relu', start_time, constr_time, ex_time)
 
 
 class DerivativeStressTest(unittest.TestCase):
