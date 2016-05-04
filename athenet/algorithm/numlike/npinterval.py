@@ -51,6 +51,16 @@ class NpInterval(Numlike):
         """
         return NpInterval(self.lower + other.lower, self.upper + other.upper)
 
+    def antiadd(self, other):
+        """For given NpInterval returns NpInterval which shuold be added
+        to id to get NpInterval equal to self.
+
+        :param other: NpInterval which was added.
+        :type other: NpInterval
+        :rtype: NpInterval
+        """
+        return NpInterval(self.lower - other.lower, self.upper - other.upper)
+
     def __sub__(self, other):
         """Returns difference between two numlikes.
 
@@ -368,8 +378,10 @@ class NpInterval(Numlike):
         :param float beta: local range normalization beta argument
         :rtype: NpInterval
         """
-        result = NpInterval(np.zeros_like(activation.lower),
-                            np.zeros_like(activation.upper))
+        result = NpInterval(np.zeros(input_shape),
+                            np.zeros(input_shape))
+        diff = input_shape[1] - self.shape[1]
+        assert(diff % 2 == 0)
         activation_sqares = activation.square()
 
         # some piece of math, unnecessary in any other place:
@@ -435,7 +447,7 @@ class NpInterval(Numlike):
 
 
         batches, channels, h, w = input_shape
-        for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
+        for b, channel, at_h, at_w in product(xrange(batches), xrange(diff / 2, channels - diff / 2),
                                               xrange(h), xrange(w)):
             C = NpInterval(np.asarray([k]), np.asarray([k]))
             for i in xrange(-local_range, local_range):
@@ -456,7 +468,7 @@ class NpInterval(Numlike):
                     der.lower = val
                 if der.upper is None or der.upper < val:
                     der.upper = val
-            result[b][channel][at_h][at_w] += self[b][channel][at_h][at_w]*der
+            result[b][channel][at_h][at_w] += self[b][channel - diff / 2][at_h][at_w]*der
 
             #not_eq_case
             for i in xrange(-local_range, local_range):
@@ -476,7 +488,7 @@ class NpInterval(Numlike):
                         if der.upper is None or der.upper < val:
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
-                        der * self[b][channel][at_h][at_w]
+                        der * self[b][channel - diff / 2][at_h][at_w]
 
         return result
 

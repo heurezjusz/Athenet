@@ -5,11 +5,13 @@ from itertools import product
 import numpy as np
 
 
-def _random_shape():
+def _random_shape(n = None):
+    if n is None:
+        n = randrange(1, 7)
     result = None
     limit = 10 ** 4
     size = 1
-    for i in xrange(randrange(1, 7)):
+    for i in xrange(n):
         l = randrange(1, 10)
         if result is None:
             result = (l,)
@@ -258,6 +260,69 @@ class TestGetSetitem(TestCase):
         for i, j, k, l in product(xrange(n), xrange(n), xrange(n), xrange(n)):
             self.assertEquals(I[i][j][k][l].lower, i*l ^ j*k)
             self.assertEquals(I[i][j][k][l].upper, (i*j ^ l*k) + 1000)
+
+
+class TestAntiadd(TestCase):
+    def test_case(self):
+        al = np.asarray([[1, -2, -1], [-4, -5, -1]])
+        au = np.asarray([[2, -1,  1], [42, -4, 7]])
+        A = NpInterval(al, au)
+
+        bl = np.asarray([[1, 1, 4], [-1, -2, -13]])
+        bu = np.asarray([[2, 2, 5], [-1, -1,   1]])
+        B = NpInterval(bl, bu)
+
+        R = (A + B).antiadd(B)
+        self.assertTrue((A.lower == R.lower).all())
+        self.assertTrue((A.upper == R.upper).all())
+        R = (A + B).antiadd(A)
+        self.assertTrue((B.lower == R.lower).all())
+        self.assertTrue((B.upper == R.upper).all())
+
+    def test_correct(self):
+        for _ in xrange(100):
+            l = [randrange(-10, 10) for j in xrange(4)]
+            A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
+            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+
+            if A.lower[0] > A.upper[0]:
+                A.lower, A.upper = A.upper, A.lower
+            if B.lower[0] > B.upper[0]:
+                B.lower, B.upper = B.upper, B.lower
+
+            R = (A + B).antiadd(B)
+            self.assertTrue((A.lower == R.lower).all())
+            self.assertTrue((A.upper == R.upper).all())
+            R = (A + B).antiadd(A)
+            self.assertTrue((B.lower == R.lower).all())
+            self.assertTrue((B.upper == R.upper).all())
+
+    def test_shape(self):
+        for i in xrange(100):
+            shape = _random_shape()
+            A = NpInterval(np.ones(shape), 100 * np.ones(shape))
+            B = NpInterval(np.ones(shape) * 2, np.ones(shape) * 3)
+            R = A.antiadd(B)
+            self.assertEqual(R.shape, shape)
+
+
+class TestDNorm(TestCase):
+    def test_case(self):
+        a = 1.
+        b = 0.5
+        k = 1.
+
+        act = np.asarray([[[[2.]]], [[[3.]]], [[[5.]]]])
+        der = np.asarray([[[[1.]]], [[[1.]]], [[[1.]]]])
+        activation = NpInterval(act, 1 * act)
+        derivative = NpInterval(-der, der)
+
+        def foo(x):
+            return (a * (1 - 2 * b) * x**2 + k) / (a * x**2 + k) ** (b + 1)
+        res = foo(act)
+        R = derivative.op_d_norm(activation, act.shape, 0, k, a, b)
+        self.assertTrue(np.isclose(res, R.upper).all())
+        self.assertTrue(np.isclose(-res, R.lower).all())
 
 
 class Just(TestCase):
