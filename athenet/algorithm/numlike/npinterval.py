@@ -36,7 +36,7 @@ class NpInterval(Numlike):
         self.upper[at] = other.upper
 
     def __str__(self):
-        return "<<<\n" + self.lower.__str__() + "\n;;;\n" + self.upper.__str__() + "\n>>>"
+        return "[" + self.lower.__str__() + ", " + self.upper.__str__() + "]"
 
     @property
     def shape(self):
@@ -101,10 +101,34 @@ class NpInterval(Numlike):
         """Returns quotient of self and other.
 
         :param other: divisor
-        :type other: Numlike or np.ndarray or theano.tensor
-        :rtype: Numlike
+        :type other: NpInterval or numpy.ndarray or float
+        :rtype: NpInterval
+
+        .. warning:: Divisor should not contain zero.
         """
-        raise NotImplementedError
+        if isinstance(other, NpInterval):
+            other_pos = other.lower > 0
+            other_neg = np.logical_not(other_pos)
+            self_pos = self.lower > 0
+            self_has_pos = self.upper > 0
+
+            change_other_lower = (other_pos & self_pos) \
+                                 | (other_neg & self_has_pos)
+            change_other_upper = (other_pos & self_has_pos) \
+                                 | (other_neg & self_pos)
+
+            self_lower = np.select([other_neg, True], [self.upper, self.lower])
+            self_upper = np.select([other_neg, True], [self.lower, self.upper])
+            other_lower = np.select([change_other_lower, True],
+                                    [other.upper, other.lower])
+            other_upper = np.select([change_other_upper, True],
+                                    [other.lower, other.upper])
+            return NpInterval(self_lower / other_lower,
+                              self_upper / other_upper)
+        elif other > 0:
+            return NpInterval(self.lower / other, self.upper / other)
+        else:
+            return NpInterval(self.upper / other, self.lower / other)
 
     def __rdiv__(self, other):
         """Returns quotient of other and self.
@@ -144,7 +168,7 @@ class NpInterval(Numlike):
     def _has_zero(self):
         """For any interval in NpInterval, returns whether is contains zero.
 
-        :rtype: Boolean
+        :rtype: numpy.array of Boolean
         """
         return np.logical_and(self.lower <= 0, self.upper >= 0)
 
@@ -392,8 +416,6 @@ class NpInterval(Numlike):
         :rtype: Numlike
         """
         raise NotImplementedError
-
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HERE YOU WORK
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
