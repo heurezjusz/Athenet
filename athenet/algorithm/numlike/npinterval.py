@@ -118,11 +118,14 @@ class NpInterval(Numlike):
         raise NotImplementedError
 
     def reciprocal(self):
-        """Returns reciprocal of the Numlike.
+        """Returns reciprocal (1/x) of the NpInterval.
 
         :rtype: Numlike
         """
-        raise NotImplementedError
+        upper_reciprocal = np.reciprocal(self.upper)
+        lower_reciprocal = np.reciprocal(self.lower)
+        return NpInterval(np.minimum(upper_reciprocal, lower_reciprocal),
+                          np.maximum(upper_reciprocal, lower_reciprocal))
 
     def neg(self):
         """Returns (-1) * Numlike.
