@@ -474,10 +474,8 @@ class NpInterval(Numlike):
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (i + channel) < channels:
                     X = activation[b][channel + i][at_h][at_w]
-                    C = NpInterval(np.asarray(k), np.asarray(k))
-                    for j in xrange(-local_range, local_range + 1):
-                        if j != 0 and j != i and 0 <= (j + channel) < channels:
-                            C += activation_sqares[b][channel + j][at_h][at_w]
+                    X2 = activation_sqares[b][channel + i][at_h][at_w]
+                    C = C.antiadd(X2)
 
                     extremas = extremas_3d(X.lower, X.upper, Y.lower, Y.upper,
                                            C.lower, C.upper)
@@ -490,6 +488,7 @@ class NpInterval(Numlike):
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
                         der * self[b][channel - diff / 2 + i][at_h][at_w]
+                    C += X2
 
         return result
 
