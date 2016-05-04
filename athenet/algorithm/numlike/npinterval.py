@@ -9,6 +9,14 @@ from itertools import product
 import numpy as np
 import math
 
+NEUTRAL_INTERVAL_LOWER = 0.0
+NEUTRAL_INTERVAL_UPPER = 0.0
+NEUTRAL_INTERVAL_VALUES = (NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER)
+
+DEFAULT_INTERVAL_LOWER = 0.0
+DEFAULT_INTERVAL_UPPER = 255.0
+DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
+
 class NpInterval(Numlike):
     def __init__(self, lower, upper):
         """
@@ -139,12 +147,19 @@ class NpInterval(Numlike):
         .. warning:: divisor (self) should not contain zero, other must be
                      float
         """
-        raise NotImplementedError
+        if isinstance(other, NpInterval):
+            # Should never happen. __div__ should be used instead.
+            raise NotImplementedError
+        else:
+            if other > 0:
+                return NpInterval(other / self.upper, other / self.lower)
+            else:
+                return NpInterval(other / self.lower, other / self.upper)
 
     def reciprocal(self):
         """Returns reciprocal (1/x) of the NpInterval.
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         upper_reciprocal = np.reciprocal(self.upper)
         lower_reciprocal = np.reciprocal(self.lower)
@@ -277,27 +292,53 @@ class NpInterval(Numlike):
         raise NpInterval(self.lower.T, self.upper.T)
 
     @staticmethod
-    def from_shape(shp, neutral=True):
-        """Returns Numlike of given shape.
+    def from_shape(shp, neutral=True, lower_val=None, upper_val=None):
+        """Returns NpInterval of shape shp with given lower and upper values.
 
-        :param integer tuple shp: shape to be set
-        :param Boolean neutral: whether created Numlike should have neutral
-                        values or significant values.
-        :rtype: Numlike
+        :param tuple of integers or integer shp : shape of created NpInterval
+        :param Boolean neutral: if True sets (lower_val, upper_val) to
+                                NEUTRAL_INTERVAL_VALUES, otherwise to
+                                DEFAULT_INTERVAL_VALUES, works only if pair is
+                                not set by passing arguments.
+        :param float lower_val: value of lower bound
+        :param float upper_val: value of upper bound
         """
-        raise NotImplementedError
+        if lower_val is None:
+            lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
+                        DEFAULT_INTERVAL_LOWER
+        if upper_val is None:
+            upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
+                        DEFAULT_INTERVAL_UPPER
+        if lower_val > upper_val:
+            if lower_val != np.inf or upper_val != -np.inf:
+                raise ValueError("lower_val > upper_val")
+        lower = np.full(shp, lower_val)
+        upper = np.ndarray(shp, upper_val)
+        return NpInterval(lower, upper)
 
-    def reshape_for_padding(self, shape, padding):
+    def reshape_for_padding(self, shape, padding, lower_val=None,
+                            upper_val=None):
         """Returns padded Numlike.
 
         :param tuple of 4 integers shape: shape of input in format
                                           (batch size, number of channels,
                                            height, width)
         :param pair of integers padding: padding to be applied
+        :param float lower_val: value of lower bound in new fields
+        :param float upper_val: value of upper bound in new fields
         :returns: padded layer_input
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        if lower_val is None:
+            lower_val = NEUTRAL_INTERVAL_LOWER
+        if upper_val is None:
+            upper_val = NEUTRAL_INTERVAL_UPPER
+        n_batches, n_in, h, w = shape
+        padded_low = misc_reshape_for_padding(self.lower, (h, w, n_in),
+                                              n_batches, padding, lower_val)
+        padded_upp = misc_reshape_for_padding(self.upper, (h, w, n_in),
+                                              n_batches, padding, upper_val)
+        return NpInterval(padded_low, padded_upp)
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
