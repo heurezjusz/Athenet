@@ -381,6 +381,7 @@ class NpInterval(Numlike):
         result = NpInterval(np.zeros(input_shape),
                             np.zeros(input_shape))
         activation_sqares = activation.square()
+        local_range /= 2
 
         # some piece of math, unnecessary in any other place:
         # derivative for x placed in denominator of norm function
@@ -411,8 +412,9 @@ class NpInterval(Numlike):
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
             # intersects solution rectangle with half-parabola above
-            possibilities_c0 = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
-                               for c in [c_low, c_up]]
+            possibilities_c0 = [(-math.sqrt(c) / math.sqrt(alpha * (2 * beta + 1)), c)
+                                for c in [c_low, c_up]]
+
             possibilities_c1 = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
                                for c in [c_low, c_up]]
             possibilities_c2 = [(math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
