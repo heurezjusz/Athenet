@@ -455,12 +455,33 @@ class NpInterval(Numlike):
                    (c + alpha*(x**2 + y**2)) ** (beta+1)
 
         # possible extremas of this derivative
-        def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
+        def extremas_3d_dc(x_low, x_up, y_low, y_up, c_low, c_up):
             # as far as wolfram knows, possible extremas are for x=0 and y=0
             return [(x,y,c) for x,y,c in
                     product([x_low, x_up, 0], [y_low, y_up, 0], [c_low, c_up])
                     if x_low <= x <= x_up and y_low <= y <= y_up]
 
+        def extremas_3d_dx(x_low, x_up, y_low, y_up, c_low, c_up):
+            # a*y**2=a(2*b+1)*x**2-c
+            a = alpha
+            b = beta
+            sqrt1 = [(math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
+                     for y, c in product([y_low, y_up, 0], [c_low, c_up])]
+            sqrt2 = [(-math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
+                     for y, c in product([y_low, y_up, 0], [c_low, c_up])]
+            return [(x,y,c) for x,y,c in sqrt1 + sqrt2
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
+        def extremas_3d_dy(x_low, x_up, y_low, y_up, c_low, c_up):
+            # a*x**2=a(2*b+1)*y**2-c
+            a = alpha
+            b = beta
+            sqrt1 = [(x, math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
+                     for x, c in product([x_low, x_up, 0], [c_low, c_up])]
+            sqrt2 = [(x, -math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
+                     for x, c in product([x_low, x_up, 0], [c_low, c_up])]
+            return [(x, y, c) for x, y, c in sqrt1 + sqrt2
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
 
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
@@ -496,8 +517,13 @@ class NpInterval(Numlike):
                     X2 = activation_sqares[b][channel + i][at_h][at_w]
                     C = C.antiadd(X2)
 
-                    extremas = extremas_3d(X.lower, X.upper, Y.lower, Y.upper,
-                                           C.lower, C.upper)
+                    extremas = extremas_3d_dc(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) +\
+                               extremas_3d_dx(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) +\
+                               extremas_3d_dy(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper)
+
                     der = NpInterval()
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)
