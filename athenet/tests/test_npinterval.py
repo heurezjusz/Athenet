@@ -339,7 +339,7 @@ class TestDNorm(TestCase):
 
     def test_case0(self):
         a = 1.
-        b = 0.5
+        b = 0.75
         k = 1.
         # local range = 0
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
@@ -376,7 +376,7 @@ class TestDNorm(TestCase):
 
     def test_case1(self):
         a = 1.
-        b = 0.5
+        b = 0.75
         k = 1.
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
         der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
@@ -447,7 +447,7 @@ class TestDNorm(TestCase):
 
     def test_case3(self):
         a = 1.
-        b = 0.5
+        b = 0.75
         k = 1.
         # local range = 0
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
@@ -515,7 +515,7 @@ class TestDNorm(TestCase):
             local_range = randrange(1, 3)
             k = uniform(1, 1)
             a = uniform(1, 1)
-            b = uniform(0.5, 0.5)
+            b = uniform(0.75, 0.75)
             activations = _random_npinterval(shape)
             derivatives = _random_npinterval(shape)
             R = derivatives.op_d_norm(activations, shape, local_range,
@@ -547,7 +547,7 @@ class TestDNorm(TestCase):
             local_range = randrange(1, 3)
             k = uniform(1, 1)
             a = uniform(1, 1)
-            b = uniform(0.5, 0.5)
+            b = uniform(0.75, 0.75)
             activations = _random_npinterval(shape)
             activations.lower = activations.upper * 1
             derivatives = _random_npinterval(shape)

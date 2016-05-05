@@ -411,12 +411,14 @@ class NpInterval(Numlike):
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
             # intersects solution rectangle with half-parabola above
-            possibilities_c = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
-                             for c in [c_low, c_up]]
+            possibilities_c = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
+                               for c in [c_low, c_up]]
+            possibilities_c2 = [(math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
+                               for c in [c_low, c_up]]
             possibilities_x = [(x, alpha*(2*beta+1) * x**2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x + possibilities_c
+            return [(x,c) for x,c in possibilities_x + possibilities_c + possibilities_c2
                     if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
