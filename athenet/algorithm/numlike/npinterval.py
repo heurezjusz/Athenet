@@ -436,7 +436,8 @@ class NpInterval(Numlike):
         :rtype: NpInterval
         """
         lower_than_zero = activation.upper <= 0.
-        contains_zero = activation._has_zero()
+        contains_zero = np.logical_and(activation.lower < 0,
+                                       activation.upper > 0)
 
         der_with_zero_l = np.minimum(self.lower, 0.)
         der_with_zero_u = np.maximum(self.upper, 0.)

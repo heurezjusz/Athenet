@@ -607,7 +607,7 @@ class ReluDerivativeTest(TestCase):
         idout = NpInterval(doutl, doutu)
         idin = idout.op_d_relu(iact)
         l, u = idin.lower, idin.upper
-        rl = np.asarray([0, 0, 0, 0, 0, 13])
+        rl = np.asarray([0, 0, 0, 0, 11, 13])
         ru = np.asarray([0, 5, 0, 0, 13, 17])
 
         self.assertTrue((l == rl).all())
@@ -623,7 +623,7 @@ class ReluDerivativeTest(TestCase):
         idin = idout.op_d_relu(iact)
         l, u = idin.lower, idin.upper
         rl = np.asarray([0, -5, 0, 0, -13, -17])
-        ru = np.asarray([0, 0, 0, 0, 0, -13])
+        ru = np.asarray([0, 0, 0, 0, -11, -13])
 
         self.assertTrue((l == rl).all())
         self.assertTrue((u == ru).all())
