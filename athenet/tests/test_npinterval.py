@@ -335,7 +335,7 @@ class TestDNorm(TestCase):
     def foo(self, x, c, a, b):
         return (a * (1 - 2 * b) * x ** 2 + c) / (a * x ** 2 + c) ** (b + 1)
     def foo2(self, x, y, c, a, b):
-        return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b - 1))
+        return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b-1))
 
     def test_case0(self):
         a = 1.
@@ -349,8 +349,8 @@ class TestDNorm(TestCase):
 
         res = self._count_norm(act, der, k, a, b, 0)
         R = derivative.op_d_norm(activation, act.shape, 0, k, a, b)
-        self.assertTrue(np.isclose(res, R.upper).all())
-        self.assertTrue(np.isclose(-res, R.lower).all())
+        self.assertTrue(np.isclose(abs(res), R.upper).all())
+        self.assertTrue(np.isclose(-abs(res), R.lower).all())
 
         # local range = 2
         derivative = NpInterval(1 * der, 1 * der)
@@ -567,7 +567,7 @@ class TestDNorm(TestCase):
             local_range = randrange(0, 3)
             k = uniform(0.1, 10)
             a = uniform(0.1, 10)
-            b = uniform(0.1, 3)
+            b = uniform(0.75, 3)
 
             A = _random_npinterval(shape)
             D = _random_npinterval(shape)
