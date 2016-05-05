@@ -401,19 +401,28 @@ class NpInterval(Numlike):
 
         # possible extremas
         def root1_2d(c_low, c_up, x_low, x_up):
+            # df / dx = 0
             # returns roots of derivative of derivetive of norm function
             # x = 0
             # intersects solution rectangle with x = 0
-            if x_low <= 0 and x_up >= 0:
-                return [(0, c_low), (0, c_up)]
-            return []
+
+            possibilities_c0 = [(0., c) for c in [c_low, c_up]]
+            possibilities_c1 = [
+                (-math.sqrt(3 * c) / math.sqrt(alpha * (2 * beta - 1)), c)
+                for c in [c_low, c_up]]
+            possibilities_c2 = [
+                (math.sqrt(3 * c) / math.sqrt(alpha * (2 * beta - 1)), c)
+                for c in [c_low, c_up]]
+
+            return [(x, c) for x, c in possibilities_c0 + possibilities_c1
+                    + possibilities_c2 if x_low <= x <= x_up]
 
         def root2_2d(c_low, c_up, x_low, x_up):
+            # df / dc = 0
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
             # intersects solution rectangle with parabola above
 
-            # Wolframa moja interpretacja
             possibilities_c0 = [
                 (-math.sqrt(c) / math.sqrt(alpha * (2 * beta + 1)), c)
                 for c in [c_low, c_up]]
@@ -421,15 +430,11 @@ class NpInterval(Numlike):
                 (math.sqrt(c) / math.sqrt(alpha * (2 * beta + 1)), c)
                 for c in [c_low, c_up]]
 
-            # Marcin
-            possibilities_c2 = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
-                               for c in [c_low, c_up]]
-            possibilities_c3 = [(math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
-                               for c in [c_low, c_up]]
             possibilities_x = [(x, alpha*(2*beta+1) * x**2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x + possibilities_c1 + possibilities_c2 + possibilities_c0 + possibilities_c3
+            return [(x,c) for x,c in possibilities_x + possibilities_c0 +
+                    possibilities_c1
                     if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
