@@ -569,10 +569,8 @@ class TestDNorm(TestCase):
             a = uniform(0.1, 10)
             b = uniform(0.1, 3)
 
-            diff = min(local_range, (shape[1] - 1) / 2)
-            der_shape = (shape[0],) + (shape[1] - 2 * diff,) + shape[2:]
             A = _random_npinterval(shape)
-            D = _random_npinterval(der_shape)
+            D = _random_npinterval(shape)
             R = D.op_d_norm(A, shape, local_range, k, a, b)
             self.assertEquals(A.shape, R.shape)
 
