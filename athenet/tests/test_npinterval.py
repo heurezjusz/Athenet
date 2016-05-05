@@ -510,6 +510,7 @@ class TestDNorm(TestCase):
                                                               at_h, at_w]
                     if verbose:
                         print "(", at_ch, at_ch + i, ")", self.foo2(x, y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
+                        print "point:", x, y, c
                     c += x**2
         return res
 

@@ -495,6 +495,7 @@ class NpInterval(Numlike):
                         der * self[b][channel][at_h][at_w]
                     if verbose:
                         print "(", channel, channel + i, ")", der * self[b][channel][at_h][at_w]
+                        print "extremas (x,y,c)", extremas
                     C += X2
 
         return result
