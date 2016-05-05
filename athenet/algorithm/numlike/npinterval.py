@@ -360,7 +360,7 @@ class NpInterval(Numlike):
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HERE YOU WORK
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
-                  beta):
+                  beta, verbose = False):
         """Returns estimated impact of input of norm layer on output of
         network.
 
@@ -411,14 +411,16 @@ class NpInterval(Numlike):
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
             # intersects solution rectangle with half-parabola above
-            possibilities_c = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
+            possibilities_c0 = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
+                               for c in [c_low, c_up]]
+            possibilities_c1 = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
                                for c in [c_low, c_up]]
             possibilities_c2 = [(math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
                                for c in [c_low, c_up]]
             possibilities_x = [(x, alpha*(2*beta+1) * x**2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x + possibilities_c + possibilities_c2
+            return [(x,c) for x,c in possibilities_x + possibilities_c1 + possibilities_c2 + possibilities_c0
                     if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
@@ -470,8 +472,10 @@ class NpInterval(Numlike):
                     der.upper = val
             result[b][channel][at_h][at_w] += der * \
                                               self[b][channel][at_h][at_w]
+            if verbose:
+                print "--", channel, "--", der * self[b][channel][at_h][at_w]
 
-            #not_eq_case
+            # not_eq_case
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (i + channel) < channels:
                     X = activation[b][channel + i][at_h][at_w]
@@ -489,6 +493,8 @@ class NpInterval(Numlike):
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
                         der * self[b][channel][at_h][at_w]
+                    if verbose:
+                        print "(", channel, channel + i, ")", der * self[b][channel][at_h][at_w]
                     C += X2
 
         return result

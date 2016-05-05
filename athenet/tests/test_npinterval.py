@@ -482,7 +482,7 @@ class TestDNorm(TestCase):
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
 
-    def _count_norm(self, act, der, k, alpha, beta, local_range):
+    def _count_norm(self, act, der, k, alpha, beta, local_range, verbose = False):
         res = np.zeros_like(act)
         b, ch, h, w = der.shape
         for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
@@ -492,6 +492,9 @@ class TestDNorm(TestCase):
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (at_ch + i) < ch:
                     c += act[at_b, at_ch + i, at_h, at_w]**2
+
+            if verbose:
+                print "--", at_ch, "--", self.foo(y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
 
             res[at_b, at_ch, at_h, at_w] += self.foo(y, c, alpha, beta) * \
                                             der[at_b, at_ch, at_h, at_w]
@@ -505,12 +508,15 @@ class TestDNorm(TestCase):
                                                                   beta) \
                                                         * der[at_b, at_ch,
                                                               at_h, at_w]
+                    if verbose:
+                        print "(", at_ch, at_ch + i, ")", self.foo2(x, y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
                     c += x**2
         return res
 
     def test_correct(self):
         for _ in xrange(100):
             s = randrange(1, 10)
+            s = 2
             shape = (1, s, 1, 1)
             local_range = randrange(1, 3)
             k = uniform(1, 1)
@@ -536,6 +542,9 @@ class TestDNorm(TestCase):
                     print "results", R
                     print "chosen"
                     print res
+
+                    derivatives.op_d_norm(activations, shape, local_range, k, a, b, True)
+                    self._count_norm(act, der, k, a, b, local_range, True)
 
                 self.assertTrue((R.lower <= res + 1e-5).all())
                 self.assertTrue((res <= R.upper + 1e-5).all())
