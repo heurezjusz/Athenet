@@ -19,7 +19,7 @@ DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
 
 
 class NpInterval(Numlike):
-    def __init__(self, lower, upper):
+    def __init__(self, lower=None, upper=None):
         """
         :param numpy.ndarray lower:
         :param numpy.ndarray upper:
