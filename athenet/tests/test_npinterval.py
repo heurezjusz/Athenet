@@ -575,5 +575,61 @@ class TestDNorm(TestCase):
             self.assertEquals(A.shape, R.shape)
 
 
+class ReluDerivativeTest(TestCase):
+
+    def test_case1(self):
+        shp = (4, 3, 2)
+        act = np.zeros(shp)
+        for n_in in range(4):
+            for h in range(3):
+                for w in range(2):
+                    act[n_in, h, w] += 100 * n_in + 10 * h + w
+        iact = NpInterval(act, 1 * act)
+        idout = NpInterval(np.ones(shp), np.ones(shp))
+        idin = d_relu(idout, iact)
+        l, u = idin.eval()
+        aae(l[0, 0, 0], 0.0)
+        aae(u[0, 0, 0], 1.0)
+        aae(l[2, 1, 1], 1.0)
+        aae(l[2, 2, 1], 1.0)
+        aae(l[1, 0, 1], 1.0)
+        aae(l[2, 1, 1], 1.0)
+        aae(l[2, 2, 0], 1.0)
+        aae(l[1, 0, 1], 1.0)
+
+    def test_case2(self):
+        actl = thv([-2, -1, -1, 0, 0, 1])
+        actu = thv([-1, 1, 0, 0, 1, 2])
+        doutl = thv([2, 3, 4, 7, 11, 13])
+        doutu = thv([3, 5, 7, 11, 13, 17])
+        iact = Itv(actl, actu)
+        idout = Itv(doutl, doutu)
+        idin = d_relu(idout, iact)
+        l, u = idin.eval()
+        rl = A([0, 0, 0, 0, 0, 13])
+        ru = A([0, 5, 7, 11, 13, 17])
+        arae(l, rl)
+        arae(u, ru)
+
+    def test_case3(self):
+        actl = thv([-2, -1, -1, 0, 0, 1])
+        actu = thv([-1, 1, 0, 0, 1, 2])
+        doutl = thv([-3, -5, -7, -11, -13, -17])
+        doutu = thv([-2, -3, -5, -7, -11, -13])
+        iact = Itv(actl, actu)
+        idout = Itv(doutl, doutu)
+        idin = d_relu(idout, iact)
+        l, u = idin.eval()
+        rl = A([0, -5, -7, -11, -13, -17])
+        ru = A([0, 0, 0, 0, 0, -13])
+        arae(l, rl)
+        arae(u, ru)
+
+
+
+
+
+
+
 if __name__ == '__main__':
     main(verbosity=2)
