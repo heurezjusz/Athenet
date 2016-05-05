@@ -586,49 +586,47 @@ class ReluDerivativeTest(TestCase):
                     act[n_in, h, w] += 100 * n_in + 10 * h + w
         iact = NpInterval(act, 1 * act)
         idout = NpInterval(np.ones(shp), np.ones(shp))
-        idin = d_relu(idout, iact)
-        l, u = idin.eval()
-        aae(l[0, 0, 0], 0.0)
-        aae(u[0, 0, 0], 1.0)
-        aae(l[2, 1, 1], 1.0)
-        aae(l[2, 2, 1], 1.0)
-        aae(l[1, 0, 1], 1.0)
-        aae(l[2, 1, 1], 1.0)
-        aae(l[2, 2, 0], 1.0)
-        aae(l[1, 0, 1], 1.0)
+        idin = idout.op_d_relu(iact)
+        l, u = idin.lower, idin.upper
+
+        self.assertAlmostEquals(l[0, 0, 0], 0.0)
+        self.assertAlmostEquals(u[0, 0, 0], 0.0)
+        self.assertAlmostEquals(l[2, 1, 1], 1.0)
+        self.assertAlmostEquals(l[2, 2, 1], 1.0)
+        self.assertAlmostEquals(l[1, 0, 1], 1.0)
+        self.assertAlmostEquals(l[2, 1, 1], 1.0)
+        self.assertAlmostEquals(l[2, 2, 0], 1.0)
+        self.assertAlmostEquals(l[1, 0, 1], 1.0)
 
     def test_case2(self):
-        actl = thv([-2, -1, -1, 0, 0, 1])
-        actu = thv([-1, 1, 0, 0, 1, 2])
-        doutl = thv([2, 3, 4, 7, 11, 13])
-        doutu = thv([3, 5, 7, 11, 13, 17])
-        iact = Itv(actl, actu)
-        idout = Itv(doutl, doutu)
-        idin = d_relu(idout, iact)
-        l, u = idin.eval()
-        rl = A([0, 0, 0, 0, 0, 13])
-        ru = A([0, 5, 7, 11, 13, 17])
-        arae(l, rl)
-        arae(u, ru)
+        actl = np.asarray([-2, -1, -1, 0, 0, 1])
+        actu = np.asarray([-1, 1, 0, 0, 1, 2])
+        doutl = np.asarray([2, 3, 4, 7, 11, 13])
+        doutu = np.asarray([3, 5, 7, 11, 13, 17])
+        iact = NpInterval(actl, actu)
+        idout = NpInterval(doutl, doutu)
+        idin = idout.op_d_relu(iact)
+        l, u = idin.lower, idin.upper
+        rl = np.asarray([0, 0, 0, 0, 0, 13])
+        ru = np.asarray([0, 5, 0, 0, 13, 17])
+
+        self.assertTrue((l == rl).all())
+        self.assertTrue((u == ru).all())
 
     def test_case3(self):
-        actl = thv([-2, -1, -1, 0, 0, 1])
-        actu = thv([-1, 1, 0, 0, 1, 2])
-        doutl = thv([-3, -5, -7, -11, -13, -17])
-        doutu = thv([-2, -3, -5, -7, -11, -13])
-        iact = Itv(actl, actu)
-        idout = Itv(doutl, doutu)
-        idin = d_relu(idout, iact)
-        l, u = idin.eval()
-        rl = A([0, -5, -7, -11, -13, -17])
-        ru = A([0, 0, 0, 0, 0, -13])
-        arae(l, rl)
-        arae(u, ru)
+        actl = np.asarray([-2, -1, -1, 0, 0, 1])
+        actu = np.asarray([-1, 1, 0, 0, 1, 2])
+        doutl = np.asarray([-3, -5, -7, -11, -13, -17])
+        doutu = np.asarray([-2, -3, -5, -7, -11, -13])
+        iact = NpInterval(actl, actu)
+        idout = NpInterval(doutl, doutu)
+        idin = idout.op_d_relu(iact)
+        l, u = idin.lower, idin.upper
+        rl = np.asarray([0, -5, 0, 0, -13, -17])
+        ru = np.asarray([0, 0, 0, 0, 0, -13])
 
-
-
-
-
+        self.assertTrue((l == rl).all())
+        self.assertTrue((u == ru).all())
 
 
 if __name__ == '__main__':
