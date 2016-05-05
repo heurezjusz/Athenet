@@ -100,6 +100,9 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def __neg__(self):
+        return self.neg()
+
     def exp(self):
         """Returns Numlike representing the exponential of the Numlike.
 
@@ -121,6 +124,9 @@ class Numlike(object):
         :rtype: Numlike
         """
         raise NotImplementedError
+
+    def __pow__(self, exponent):
+        return self.power(exponent)
 
     def dot(self, other):
         """Dot product of numlike vector and a other.
@@ -183,6 +189,9 @@ class Numlike(object):
         :rtype: Numlike
         """
         raise NotImplementedError
+
+    def __abs__(self):
+        return self.abs()
 
     @property
     def T(self):
