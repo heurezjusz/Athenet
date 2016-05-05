@@ -510,6 +510,7 @@ class NpInterval(Numlike):
         result = NpInterval(np.zeros(input_shape),
                             np.zeros(input_shape))
         activation_sqares = activation.square()
+        local_range /= 2
 
         # some piece of math, unnecessary in any other place:
         # derivative for x placed in denominator of norm function
@@ -529,24 +530,33 @@ class NpInterval(Numlike):
 
         # possible extremas
         def root1_2d(c_low, c_up, x_low, x_up):
+            # df / dx = 0
             # returns roots of derivative of derivetive of norm function
             # x = 0
             # intersects solution rectangle with x = 0
-            if x_low <= 0 and x_up >= 0:
-                return [(0, c_low), (0, c_up)]
-            return []
+
+            possibilities_c0 = [(0., c) for c in [c_low, c_up]]
+            possibilities_c1 = [
+                (-math.sqrt(3 * c) / math.sqrt(alpha * (2 * beta - 1)), c)
+                for c in [c_low, c_up]]
+            possibilities_c2 = [
+                (math.sqrt(3 * c) / math.sqrt(alpha * (2 * beta - 1)), c)
+                for c in [c_low, c_up]]
+
+            return [(x, c) for x, c in possibilities_c0 + possibilities_c1
+                    + possibilities_c2 if x_low <= x <= x_up]
 
         def root2_2d(c_low, c_up, x_low, x_up):
+            # df / dc = 0
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
-            # intersects solution rectangle with half-parabola above
-            possibilities_c = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
-                             for c in [c_low, c_up]]
+            # intersects solution rectangle with parabola above
+
             possibilities_x = [(x, alpha*(2*beta+1) * x**2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x + possibilities_c
-                    if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
+            return [(x,c) for x,c in possibilities_x
+                    if c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
         def der_not_eq(x, y, c):
@@ -566,10 +576,39 @@ class NpInterval(Numlike):
                    (c + alpha*(x**2 + y**2)) ** (beta+1)
 
         # possible extremas of this derivative
-        def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
+        def extremas_3d_dc(x_low, x_up, y_low, y_up, c_low, c_up):
             # as far as wolfram knows, possible extremas are for x=0 and y=0
             return [(x,y,c) for x,y,c in
                     product([x_low, x_up, 0], [y_low, y_up, 0], [c_low, c_up])
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
+        def extremas_3d_dx(x_low, x_up, y_low, y_up, c_low, c_up):
+            # a*y**2=a(2*b+1)*x**2-c
+            a = alpha
+            b = beta
+            sqrt1 = [(math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
+                     for y, c in product([y_low, y_up], [c_low, c_up])]
+            sqrt2 = [(-math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
+                     for y, c in product([y_low, y_up], [c_low, c_up])]
+            return [(x,y,c) for x,y,c in sqrt1 + sqrt2
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
+        def extremas_3d_dy(x_low, x_up, y_low, y_up, c_low, c_up):
+            # a*x**2=a(2*b+1)*y**2-c
+            a = alpha
+            b = beta
+            sqrt1 = [(x, math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
+                     for x, c in product([x_low, x_up], [c_low, c_up])]
+            sqrt2 = [(x, -math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
+                     for x, c in product([x_low, x_up], [c_low, c_up])]
+            return [(x, y, c) for x, y, c in sqrt1 + sqrt2
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
+        def extremas_3d_dxdy(x_low, x_up, y_low, y_up, c_low, c_up):
+            vals = [sgn * math.sqrt(c/(2*alpha*beta))
+                    for c,sgn in product([c_low, c_up], [-1, 1])]
+            return [(x, y, c)
+                    for x, y, c, in product(vals, vals, [c_low, c_up])
                     if x_low <= x <= x_up and y_low <= y <= y_up]
 
 
@@ -598,15 +637,22 @@ class NpInterval(Numlike):
             result[b][channel][at_h][at_w] += der * \
                                               self[b][channel][at_h][at_w]
 
-            #not_eq_case
+            # not_eq_case
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (i + channel) < channels:
                     X = activation[b][channel + i][at_h][at_w]
                     X2 = activation_sqares[b][channel + i][at_h][at_w]
                     C = C.antiadd(X2)
 
-                    extremas = extremas_3d(X.lower, X.upper, Y.lower, Y.upper,
-                                           C.lower, C.upper)
+                    extremas = extremas_3d_dc(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) +\
+                               extremas_3d_dx(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) +\
+                               extremas_3d_dy(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) +\
+                               extremas_3d_dxdy(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper)
+
                     der = NpInterval()
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)

@@ -335,24 +335,25 @@ class TestDNorm(TestCase):
     def foo(self, x, c, a, b):
         return (a * (1 - 2 * b) * x ** 2 + c) / (a * x ** 2 + c) ** (b + 1)
     def foo2(self, x, y, c, a, b):
-        return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b - 1))
+        return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b-1))
 
     def test_case0(self):
         a = 1.
-        b = 0.5
+        b = 0.75
         k = 1.
-        # local range = 0
+        # local range = 1
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
         der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
         activation = NpInterval(act, 1 * act)
         derivative = NpInterval(-der, der)
 
-        res = self._count_norm(act, der, k, a, b, 0)
-        R = derivative.op_d_norm(activation, act.shape, 0, k, a, b)
-        self.assertTrue(np.isclose(res, R.upper).all())
-        self.assertTrue(np.isclose(-res, R.lower).all())
 
-        # local range = 2
+        res = self._count_norm(act, der, k, a, b, 1)
+        R = derivative.op_d_norm(activation, act.shape, 1, k, a, b)
+        self.assertTrue(np.isclose(abs(res), R.upper).all())
+        self.assertTrue(np.isclose(-abs(res), R.lower).all())
+
+        # local range = 5
         derivative = NpInterval(1 * der, 1 * der)
 
         c = k
@@ -368,15 +369,15 @@ class TestDNorm(TestCase):
                 res[:, j, ::] += self.foo2(x, y, c - x**2 - y**2, a, b)
 
 
-        res2 = self._count_norm(act, der, k, a, b, 2)
-        R = derivative.op_d_norm(activation, act.shape, 2, k, a, b)
+        res2 = self._count_norm(act, der, k, a, b, 5)
+        R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
 
     def test_case1(self):
         a = 1.
-        b = 0.5
+        b = 0.75
         k = 1.
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
         der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
@@ -403,7 +404,7 @@ class TestDNorm(TestCase):
             else:
                 res[:, i, ::] += foo2(x, y, c - x ** 2 - y ** 2)
 
-        R = derivative.op_d_norm(activation, act.shape, 2, k, a, b)
+        R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue((R.lower <= -abs(res)).all())
         self.assertTrue((abs(res) <= R.upper).all())
 
@@ -411,19 +412,19 @@ class TestDNorm(TestCase):
         a = 4.
         b = 3
         k = 0.8
-        # local range = 0
+        # local range = 1
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
         der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
         activation = NpInterval(act, 1 * act)
         derivative = NpInterval(-der, der)
 
         res = self.foo(act, k, a, b)
-        R = derivative.op_d_norm(activation, act.shape, 0, k, a, b)
+        R = derivative.op_d_norm(activation, act.shape, 1, k, a, b)
 
         self.assertTrue(np.isclose(-res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
 
-        # local range = 2
+        # local range = 5
         derivative = NpInterval(1 * der, 1 * der)
 
         c = k
@@ -439,28 +440,28 @@ class TestDNorm(TestCase):
             else:
                 res[:, j, ::] += self.foo2(x, y, c - x ** 2 - y ** 2, a, b)
 
-        res2 = self._count_norm(act, der, k, a, b, 2)
-        R = derivative.op_d_norm(activation, act.shape, 2, k, a, b)
+        res2 = self._count_norm(act, der, k, a, b, 5)
+        R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
 
     def test_case3(self):
         a = 1.
-        b = 0.5
+        b = 0.75
         k = 1.
-        # local range = 0
+        # local range = 1
         act = np.asarray([[[[2.]], [[3.]], [[5.]]]])
         der = np.asarray([[[[-3.]], [[2.]], [[7.]]]])
         activation = NpInterval(act, 1 * act)
         derivative = NpInterval(der, 1 * der)
 
-        res = self._count_norm(act, der, k, a, b, 0)
-        R = derivative.op_d_norm(activation, act.shape, 0, k, a, b)
+        res = self._count_norm(act, der, k, a, b, 1)
+        R = derivative.op_d_norm(activation, act.shape, 1, k, a, b)
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
 
-        # local range = 2
+        # local range = 5
         derivative = NpInterval(1 * der, 1 * der)
 
         c = k
@@ -476,8 +477,8 @@ class TestDNorm(TestCase):
                 res[:, j, ::] += self.foo2(x, y, c - x ** 2 - y ** 2, a, b) \
                                  * der[:, i, ::]
 
-        res2 = self._count_norm(act, der, k, a, b, 2)
-        R = derivative.op_d_norm(activation, act.shape, 2, k, a, b)
+        res2 = self._count_norm(act, der, k, a, b, 5)
+        R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
@@ -485,6 +486,7 @@ class TestDNorm(TestCase):
     def _count_norm(self, act, der, k, alpha, beta, local_range):
         res = np.zeros_like(act)
         b, ch, h, w = der.shape
+        local_range /= 2
         for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
                                                xrange(h), xrange(w)):
             c = k
@@ -496,7 +498,7 @@ class TestDNorm(TestCase):
             res[at_b, at_ch, at_h, at_w] += self.foo(y, c, alpha, beta) * \
                                             der[at_b, at_ch, at_h, at_w]
 
-            for i in xrange(-local_range, local_range+1):
+            for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= at_ch + i < ch:
                     x = act[at_b, at_ch + i, at_h, at_w]
                     c -= x**2
@@ -512,10 +514,10 @@ class TestDNorm(TestCase):
         for _ in xrange(100):
             s = randrange(1, 10)
             shape = (1, s, 1, 1)
-            local_range = randrange(1, 3)
-            k = uniform(1, 1)
-            a = uniform(1, 1)
-            b = uniform(0.5, 0.5)
+            local_range = randrange(1, 3) * 2 + 1
+            k = uniform(1, 10)
+            a = uniform(1, 10)
+            b = uniform(0.75, 3)
             activations = _random_npinterval(shape)
             derivatives = _random_npinterval(shape)
             R = derivatives.op_d_norm(activations, shape, local_range,
@@ -524,30 +526,17 @@ class TestDNorm(TestCase):
                 act = _rand_from_npinterval(activations)
                 der = _rand_from_npinterval(derivatives)
                 res = self._count_norm(act, der, k, a, b, local_range)
-
-                if not (R.lower <= res).all() or not (res <= R.upper).all():
-                    print "FAILED for a, b, k, lr", a, b, k, local_range
-                    print "activations", activations
-                    print "chosen:"
-                    print act
-                    print "derivatives", derivatives
-                    print "chosen"
-                    print der
-                    print "results", R
-                    print "chosen"
-                    print res
-
-                self.assertTrue((R.lower <= res + 1e-5).all())
-                self.assertTrue((res <= R.upper + 1e-5).all())
+                self.assertTrue((R.lower <= res).all())
+                self.assertTrue((res <= R.upper).all())
 
     def test_correct_flat(self):
         for _ in xrange(100):
             s = randrange(1, 10)
             shape = (1, s, 1, 1)
-            local_range = randrange(1, 3)
-            k = uniform(1, 1)
-            a = uniform(1, 1)
-            b = uniform(0.5, 0.5)
+            local_range = randrange(1, 3) * 2 + 1
+            k = uniform(1, 10)
+            a = uniform(1, 10)
+            b = uniform(0.75, 3)
             activations = _random_npinterval(shape)
             activations.lower = activations.upper * 1
             derivatives = _random_npinterval(shape)
@@ -562,12 +551,12 @@ class TestDNorm(TestCase):
             self.assertTrue(np.isclose(res, R.upper).all())
 
     def test_shape(self):
-        for _ in xrange(100):
+        for _ in xrange(20):
             shape = _random_shape(4, limit=100)
             local_range = randrange(0, 3)
             k = uniform(0.1, 10)
             a = uniform(0.1, 10)
-            b = uniform(0.1, 3)
+            b = uniform(0.75, 3)
 
             A = _random_npinterval(shape)
             D = _random_npinterval(shape)
