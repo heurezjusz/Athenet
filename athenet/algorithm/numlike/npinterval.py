@@ -360,7 +360,7 @@ class NpInterval(Numlike):
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> HERE YOU WORK
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
-                  beta, verbose = False):
+                  beta):
         """Returns estimated impact of input of norm layer on output of
         network.
 
@@ -507,8 +507,6 @@ class NpInterval(Numlike):
                     der.upper = val
             result[b][channel][at_h][at_w] += der * \
                                               self[b][channel][at_h][at_w]
-            if verbose:
-                print "--", channel, "--", der * self[b][channel][at_h][at_w]
 
             # not_eq_case
             for i in xrange(-local_range, local_range + 1):
@@ -535,9 +533,6 @@ class NpInterval(Numlike):
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
                         der * self[b][channel][at_h][at_w]
-                    if verbose:
-                        print "(", channel, channel + i, ")", der * self[b][channel][at_h][at_w]
-                        print "extremas (x,y,c)", extremas
                     C += X2
 
         return result
