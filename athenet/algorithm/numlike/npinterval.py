@@ -522,6 +522,8 @@ class NpInterval(Numlike):
                                extremas_3d_dx(X.lower, X.upper, Y.lower,
                                               Y.upper, C.lower, C.upper) +\
                                extremas_3d_dy(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) +\
+                               extremas_3d_dxdy(X.lower, X.upper, Y.lower,
                                               Y.upper, C.lower, C.upper)
 
                     der = NpInterval()

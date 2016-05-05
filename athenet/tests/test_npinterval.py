@@ -519,7 +519,6 @@ class TestDNorm(TestCase):
     def test_correct(self):
         for _ in xrange(100):
             s = randrange(1, 10)
-            s = 2
             shape = (1, s, 1, 1)
             local_range = randrange(1, 3) * 2 + 1
             k = uniform(1, 1)
@@ -574,7 +573,7 @@ class TestDNorm(TestCase):
             self.assertTrue(np.isclose(res, R.upper).all())
 
     def test_shape(self):
-        for _ in xrange(100):
+        for _ in xrange(10):
             shape = _random_shape(4, limit=100)
             local_range = randrange(0, 3)
             k = uniform(0.1, 10)
