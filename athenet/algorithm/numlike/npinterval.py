@@ -411,18 +411,25 @@ class NpInterval(Numlike):
         def root2_2d(c_low, c_up, x_low, x_up):
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
-            # intersects solution rectangle with half-parabola above
-            possibilities_c0 = [(-math.sqrt(c) / math.sqrt(alpha * (2 * beta + 1)), c)
-                                for c in [c_low, c_up]]
+            # intersects solution rectangle with parabola above
 
-            possibilities_c1 = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
+            # Wolframa moja interpretacja
+            possibilities_c0 = [
+                (-math.sqrt(c) / math.sqrt(alpha * (2 * beta + 1)), c)
+                for c in [c_low, c_up]]
+            possibilities_c1 = [
+                (math.sqrt(c) / math.sqrt(alpha * (2 * beta + 1)), c)
+                for c in [c_low, c_up]]
+
+            # Marcin
+            possibilities_c2 = [(-math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
                                for c in [c_low, c_up]]
-            possibilities_c2 = [(math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
+            possibilities_c3 = [(math.sqrt(3*c) / math.sqrt(alpha*(2*beta-1)), c)
                                for c in [c_low, c_up]]
             possibilities_x = [(x, alpha*(2*beta+1) * x**2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x + possibilities_c1 + possibilities_c2 + possibilities_c0
+            return [(x,c) for x,c in possibilities_x + possibilities_c1 + possibilities_c2 + possibilities_c0 + possibilities_c3
                     if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
