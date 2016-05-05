@@ -458,9 +458,9 @@ class NpInterval(Numlike):
             a = alpha
             b = beta
             sqrt1 = [(math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
-                     for y, c in product([y_low, y_up, 0], [c_low, c_up])]
+                     for y, c in product([y_low, y_up], [c_low, c_up])]
             sqrt2 = [(-math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
-                     for y, c in product([y_low, y_up, 0], [c_low, c_up])]
+                     for y, c in product([y_low, y_up], [c_low, c_up])]
             return [(x,y,c) for x,y,c in sqrt1 + sqrt2
                     if x_low <= x <= x_up and y_low <= y <= y_up]
 
@@ -469,11 +469,19 @@ class NpInterval(Numlike):
             a = alpha
             b = beta
             sqrt1 = [(x, math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
-                     for x, c in product([x_low, x_up, 0], [c_low, c_up])]
+                     for x, c in product([x_low, x_up], [c_low, c_up])]
             sqrt2 = [(x, -math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
-                     for x, c in product([x_low, x_up, 0], [c_low, c_up])]
+                     for x, c in product([x_low, x_up], [c_low, c_up])]
             return [(x, y, c) for x, y, c in sqrt1 + sqrt2
                     if x_low <= x <= x_up and y_low <= y <= y_up]
+
+        def extremas_3d_dxdy(x_low, x_up, y_low, y_up, c_low, c_up):
+            vals = [sgn * math.sqrt(c/(2*alpha*beta))
+                    for c,sgn in product([c_low, c_up], [-1, 1])]
+            return [(x, y, c)
+                    for x, y, c, in product(vals, vals, [c_low, c_up])
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
 
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
