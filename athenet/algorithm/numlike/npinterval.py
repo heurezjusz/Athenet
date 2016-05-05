@@ -324,6 +324,21 @@ class NpInterval(Numlike):
         upper = np.ndarray(shp, upper_val)
         return NpInterval(lower, upper)
 
+    @staticmethod
+    def _reshape_for_padding(layer_input, image_shape, batch_size, padding,
+                                 value=0.0):
+        if padding == (0, 0):
+            return layer_input
+
+        h, w, n_channels = image_shape
+        pad_h, pad_w = padding
+        h_in = h + 2*pad_h
+        w_in = w + 2*pad_w
+
+        extra_pixels = np.full((batch_size, n_channels, h_in, w_in), value)
+        extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w] = layer_input
+        return extra_pixels
+
     def reshape_for_padding(self, shape, padding, lower_val=None,
                             upper_val=None):
         """Returns padded Numlike.
@@ -342,9 +357,9 @@ class NpInterval(Numlike):
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER
         n_batches, n_in, h, w = shape
-        padded_low = misc_reshape_for_padding(self.lower, (h, w, n_in),
+        padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
                                               n_batches, padding, lower_val)
-        padded_upp = misc_reshape_for_padding(self.upper, (h, w, n_in),
+        padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
                                               n_batches, padding, upper_val)
         return NpInterval(padded_low, padded_upp)
 
