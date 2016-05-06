@@ -22,15 +22,20 @@ class TestNpInterval(TestCase):
         return result
 
     def _check_lower_upper(self, a):
-        for i in a:
+        for i in a.flatten():
             self.assertTrue(i.lower <= i.upper)
 
-    def _random_specimen(self, shape=None):
+    def _random_npinterval(self, shape=None):
         if shape is None:
             shape = self._random_shape(10**2, 4)
         a = np.random.rand(*shape)
         b = np.random.rand(*shape)
         return NpInterval(np.minimum(a, b), np.maximum(a, b))
+
+    def _random_ndarray(self, shape=None):
+        if shape is None:
+            shape = self._random_shape(10**2, 4)
+        return np.random.rand(*shape)
 
 
 class TestShape(TestNpInterval):
@@ -94,20 +99,27 @@ class TestMultiplying(TestNpInterval):
             self.assertEqual(R.shape, shape)
 
     def test_with_float(self):
-        A = NpInterval(np.array(range(5)), np.array(range(5, 10)))
-        b = 5
-        self.assertTrue((A.lower * b == (A * b).lower).all())
-        self.assertTrue((A.upper * b == (A * b).upper).all())
+        a = self._random_npinterval()
+        b = randint(1, 100)
+        result = a * b
+        self.assertTrue((a.lower * b == result.lower).all())
+        self.assertTrue((a.upper * b == result.upper).all())
+        self._check_lower_upper(result)
 
-        b = -5
-        self.assertTrue((A.lower * b == (A * b).upper).all())
-        self.assertTrue((A.upper * b == (A * b).lower).all())
+        b = randint(-100, -1)
+        result = a * b
+        self.assertTrue((a.lower * b == result.upper).all())
+        self.assertTrue((a.upper * b == result.lower).all())
+        self._check_lower_upper(result)
 
     def test_with_ndarray(self):
-        A = NpInterval(np.array(range(5)), np.array(range(5, 10)))
-        b = np.array(range(5))
-        self.assertTrue((A.lower * b == (A * b).lower).all())
-        self.assertTrue((A.upper * b == (A * b).upper).all())
+        shape = self._random_shape()
+        a = self._random_npinterval(shape)
+        b = np.full(shape, 6)
+        result = a * b
+        self.assertTrue((a.lower * b == result.lower).all())
+        self.assertTrue((a.upper * b == result.upper).all())
+        self._check_lower_upper(result)
 
 class TestAdding(TestNpInterval):
     def test_case(self):
