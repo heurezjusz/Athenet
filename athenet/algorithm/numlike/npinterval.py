@@ -512,6 +512,7 @@ class NpInterval(Numlike):
         activation_sqares = activation.square()
         local_range /= 2
 
+
         # some piece of math, unnecessary in any other place:
         # derivative for x placed in denominator of norm function
         def der_eq(x, c):
@@ -525,8 +526,9 @@ class NpInterval(Numlike):
 
             :return: value of derivative of norm function
             """
-            return (alpha * (1-2*beta) * x**2 + c) / \
-                   (alpha * x**2 + c) ** (beta + 1)
+            return (alpha * (1 - 2 * beta) * x ** 2 + c) / \
+                   (alpha * x ** 2 + c) ** (beta + 1)
+
 
         # possible extremas
         def root1_2d(c_low, c_up, x_low, x_up):
@@ -546,17 +548,19 @@ class NpInterval(Numlike):
             return [(x, c) for x, c in possibilities_c0 + possibilities_c1
                     + possibilities_c2 if x_low <= x <= x_up]
 
+
         def root2_2d(c_low, c_up, x_low, x_up):
             # df / dc = 0
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
             # intersects solution rectangle with parabola above
 
-            possibilities_x = [(x, alpha*(2*beta+1) * x**2)
+            possibilities_x = [(x, alpha * (2 * beta + 1) * x ** 2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x
+            return [(x, c) for x, c in possibilities_x
                     if c_low <= c and c <= c_up]
+
 
         # derivative for x not from denominator
         def der_not_eq(x, y, c):
@@ -572,14 +576,16 @@ class NpInterval(Numlike):
 
             :return: Returns value of derivative of norm function
             """
-            return -2 * alpha*beta * x*y / \
-                   (c + alpha*(x**2 + y**2)) ** (beta+1)
+            return -2 * alpha * beta * x * y / \
+                   (c + alpha * (x ** 2 + y ** 2)) ** (beta + 1)
+
 
         # possible extremas of this derivative
         def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
-            return [(x,y,c) for x,y,c in
+            return [(x, y, c) for x, y, c in
                     product([x_low, x_up], [y_low, y_up], [c_low, c_up])
                     if x_low <= x <= x_up and y_low <= y <= y_up]
+
 
         def extremas_3d_dx(x_low, x_up, y_low, y_up, c_low, c_up):
             # ddf/dx/dx = 0
@@ -590,7 +596,7 @@ class NpInterval(Numlike):
                      for y, c in product([y_low, y_up], [c_low, c_up])]
             sqrt2 = [(-math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
                      for y, c in product([y_low, y_up], [c_low, c_up])]
-            return [(x,y,c) for x,y,c in sqrt1 + sqrt2
+            return [(x, y, c) for x, y, c in sqrt1 + sqrt2
                     if x_low <= x <= x_up]
 
         def extremas_3d_dy(x_low, x_up, y_low, y_up, c_low, c_up):
@@ -607,9 +613,9 @@ class NpInterval(Numlike):
 
         def extremas_3d_dxdy(x_low, x_up, y_low, y_up, c_low, c_up):
             # ddf/dx/dy = 0 && ddf/dx/dx = 0
-            vals_cl = [sign * math.sqrt(c_low/(2*alpha*beta))
+            vals_cl = [sign * math.sqrt(c_low / (2 * alpha * beta))
                        for sign in [-1, 1]]
-            vals_cu = [sign * math.sqrt(c_up/(2*alpha*beta))
+            vals_cu = [sign * math.sqrt(c_up / (2 * alpha * beta))
                        for sign in [-1, 1]]
 
             pts_low = [(x, y, c_low) for x, y in product(vals_cl, vals_cl)]
@@ -650,11 +656,11 @@ class NpInterval(Numlike):
                     C = C.antiadd(X2)
 
                     extremas = extremas_3d(X.lower, X.upper, Y.lower,
-                                           Y.upper, C.lower, C.upper) +\
+                                           Y.upper, C.lower, C.upper) + \
                                extremas_3d_dx(X.lower, X.upper, Y.lower,
-                                              Y.upper, C.lower, C.upper) +\
+                                              Y.upper, C.lower, C.upper) + \
                                extremas_3d_dy(X.lower, X.upper, Y.lower,
-                                              Y.upper, C.lower, C.upper) +\
+                                              Y.upper, C.lower, C.upper) + \
                                extremas_3d_dxdy(X.lower, X.upper, Y.lower,
                                                 Y.upper, C.lower, C.upper)
 
