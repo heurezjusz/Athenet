@@ -47,6 +47,9 @@ class NpInterval(Numlike):
     def __str__(self):
         return "[" + self.lower.__str__() + ", " + self.upper.__str__() + "]"
 
+    def __repr__(self):
+        return str(self)
+
     @property
     def shape(self):
         """Returns shape of numlike.
@@ -200,12 +203,39 @@ class NpInterval(Numlike):
         return NpInterval(lower, upper)
 
     def power(self, exponent):
-        """For numlike N, returns N^exponent.
+        """Returns NpInterval^exponent.
 
         :param float exponent: Number to be passed as exponent to N^exponent.
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        le = np.power(self.lower, exponent)
+        ue = np.power(self.upper, exponent)
+        if isinstance(exponent, (int, long)):
+            if exponent > 0:
+                if exponent % 2 == 0:
+                    l = np.select([self._has_zero(), True],
+                                  [0, np.minimum(le, ue)])
+                    u = np.maximum(le, ue)
+                else:
+                    l = le
+                    u = ue
+            else:
+                if exponent % 2 == 0:
+                    l = np.minimum(le, ue)
+                    u = np.maximum(le, ue)
+                else:
+                    l = ue
+                    u = le
+        else:
+            # Assumes self.lower >= 0. Otherwise it is incorrectly defined.
+            # There is no check.
+            if exponent > 0:
+                l = le
+                u = ue
+            else:
+                l = ue
+                u = le
+        return NpInterval(l, u)
 
     def dot(self, other):
         """Dot product of NpInterval and a other.
@@ -326,17 +356,17 @@ class NpInterval(Numlike):
 
     @staticmethod
     def _reshape_for_padding(layer_input, image_shape, batch_size, padding,
-                                 value=0.0):
+                             value=0.0):
         if padding == (0, 0):
             return layer_input
 
         h, w, n_channels = image_shape
         pad_h, pad_w = padding
-        h_in = h + 2*pad_h
-        w_in = w + 2*pad_w
+        h_in = h + 2 * pad_h
+        w_in = w + 2 * pad_w
 
         extra_pixels = np.full((batch_size, n_channels, h_in, w_in), value)
-        extra_pixels[:, :, pad_h:pad_h+h, pad_w:pad_w+w] = layer_input
+        extra_pixels[:, :, pad_h:(pad_h+h), pad_w:(pad_w+w)] = layer_input
         return extra_pixels
 
     def reshape_for_padding(self, shape, padding, lower_val=None,
