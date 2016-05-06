@@ -137,10 +137,10 @@ class NpInterval(Numlike):
                                     [other.lower, other.upper])
             return NpInterval(self_lower / other_lower,
                               self_upper / other_upper)
-        elif other > 0:
-            return NpInterval(self.lower / other, self.upper / other)
         else:
-            return NpInterval(self.upper / other, self.lower / other)
+            lower = self.lower / other
+            upper = self.upper / other
+            return NpInterval(np.minimum(lower, upper), np.maximum(lower, upper))
 
     def __rdiv__(self, other):
         """Returns quotient of other and self.

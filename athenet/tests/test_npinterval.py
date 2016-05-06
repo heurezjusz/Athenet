@@ -6,7 +6,6 @@ import numpy as np
 
 
 class TestNpInterval(TestCase):
-
     def _random_shape(self, size_limit=10**4, dimensions_limit=7):
         result = None
         size = 1
@@ -321,7 +320,59 @@ class TestGetSetitem(TestNpInterval):
 
 
 class TestDiv(TestNpInterval):
-    pass
+    def test_div_random_with_float(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            b = uniform(-100., 100.)
+
+            if b == 0:
+                continue
+
+            result = a / b
+            if b > 0:
+                self.assertTrue((a.lower / b == result.lower).all())
+                self.assertTrue((a.upper / b == result.upper).all())
+            else:
+                self.assertTrue((a.lower / b == result.upper).all())
+                self.assertTrue((a.upper / b == result.lower).all())
+            self._check_lower_upper(result)
+
+    def test_rdiv_random_with_float(self):
+        pass
+
+    def test_div_random_with_ndarray(self):
+        #todo - fix in Interval
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape)
+            b = self._random_ndarray(shape)
+
+            if (b == 0).any():
+                continue
+
+            result = a / b
+            self._check_lower_upper(result)
+
+    def test_rdiv_random_with_ndarray(self):
+        pass
+
+    def test_div_with_float(self):
+        pass
+
+    def test_rdiv_with_float(self):
+        pass
+
+    def test_div_with_ndarray(self):
+        pass
+
+    def test_rdiv_with_ndarray(self):
+        pass
+
+    def test_div_random(self):
+        pass
+
+    def test_div(self):
+        pass
 
 
 class TestPower(TestNpInterval):
