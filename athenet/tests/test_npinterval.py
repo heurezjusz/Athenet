@@ -1,37 +1,49 @@
 from athenet.algorithm.numlike import NpInterval
 from unittest import TestCase, main
-from random import randrange
+from random import randrange, random, randint
 from itertools import product
 import numpy as np
 
 
-def _random_shape():
-    result = None
-    limit = 10 ** 4
-    size = 1
-    for i in xrange(randrange(1, 7)):
-        l = randrange(1, 10)
-        if result is None:
-            result = (l,)
-        else:
-            result += (l,)
-        size *= l
-        if size >= limit:
-            return result
-    return result
+class TestNpInterval(TestCase):
+
+    def _random_shape(self, size_limit=10**4, dimensions_limit=7):
+        result = None
+        size = 1
+        for i in xrange(randrange(1, dimensions_limit)):
+            l = randrange(1, 10)
+            if result is None:
+                result = (l,)
+            else:
+                result += (l,)
+            size *= l
+            if size >= size_limit:
+                return result
+        return result
+
+    def _check_lower_upper(self, a):
+        for i in a:
+            self.assertTrue(i.lower <= i.upper)
+
+    def _random_specimen(self, shape=None):
+        if shape is None:
+            shape = self._random_shape(10**2, 4)
+        a = np.random.rand(*shape)
+        b = np.random.rand(*shape)
+        return NpInterval(np.minimum(a, b), np.maximum(a, b))
 
 
-class TestShape(TestCase):
+class TestShape(TestNpInterval):
     def _run_test(self, shape):
         i = NpInterval(np.zeros(shape), np.ones(shape))
         self.assertEquals(shape, i.shape)
 
     def test_shape(self):
         for i in xrange(100):
-            self._run_test(_random_shape())
+            self._run_test(self._random_shape())
 
 
-class TestMultiplying(TestCase):
+class TestMultiplying(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-42, -5, -1]])
         au = np.asarray([[2, -1,  1], [  4, -4, 7]])
@@ -75,14 +87,29 @@ class TestMultiplying(TestCase):
 
     def test_shape(self):
         for i in xrange(100):
-            shape = _random_shape()
+            shape = self._random_shape()
             A = NpInterval(np.ones(shape), 2 * np.ones(shape))
             B = NpInterval(np.ones(shape) * 2, np.ones(shape) * 3)
             R = A * B
             self.assertEqual(R.shape, shape)
 
+    def test_with_float(self):
+        A = NpInterval(np.array(range(5)), np.array(range(5, 10)))
+        b = 5
+        self.assertTrue((A.lower * b == (A * b).lower).all())
+        self.assertTrue((A.upper * b == (A * b).upper).all())
 
-class TestAdding(TestCase):
+        b = -5
+        self.assertTrue((A.lower * b == (A * b).upper).all())
+        self.assertTrue((A.upper * b == (A * b).lower).all())
+
+    def test_with_ndarray(self):
+        A = NpInterval(np.array(range(5)), np.array(range(5, 10)))
+        b = np.array(range(5))
+        self.assertTrue((A.lower * b == (A * b).lower).all())
+        self.assertTrue((A.upper * b == (A * b).upper).all())
+
+class TestAdding(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-4, -5, -1]])
         au = np.asarray([[2, -1,  1], [42, -4, 7]])
@@ -128,14 +155,14 @@ class TestAdding(TestCase):
 
     def test_shape(self):
         for i in xrange(100):
-            shape = _random_shape()
+            shape = self._random_shape()
             A = NpInterval(np.ones(shape), 2 * np.ones(shape))
             B = NpInterval(np.ones(shape) * 2, np.ones(shape) * 3)
             R = A + B
             self.assertEqual(R.shape, shape)
 
 
-class TestSub(TestCase):
+class TestSub(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-4, -5, -1]])
         au = np.asarray([[2, -1,  1], [42, -4, 7]])
@@ -174,7 +201,7 @@ class TestSub(TestCase):
 
     def test_shape(self):
         for i in xrange(100):
-            shape = _random_shape()
+            shape = self._random_shape()
             A = NpInterval(np.ones(shape), 2 * np.ones(shape))
             B = NpInterval(np.ones(shape) * 2, np.ones(shape) * 3)
             R = A - B
@@ -182,7 +209,7 @@ class TestSub(TestCase):
 
 
 
-class TestSquare(TestCase):
+class TestSquare(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-42, -5, -1]])
         au = np.asarray([[2, -1,  1], [  4, -4, 7]])
@@ -214,7 +241,7 @@ class TestSquare(TestCase):
 
     def test_shape(self):
         for i in xrange(100):
-            shape = _random_shape()
+            shape = self._random_shape()
             A = NpInterval(np.ones(shape), 2 * np.ones(shape))
             self.assertEqual(A.square().shape, shape)
 
