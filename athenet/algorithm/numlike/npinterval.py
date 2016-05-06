@@ -92,8 +92,8 @@ class NpInterval(Numlike):
         """Returns product of two NpIntervals
 
         :param other: value to be multiplied.
-        :type other: NpInterval
-        :rtype: Numlike
+        :type other: NpInterval or numpy.array or float
+        :rtype: NpInterval
         """
         if isinstance(other, NpInterval):
             ll = self.lower * other.lower

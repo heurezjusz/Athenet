@@ -1,6 +1,6 @@
 from athenet.algorithm.numlike import NpInterval
 from unittest import TestCase, main
-from random import randrange, random, randint
+from random import randrange, random, randint, uniform
 from itertools import product
 import numpy as np
 
@@ -98,24 +98,45 @@ class TestMultiplying(TestNpInterval):
             R = A * B
             self.assertEqual(R.shape, shape)
 
-    def test_with_float(self):
+    def test_random_with_float(self):
         a = self._random_npinterval()
-        b = randint(1, 100)
+        b = uniform(1., 100.)
         result = a * b
         self.assertTrue((a.lower * b == result.lower).all())
         self.assertTrue((a.upper * b == result.upper).all())
         self._check_lower_upper(result)
 
-        b = randint(-100, -1)
+        b = uniform(-100., -1.)
         result = a * b
         self.assertTrue((a.lower * b == result.upper).all())
         self.assertTrue((a.upper * b == result.lower).all())
         self._check_lower_upper(result)
 
-    def test_with_ndarray(self):
+    def test_set_with_float(self):
+        a = NpInterval(np.array([1., -4., 0., 5., -3.]),
+                       np.array([1., -1., 2., 12.5, 3]))
+        b = 2.5
+        result = a * b
+        expected_result = NpInterval(
+            np.array([2.5, -10, 0, 12.5, -7.5]),
+            np.array([2.5, -2.5, 5, 31.25, 7.5])
+        )
+        self.assertTrue((result.lower == expected_result.lower).all())
+        self.assertTrue((result.upper == expected_result.upper).all())
+
+        b = -2.5
+        result = a * b
+        expected_result = NpInterval(
+            np.array([-2.5, 2.5, -5., -31.25, -7.5]),
+            np.array([-2.5, 10, 0, -12.5, 7.5])
+        )
+        self.assertTrue((result.lower == expected_result.lower).all())
+        self.assertTrue((result.upper == expected_result.upper).all())
+
+    def test_random_with_ndarray(self):
         shape = self._random_shape()
         a = self._random_npinterval(shape)
-        b = np.full(shape, 6)
+        b = np.full(shape, 6.)
         result = a * b
         self.assertTrue((a.lower * b == result.lower).all())
         self.assertTrue((a.upper * b == result.upper).all())
