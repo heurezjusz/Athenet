@@ -51,7 +51,7 @@ class TestShape(TestNpInterval):
 class TestMultiplying(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-42, -5, -1]])
-        au = np.asarray([[2, -1,  1], [  4, -4, 7]])
+        au = np.asarray([[2, -1,  1], [4, -4, 7]])
         A = NpInterval(al, au)
 
         bl = np.asarray([[1, 1, 4], [-1, -2, -13]])
@@ -141,6 +141,7 @@ class TestMultiplying(TestNpInterval):
         self.assertTrue((a.lower * b == result.lower).all())
         self.assertTrue((a.upper * b == result.upper).all())
         self._check_lower_upper(result)
+
 
 class TestAdding(TestNpInterval):
     def test_case(self):
@@ -241,7 +242,6 @@ class TestSub(TestNpInterval):
             self.assertEqual(R.shape, shape)
 
 
-
 class TestSquare(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-42, -5, -1]])
@@ -279,7 +279,7 @@ class TestSquare(TestNpInterval):
             self.assertEqual(A.square().shape, shape)
 
 
-class TestGetSetitem(TestCase):
+class TestGetSetitem(TestNpInterval):
     def test_1D(self):
         n = 100
         I = NpInterval(np.zeros((n,)), np.zeros((n,)))
@@ -319,6 +319,65 @@ class TestGetSetitem(TestCase):
             self.assertEquals(I[i][j][k][l].lower, i*l ^ j*k)
             self.assertEquals(I[i][j][k][l].upper, (i*j ^ l*k) + 1000)
 
+
+class TestDiv(TestNpInterval):
+    pass
+
+
+class TestPower(TestNpInterval):
+    pass
+
+
+class TestDot(TestNpInterval):
+    pass
+
+
+class TestMaxMin(TestNpInterval):
+    def test_max_min(self):
+        pass
+
+    def test_amax_amin(self):
+        pass
+
+
+class TestSmallFunctions(TestNpInterval):
+    def test_flatten(self):
+        pass
+
+    def test_exp(self):
+        pass
+
+    def test_sum(self):
+        pass
+
+    def test_neg(self):
+        pass
+
+    def test_reciprocal(self):
+        pass
+
+    def test_reshape(self):
+        pass
+
+    def test_abs(self):
+        pass
+
+    def testT(self):
+        pass
+
+    def testEval(self):
+        pass
+
+    def testDerestOutput(self):
+        pass
+
+
+class TestReshapeForPadding(TestNpInterval):
+    pass
+
+
+class TestFromShape(TestNpInterval):
+    pass
 
 class Just(TestCase):
     def test(self):
