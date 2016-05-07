@@ -21,14 +21,16 @@ class TestNpInterval(TestCase):
         return result
 
     def _check_lower_upper(self, a):
-        for i in a.flatten():
-            self.assertTrue(i.lower <= i.upper)
+        self.assertTrue((a.lower <= a.upper).all())
+  #      for i in a.flatten():
+  #          print i
+  #          self.assertTrue(i.lower <= i.upper)
 
-    def _random_npinterval(self, shape=None):
+    def _random_npinterval(self, shape=None, size_limit=10**2, number_limit=10**2):
         if shape is None:
-            shape = self._random_shape(10**2, 4)
-        a = np.random.rand(*shape)
-        b = np.random.rand(*shape)
+            shape = self._random_shape(size_limit, 4)
+        a = np.random.rand(*shape) * uniform(-number_limit, number_limit)
+        b = np.random.rand(*shape) * uniform(-number_limit, number_limit)
         return NpInterval(np.minimum(a, b), np.maximum(a, b))
 
     def _random_ndarray(self, shape=None):
@@ -320,6 +322,16 @@ class TestGetSetitem(TestNpInterval):
 
 
 class TestDiv(TestNpInterval):
+
+    def _random_npinterval_without_zeros(self, shape=None, size_limit=10**2,
+                                         number_limit=10**2):
+        if shape is None:
+            shape = self._random_shape(size_limit, 4)
+        sign = np.select([np.random.rand(*shape) > 0.5, True], [1, -1])
+        a = np.random.rand(*shape) * uniform(1, number_limit) * sign
+        b = np.random.rand(*shape) * uniform(1, number_limit) * sign
+        return NpInterval(np.minimum(a, b), np.maximum(a, b))
+
     def test_div_random_with_float(self):
         for _ in xrange(20):
             a = self._random_npinterval()
@@ -338,7 +350,18 @@ class TestDiv(TestNpInterval):
             self._check_lower_upper(result)
 
     def test_rdiv_random_with_float(self):
-        pass
+        for _ in xrange(20):
+            a = uniform(-100., 100.)
+            b = self._random_npinterval_without_zeros()
+
+            result = a / b
+            if a < 0:
+                self.assertTrue(( a / b.lower == result.lower).all())
+                self.assertTrue(( a / b.upper == result.upper).all())
+            else:
+                self.assertTrue((a / b.lower == result.upper).all())
+                self.assertTrue((a / b.upper == result.lower).all())
+            self._check_lower_upper(result)
 
     def test_div_random_with_ndarray(self):
         #todo - fix in Interval
@@ -353,9 +376,6 @@ class TestDiv(TestNpInterval):
             result = a / b
             self._check_lower_upper(result)
 
-    def test_rdiv_random_with_ndarray(self):
-        pass
-
     def test_div_with_float(self):
         pass
 
@@ -363,9 +383,6 @@ class TestDiv(TestNpInterval):
         pass
 
     def test_div_with_ndarray(self):
-        pass
-
-    def test_rdiv_with_ndarray(self):
         pass
 
     def test_div_random(self):
