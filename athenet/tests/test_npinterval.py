@@ -450,7 +450,12 @@ class TestMaxMin(TestNpInterval):
 
 class TestSmallFunctions(TestNpInterval):
     def test_flatten(self):
-        pass
+        for _ in xrange(20):
+            shape = self._random_shape()
+            size = np.prod(shape)
+            a = self._random_npinterval(shape)
+
+            self.assertTrue(a.flatten().lower.size == size)
 
     def test_exp(self):
         pass
@@ -473,11 +478,10 @@ class TestSmallFunctions(TestNpInterval):
     def testT(self):
         pass
 
-    def testEval(self):
-        pass
-
-    def testDerestOutput(self):
-        pass
+    def test_derest_output(self):
+        for size in xrange(40):
+            output = NpInterval.derest_output(size)
+            self.assertTrue(output.shape == (size, size))
 
 
 class TestReshapeForPadding(TestNpInterval):
@@ -486,6 +490,7 @@ class TestReshapeForPadding(TestNpInterval):
 
 class TestFromShape(TestNpInterval):
     pass
+
 
 class Just(TestCase):
     def test(self):
