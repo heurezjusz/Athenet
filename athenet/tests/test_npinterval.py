@@ -22,9 +22,6 @@ class TestNpInterval(TestCase):
 
     def _check_lower_upper(self, a):
         self.assertTrue((a.lower <= a.upper).all())
-  #      for i in a.flatten():
-  #          print i
-  #          self.assertTrue(i.lower <= i.upper)
 
     def _random_npinterval(self, shape=None, size_limit=10**2, number_limit=10**2):
         if shape is None:
@@ -37,6 +34,10 @@ class TestNpInterval(TestCase):
         if shape is None:
             shape = self._random_shape(10**2, 4)
         return np.random.rand(*shape)
+
+    def _assert_npintervals_equal(self, a, b):
+        self.assertTrue((a.lower == b.lower).all())
+        self.assertTrue((a.upper == b.upper).all())
 
 
 class TestShape(TestNpInterval):
@@ -380,7 +381,18 @@ class TestDiv(TestNpInterval):
         pass
 
     def test_rdiv_with_float(self):
-        pass
+        a = 2.
+        b = NpInterval(
+            np.array([[2., 1.], [-5., -10.]]),
+            np.array([[4., 10.], [-1., -8]])
+        )
+
+        result = a / b
+        expected_result = NpInterval(
+             np.array([[0.5, 0.2], [-2., -0.25]]),
+            np.array([[1, 2.], [-0.4, -0.2]])
+        )
+        self._assert_npintervals_equal(result, expected_result)
 
     def test_div_with_ndarray(self):
         pass
