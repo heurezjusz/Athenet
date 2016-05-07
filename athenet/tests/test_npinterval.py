@@ -378,7 +378,18 @@ class TestDiv(TestNpInterval):
             self._check_lower_upper(result)
 
     def test_div_with_float(self):
-        pass
+        a = NpInterval(
+            np.array([[2., 1.], [-5., -10.]]),
+            np.array([[4., 10.], [1., -8]])
+        )
+        b = -2.
+
+        result = a / b
+        expected_result = NpInterval(
+             np.array([[-2., -5.], [-0.5, 4.]]),
+            np.array([[-1, -0.5], [2.5, 5.]])
+        )
+        self._assert_npintervals_equal(result, expected_result)
 
     def test_rdiv_with_float(self):
         a = 2.
@@ -394,14 +405,31 @@ class TestDiv(TestNpInterval):
         )
         self._assert_npintervals_equal(result, expected_result)
 
-    def test_div_with_ndarray(self):
-        pass
-
     def test_div_random(self):
-        pass
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape)
+            b = self._random_npinterval_without_zeros(shape)
+
+            result = a / b
+            self._check_lower_upper(result)
 
     def test_div(self):
-        pass
+        a = NpInterval(
+            np.array([[1., -3.], [5., -10.]]),
+            np.array([[1., -1.], [12., 10.]])
+        )
+        b = NpInterval(
+            np.array([[0.1, 2.], [-2., 0.5]]),
+            np.array([[2., 2.], [-1., 1.]])
+        )
+
+        result = a / b
+        expected_result = NpInterval(
+            np.array([[0.5, -1.5], [-12., -20]]),
+            np.array([[10., -0.5], [-2.5, 20]])
+        )
+        self._assert_npintervals_equal(result, expected_result)
 
 
 class TestPower(TestNpInterval):
