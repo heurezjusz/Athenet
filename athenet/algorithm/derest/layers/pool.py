@@ -39,6 +39,8 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
                                           height, width)
     :param pair of integers poolsize: pool size in format (height, width)
     :param pair of integers stride: stride of max pool
+    :param pair of integers padding: padding of pool, non-trivial padding is
+                                     not allowed for 'max" mode
     :param 'max' or 'avg' mode: specifies whether it is max pool or average
                                 pool
     :rtype: Numlike
@@ -53,8 +55,10 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
 
     # padding
     pad_h, pad_w = padding
-    h += 2 * pad_h
-    w += 2 * pad_w
+    if padding != (0, 0):
+        layer_input = layer_input.reshape_for_padding(input_shp, padding)
+        h += 2 * pad_h
+        w += 2 * pad_w
 
     # fh, fw - pool height, pool width
     fh, fw = poolsize
