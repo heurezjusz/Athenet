@@ -46,7 +46,7 @@ class DerestInceptionLayer(DerestLayer):
 
     @staticmethod
     def _normalize(data):
-        a = data.max(-data).amax()
+        a = data.abs().amax()
         return data / a
 
     def count_activation(self, input, normalize=False):
@@ -55,7 +55,7 @@ class DerestInceptionLayer(DerestLayer):
         for derest_layer_list in self.derest_layer_lists:
             inp = input
             for derest_layer in derest_layer_list:
-                if self.normalize_activations:
+                if normalize:
                     inp = self._normalize(inp)
                 derest_layer.activations = inp
                 inp = derest_layer.count_activation(inp, normalize)
