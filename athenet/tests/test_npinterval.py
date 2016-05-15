@@ -449,13 +449,19 @@ class TestMaxMin(TestNpInterval):
 
 
 class TestSmallFunctions(TestNpInterval):
-    def test_flatten(self):
+    def test_flatten_random(self):
         for _ in xrange(20):
             shape = self._random_shape()
             size = np.prod(shape)
             a = self._random_npinterval(shape)
 
             self.assertTrue(a.flatten().lower.size == size)
+
+    def test_flatten(self):
+        a = NpInterval(np.array([[2, 3], [4, 5]]), np.array([[6, 7], [9, 9]]))
+        result = a.flatten()
+        expected_result = NpInterval(np.array([2, 3, 4, 5]), np.array([6, 7, 9, 9]))
+        self._assert_npintervals_equal(result, expected_result)
 
     def test_exp(self):
         pass
