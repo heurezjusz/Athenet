@@ -469,8 +469,15 @@ class TestSmallFunctions(TestNpInterval):
     def test_sum(self):
         pass
 
+    def test_neg_random(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            self._assert_npintervals_equal(a, a.neg().neg())
+
     def test_neg(self):
-        pass
+        a = NpInterval(np.array([5, -3, 0, -12]), np.array([6, -1, 0, 18]))
+        expected_result = NpInterval(np.array([-6, 1, 0, -18]), np.array([-5, 3, 0, 12]))
+        self._assert_npintervals_equal(a.neg(), expected_result)
 
     def test_reciprocal(self):
         pass
