@@ -54,7 +54,7 @@ parser.add_argument("-d", "--dataset", type=int,
                          "Default dataset is 0.\n"
                          "Amount of datasets depends on algorithm:\n"
                          " * simple_neuron_deleter (sender): 3\n"
-                         " * simple_neuron_deleter2 (sender2): 3\n"
+                         " * simple_neuron_deleter2 (sender2): 5\n"
                          " * sparsify_smallest_on_network (rat): 5\n"
                          " * sparsify_smallest_on_layers (rat2): 4\n"
                          " * sharpen_filters (filters): 3\n",
