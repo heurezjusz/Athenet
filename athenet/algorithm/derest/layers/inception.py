@@ -45,7 +45,7 @@ class DerestInceptionLayer(DerestLayer):
 
     @staticmethod
     def _normalize(data):
-        a = data.max(-data).amax()
+        a = data.abs().amax()
         return data / a
 
     def count_activation(self, input, normalize=False):
