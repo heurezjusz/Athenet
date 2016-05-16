@@ -34,7 +34,7 @@ parser.add_argument("-a", "--algorithm",
 parser.add_argument("-n", "--network",
                     help="Algorithm will be ran on chosen kind of network. "
                          "Default option is \"lenet\".",
-                    choices=["lenet"],
+                    choices=["lenet", "alexnet", "googlenet"],
                     default="lenet")
 
 parser.add_argument("-p", "--plot",

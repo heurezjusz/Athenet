@@ -1,8 +1,8 @@
 from athenet.algorithm import sparsify_smallest_on_network, sharpen_filters, \
     sparsify_smallest_on_layers
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
-from athenet.models import lenet
-from athenet.data_loader import MNISTDataLoader
+from athenet.models import lenet, alexnet, googlenet
+from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader
 
 
 """
@@ -99,6 +99,14 @@ def get_network(network_type):
     if network_type == "lenet":
         net = lenet()
         net.data_loader = MNISTDataLoader()
+        return net
+    if network_type == "alexnet":
+        net = alexnet()
+        net.data_loader = ImageNetDataLoader()
+        return net
+    if network_type == "googlenet":
+        net = googlenet()
+        net.data_loader = ImageNetDataLoader()
         return net
     raise NotImplementedError
 
