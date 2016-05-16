@@ -1,39 +1,8 @@
 import numpy
 
+from athenet.algorithm.derest.layers import get_derest_layer
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
-from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
-    DerestReluLayer, DerestPoolLayer, DerestInceptionLayer, DerestNormLayer,\
-    DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
-from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
-    ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
-
-
-def get_derest_layer(layer):
-    """
-    Return derest layer on which we can count activations, derivatives
-        and derest algorithm
-
-    :param Layer layer: network's original layer
-    :return DerestLayer: new better derest layer
-    """
-    if isinstance(layer, Softmax):
-        return DerestSoftmaxLayer(layer)
-    if isinstance(layer, ReLU):
-        return DerestReluLayer(layer)
-    if isinstance(layer, PoolingLayer):
-        return DerestPoolLayer(layer)
-    if isinstance(layer, LRN):
-        return DerestNormLayer(layer)
-    if isinstance(layer, ConvolutionalLayer):
-        return DerestConvolutionalLayer(layer)
-    if isinstance(layer, Dropout):
-        return DerestDropoutLayer(layer)
-    if isinstance(layer, FullyConnectedLayer):
-        return DerestFullyConnectedLayer(layer)
-    if isinstance(layer, InceptionLayer):
-        return DerestInceptionLayer(layer)
-    raise NotImplementedError
 
 
 class DerestNetwork(object):
@@ -62,7 +31,7 @@ class DerestNetwork(object):
             input_shape = change_order(make_iterable(layer.layer.input_shape))
             inp = inp.reshape(input_shape)
             layer.activations = inp
-            inp = layer.count_activation(inp)
+            inp = layer.count_activation(inp, normalize)
         return inp
 
     def count_derivatives(self, outp, normalize=False):
@@ -83,7 +52,7 @@ class DerestNetwork(object):
                                       change_order(layer.layer.output_shape))
             outp = outp.reshape(output_shape)
             layer.derivatives = outp
-            outp = layer.count_derivatives(outp, input_shape)
+            outp = layer.count_derivatives(outp, input_shape, normalize)
         return outp
 
     def count_derest(self, count_function):

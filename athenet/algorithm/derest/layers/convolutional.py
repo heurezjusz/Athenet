@@ -9,7 +9,7 @@ from athenet.algorithm.numlike import assert_numlike
 
 class DerestConvolutionalLayer(DerestLayer):
 
-    def count_activation(self, layer_input):
+    def count_activation(self, layer_input, normalize=False):
         """
         Return estimated activations
 
@@ -19,10 +19,11 @@ class DerestConvolutionalLayer(DerestLayer):
         return a_conv(
             layer_input, change_order(self.layer.input_shape),
             self.layer.W, change_order(self.layer.filter_shape),
-            theano.shared(self.layer.b), self.layer.stride, self.layer.padding
+            theano.shared(self.layer.b), self.layer.stride, self.layer.padding,
+            self.layer.n_groups
         )
 
-    def count_derivatives(self, layer_output, input_shape):
+    def count_derivatives(self, layer_output, input_shape, normalize=False):
         """
         Returns estimated impact of input of layer on output of
         network.

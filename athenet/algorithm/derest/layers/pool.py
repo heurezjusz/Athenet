@@ -5,7 +5,7 @@ from athenet.algorithm.derest.utils import change_order
 
 class DerestPoolLayer(DerestLayer):
 
-    def count_activation(self, layer_input):
+    def count_activation(self, layer_input, normalize=False):
         """
         Returns estimated activations
 
@@ -13,9 +13,10 @@ class DerestPoolLayer(DerestLayer):
         :return Numlike:
         """
         return a_pool(layer_input, change_order(self.layer.input_shape),
-                      self.layer.poolsize, self.layer.stride, self.layer.mode)
+                      self.layer.poolsize, self.layer.stride,
+                      self.layer.padding, self.layer.mode)
 
-    def count_derivatives(self, layer_output, input_shape):
+    def count_derivatives(self, layer_output, input_shape, normalize=False):
         """
         Returns estimated impact of input of layer on output of network
 
@@ -29,7 +30,8 @@ class DerestPoolLayer(DerestLayer):
                       self.layer.padding, self.layer.mode)
 
 
-def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
+def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
+           mode="max"):
     """Returns estimated activation of pool layer.
 
     :param Numlike layer_input: Numlike input in input_shp format
@@ -37,6 +39,8 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
                                           height, width)
     :param pair of integers poolsize: pool size in format (height, width)
     :param pair of integers stride: stride of max pool
+    :param pair of integers padding: padding of pool, non-trivial padding is
+                                     not allowed for 'max" mode
     :param 'max' or 'avg' mode: specifies whether it is max pool or average
                                 pool
     :rtype: Numlike
@@ -48,6 +52,14 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), mode="max"):
     # n_in, h, w - number of input channels, image height, image width
     n_in, h, w = input_shp
     n_out = n_in
+
+    # padding
+    pad_h, pad_w = padding
+    if padding != (0, 0):
+        layer_input = layer_input.reshape_for_padding(input_shp, padding)
+        h += 2 * pad_h
+        w += 2 * pad_w
+
     # fh, fw - pool height, pool width
     fh, fw = poolsize
     stride_h, stride_w = stride
