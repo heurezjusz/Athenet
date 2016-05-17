@@ -466,8 +466,17 @@ class TestSmallFunctions(TestNpInterval):
     def test_exp(self):
         pass
 
+    def test_sum_random(self):
+        a = self._random_npinterval()
+        lower_sum = a.lower.sum()
+        upper_sum = a.upper.sum()
+        expected_result = NpInterval(np.array([lower_sum]), np.array([upper_sum]))
+        self._assert_npintervals_equal(a.sum(), expected_result)
+
     def test_sum(self):
-        pass
+        a = NpInterval(np.array([-1, 3, -10]), np.array([4, 5, 123]))
+        expected_result = NpInterval(np.array([-8]), np.array([132]))
+        self._assert_npintervals_equal(a.sum(), expected_result)
 
     def test_neg_random(self):
         for _ in xrange(20):
@@ -485,10 +494,17 @@ class TestSmallFunctions(TestNpInterval):
     def test_reshape(self):
         pass
 
-    def test_abs(self):
-        pass
+    def test_abs_random(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            self.assertTrue((a.abs().lower >= 0).all())
 
-    def testT(self):
+    def test_abs(self):
+        a = NpInterval(np.array([-3, 0, -2]), np.array([-1, 3, 1]))
+        expexted_result = NpInterval(np.array([1, 0, 0]), np.array([3, 3, 2]))
+        self._assert_npintervals_equal(a.abs(), expexted_result)
+
+    def test_T(self):
         pass
 
     def test_derest_output(self):
