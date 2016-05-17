@@ -23,7 +23,8 @@ class TestNpInterval(TestCase):
     def _check_lower_upper(self, a):
         self.assertTrue((a.lower <= a.upper).all())
 
-    def _random_npinterval(self, shape=None, size_limit=10**2, number_limit=10**2):
+    def _random_npinterval(self, shape=None, size_limit=10**2,
+                           number_limit=10**2):
         if shape is None:
             shape = self._random_shape(size_limit, 4)
         a = np.random.rand(*shape) * uniform(-number_limit, number_limit)
@@ -440,12 +441,22 @@ class TestDot(TestNpInterval):
     pass
 
 
-class TestMaxMin(TestNpInterval):
-    def test_max_min(self):
-        pass
+class TestMax(TestNpInterval):
+    def test_max(self):
+        a = NpInterval(np.array([1, -4, 6, -1, -14]),
+                       np.array([13, -1, 6, 0, 198]))
+        b = NpInterval(np.array([0, -3, -1, 1, -34]),
+                       np.array([0, -1, 5, 19, -1]))
+        expected_max = NpInterval(np.array([1, -3, 6, 1, -14]),
+                                  np.array([13, -1, 6, 19, 198]))
+        self._assert_npintervals_equal(a.max(b), expected_max)
+        self._assert_npintervals_equal(b.max(a), expected_max)
 
-    def test_amax_amin(self):
-        pass
+    def test_amax(self):
+        a = NpInterval(np.array([1, -4, 6, -1, -14]),
+                       np.array([13, -1, 6, 0, 198]))
+        expected_result = NpInterval(np.array([6]), np.array([198]))
+        self._assert_npintervals_equal(a.amax(), expected_result)
 
 
 class TestSmallFunctions(TestNpInterval):
@@ -456,11 +467,13 @@ class TestSmallFunctions(TestNpInterval):
             a = self._random_npinterval(shape)
 
             self.assertTrue(a.flatten().lower.size == size)
+            self._check_lower_upper(a.flatten())
 
     def test_flatten(self):
         a = NpInterval(np.array([[2, 3], [4, 5]]), np.array([[6, 7], [9, 9]]))
         result = a.flatten()
-        expected_result = NpInterval(np.array([2, 3, 4, 5]), np.array([6, 7, 9, 9]))
+        expected_result = NpInterval(np.array([2, 3, 4, 5]),
+                                     np.array([6, 7, 9, 9]))
         self._assert_npintervals_equal(result, expected_result)
 
     def test_exp(self):
@@ -470,8 +483,10 @@ class TestSmallFunctions(TestNpInterval):
         a = self._random_npinterval()
         lower_sum = a.lower.sum()
         upper_sum = a.upper.sum()
-        expected_result = NpInterval(np.array([lower_sum]), np.array([upper_sum]))
+        expected_result = NpInterval(np.array([lower_sum]),
+                                     np.array([upper_sum]))
         self._assert_npintervals_equal(a.sum(), expected_result)
+        self._check_lower_upper(a.sum())
 
     def test_sum(self):
         a = NpInterval(np.array([-1, 3, -10]), np.array([4, 5, 123]))
@@ -485,7 +500,8 @@ class TestSmallFunctions(TestNpInterval):
 
     def test_neg(self):
         a = NpInterval(np.array([5, -3, 0, -12]), np.array([6, -1, 0, 18]))
-        expected_result = NpInterval(np.array([-6, 1, 0, -18]), np.array([-5, 3, 0, 12]))
+        expected_result = NpInterval(np.array([-6, 1, 0, -18]),
+                                     np.array([-5, 3, 0, 12]))
         self._assert_npintervals_equal(a.neg(), expected_result)
 
     def test_reciprocal(self):
@@ -498,6 +514,7 @@ class TestSmallFunctions(TestNpInterval):
         for _ in xrange(20):
             a = self._random_npinterval()
             self.assertTrue((a.abs().lower >= 0).all())
+            self._check_lower_upper(a)
 
     def test_abs(self):
         a = NpInterval(np.array([-3, 0, -2]), np.array([-1, 3, 1]))
@@ -512,13 +529,6 @@ class TestSmallFunctions(TestNpInterval):
             output = NpInterval.derest_output(size)
             self.assertTrue(output.shape == (size, size))
 
-
-class TestReshapeForPadding(TestNpInterval):
-    pass
-
-
-class TestFromShape(TestNpInterval):
-    pass
 
 
 class Just(TestCase):
