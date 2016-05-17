@@ -1,4 +1,3 @@
-from athenet.layers import InceptionLayer, ConvolutionalLayer, MaxPool
 from athenet.algorithm.derest.network import get_derest_layer
 from athenet.algorithm.derest.utils import change_order, add_tuples
 from athenet.algorithm.numlike import Nplike, Interval
