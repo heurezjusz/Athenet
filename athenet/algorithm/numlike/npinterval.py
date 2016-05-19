@@ -712,9 +712,83 @@ class NpInterval(Numlike):
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
-        raise NotImplementedError
 
-    @staticmethod
+        # n_in, h, w - number of input channels, image height, image width
+        n_batches, n_in, h, w = input_shape
+        # n_out, fh, fw - number of output channels, filter height, filter
+        # width
+        n_out, fh, fw = filter_shape
+        pad_h, pad_w = padding
+        output = self
+
+        # g_in - number of input channels per group
+        g_in = n_in / n_groups
+        # g_out - number of output channels per group
+        g_out = n_out / n_groups
+        stride_h, stride_w = stride
+        h += 2 * pad_h
+        w += 2 * pad_w
+        padded_input_shape = (n_batches, n_in, h, w)
+        result = NpInterval.from_shape(padded_input_shape, neutral=True)
+
+        # see: flipping kernel
+        weights = weights[:, :, ::-1, ::-1]
+        weights_neg = np.minimum(weights, 0.0)
+        weights_pos = np.maximum(weights, 0.0)
+
+        for at_g in xrange(n_groups):
+            # beginning and end of at_g'th group of input channel in input
+            at_in_from = at_g * g_in
+            at_in_to = at_in_from + g_in
+            # beginning and end of at_g'th group of output channel in weights
+            # note: amount of input and output group are equal
+            at_out_from = at_g * g_out
+            at_out_to = at_out_from + g_out
+
+            for at_h, at_w in product(xrange(0, h - fh + 1, stride_h),
+                                      xrange(0, w - fw + 1, stride_w)):
+                # at_out_h - height of output corresponding to filter at
+                # position at_h
+                at_out_h = at_h / stride_h
+                # at_out_w - height of output corresponding to filter at
+                # position at_w
+                at_out_w = at_w / stride_w
+
+                # weights slice that impacts on (at_out_h, at_out_w) in
+                # output
+                weights_pos_slice = weights_pos[at_out_from:at_out_to, :, :, :]
+                weights_neg_slice = weights_neg[at_out_from:at_out_to, :, :, :]
+                # shape of weights_slice: (g_out, g_in, h, w)
+
+                # slice of output
+                out_slice_low = output.lower[:, at_out_from:at_out_to,
+                                at_out_h, at_out_w]
+                out_slice_low = \
+                    out_slice_low.reshape((n_batches, g_out, 1, 1, 1))
+                out_slice_upp = output.upper[:, at_out_from:at_out_to,
+                                at_out_h, at_out_w]
+                out_slice_upp = \
+                    out_slice_upp.reshape((n_batches, g_out, 1, 1, 1))
+
+                # results
+                res_low_pos = (out_slice_low * weights_pos_slice).sum(axis=1)
+                res_low_neg = (out_slice_low * weights_neg_slice).sum(axis=1)
+                res_upp_pos = (out_slice_upp * weights_pos_slice).sum(axis=1)
+                res_upp_neg = (out_slice_upp * weights_neg_slice).sum(axis=1)
+
+                res_slice_lower = res_low_pos + res_upp_neg
+                res_slice_upper = res_upp_pos + res_low_neg
+                res_slice = NpInterval(res_slice_lower, res_slice_upper)
+
+                result[:, at_in_from:at_in_to, at_h:(at_h + fh),
+                       at_w:(at_w + fw)] += res_slice
+
+        # remove padding
+        result = result[:, :, pad_h:(h - pad_h), pad_w:(w - pad_w)]
+        return result
+
+
+@staticmethod
     def derest_output(n_outputs):
         """Generates NpInterval of impact of output on output.
 
