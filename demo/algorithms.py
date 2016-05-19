@@ -11,9 +11,10 @@
 import argparse
 import sys
 from argparse import RawTextHelpFormatter
+from datetime import datetime
+
 from config.algorithm import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
-
 
 parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
                                  description="Runs chosen algorithm on chosen "
@@ -60,6 +61,10 @@ parser.add_argument("-d", "--dataset", type=int,
                          " * sharpen_filters (filters): 3\n",
                     default=0)
 
+parser.add_argument("-f", "--file", type=str,
+                    help="Name of file to save results to", default=None)
+
+
 
 args = parser.parse_args()
 
@@ -77,9 +82,12 @@ print "loading network..."
 network = get_network(args.network)
 ok()
 
+file_name = args.file if args.file \
+    else args.network + "_" + datetime.now().strftime("%d%b_%H:%M:%S:%f")
+
 print "generating results..."
-results = run_algorithm(network, algorithm, dataset, verbose=True).\
-    get_zeros_fraction()
+results = run_algorithm(network, algorithm, dataset, verbose=True,
+                        results_pkl=file_name).get_zeros_fraction()
 ok()
 
 for config in dataset:
