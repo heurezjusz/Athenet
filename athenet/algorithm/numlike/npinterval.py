@@ -762,11 +762,11 @@ class NpInterval(Numlike):
 
                 # slice of output
                 out_slice_low = output.lower[:, at_out_from:at_out_to,
-                                at_out_h, at_out_w]
+                                             at_out_h, at_out_w]
                 out_slice_low = \
                     out_slice_low.reshape((n_batches, g_out, 1, 1, 1))
                 out_slice_upp = output.upper[:, at_out_from:at_out_to,
-                                at_out_h, at_out_w]
+                                             at_out_h, at_out_w]
                 out_slice_upp = \
                     out_slice_upp.reshape((n_batches, g_out, 1, 1, 1))
 
@@ -787,8 +787,7 @@ class NpInterval(Numlike):
         result = result[:, :, pad_h:(h - pad_h), pad_w:(w - pad_w)]
         return result
 
-
-@staticmethod
+    @staticmethod
     def derest_output(n_outputs):
         """Generates NpInterval of impact of output on output.
 
