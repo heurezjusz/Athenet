@@ -65,7 +65,6 @@ parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
 
 
-
 args = parser.parse_args()
 
 
