@@ -486,7 +486,42 @@ class NpInterval(Numlike):
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
-        raise NotImplementedError
+        # n_batches, n_in, h, w - number of batches, number of channels,
+        # image height, image width
+        n_batches, n_in, h, w = input_shape
+
+        pad_h, pad_w = padding
+        activation = activation.reshape_for_padding(input_shape, padding,
+                                                    lower_val=-np.inf,
+                                                    upper_val=-np.inf)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        h += 2 * pad_h
+        w += 2 * pad_w
+
+        # fh, fw - pool height, pool width
+        fh, fw = poolsize
+        stride_h, stride_w = stride
+        output = self
+        result = activation.from_shape(input_shape, neutral=True)
+
+        for at_h, at_w in product(xrange(0, h - fh + 1, stride_h),
+                                  xrange(0, w - fw + 1, stride_w)):
+            # at_out_h - height of output corresponding to pool at position
+            # at_h
+            at_out_h = at_h / stride_h
+            # at_out_w - width of output corresponding to pool at position
+            # at_w
+            at_out_w = at_w / stride_w
+
+            output_slice = output[:, :, at_out_h, at_out_w].\
+                reshape((n_batches, n_in, 1, 1))
+
+            result_slice = result[:, :, at_h:at_h + fh, at_w:at_w + fw]
+            result_slice += output_slice
+            result[:, :, at_h:at_h + fh, at_w:at_w + fw] = result_slice
+
+        result /= np.prod(poolsize)
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
