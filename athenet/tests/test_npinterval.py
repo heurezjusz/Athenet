@@ -503,6 +503,12 @@ class TestMax(TestNpInterval):
         expected_result = NpInterval(np.array([6]), np.array([198]))
         self._assert_npintervals_equal(a.amax(), expected_result)
 
+    def test_amax_random(self):
+        a = self._random_npinterval()
+        result = a.amax()
+        self.assertTrue((a.lower <= result.lower).all())
+        self.assertTrue((a.upper <= result.upper).all())
+
 
 class TestSmallFunctions(TestNpInterval):
     def test_flatten_random(self):
