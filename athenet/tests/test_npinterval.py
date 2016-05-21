@@ -3,7 +3,6 @@ from unittest import TestCase, main, expectedFailure
 from random import randrange, random, randint, uniform
 from itertools import product
 import numpy as np
-import math
 
 
 class TestNpInterval(TestCase):
@@ -367,7 +366,6 @@ class TestDiv(TestNpInterval):
             self._check_lower_upper(result)
 
     def test_div_random_with_ndarray(self):
-        #todo - fix in Interval
         for _ in xrange(20):
             shape = self._random_shape()
             a = self._random_npinterval(shape)
