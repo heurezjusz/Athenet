@@ -1,5 +1,5 @@
 from athenet.algorithm.numlike import NpInterval
-from unittest import TestCase, main
+from unittest import TestCase, main, expectedFailure
 from random import randrange, random, randint, uniform
 from itertools import product
 import numpy as np
@@ -434,7 +434,52 @@ class TestDiv(TestNpInterval):
 
 
 class TestPower(TestNpInterval):
-    pass
+    def pow_to_zero(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            result = a.power(0.)
+            self.assertTrue((a == 1.).all())
+
+    def pow_to_one(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            self._assert_npintervals_equal(a, a.power(1.))
+
+    def pow_to_minus_ones(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            self._assert_npintervals_equal(a.power(-1.), 1. / a)
+
+    def pow_to_positive_integer(self):
+        a = NpInterval(np.array([-1, 0, 3, -4]), np.array([2, 1, 4, -2]))
+        expected_odd_result = NpInterval(np.array([-1, 0, 27, -64]),
+                                     np.array([8, 1, 64, -8]))
+        self._assert_npintervals_equal(a.pow(3), expected_odd_result)
+
+        expected_even_result = NpInterval(np.array([0, 0, 9, 4]),
+                                          np.array([4, 1, 16, 16]))
+        self._assert_npintervals_equal(a.pow(2), expected_even_result)
+
+    def pow_positive_to_fraction(self):
+        for _ in xrange(20):
+            a_1 = np.random.uniform(0.001, 10**3, 100)
+            a_2 = np.random.uniform(0.001, 10**3, 100)
+            a = NpInterval(np.minimum(a_1, a_2), np.maximum(a_1, a_2))
+            b = uniform(0.001, 10**3)
+            result = a.pow(b)
+            self.assertTrue((result.lower == a.lower.pow(b)).all())
+            self.assertTrue((result.upper == a.upper.pow(b)).all())
+
+    def pow_to_negative_integer(self):
+        for _ in xrange(20):
+            a = self._random_npinterval()
+            b = randint(1, 10**3)
+            self._assert_npintervals_equal(a.pow(-b), (1. / a).pow(b))
+
+    @expectedFailure
+    def pow_negative_to_fraction(self):
+        a = NpInterval(np.array([-5]), np.array([-1]))
+        a.pow(0.5)
 
 
 class TestDot(TestNpInterval):
