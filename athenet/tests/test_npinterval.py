@@ -527,9 +527,6 @@ class TestSmallFunctions(TestNpInterval):
                                      np.array([6, 7, 9, 9]))
         self._assert_npintervals_equal(result, expected_result)
 
-    def test_exp(self):
-        pass
-
     def test_sum_random(self):
         a = self._random_npinterval()
         lower_sum = a.lower.sum()
@@ -555,11 +552,10 @@ class TestSmallFunctions(TestNpInterval):
                                      np.array([-5, 3, 0, 12]))
         self._assert_npintervals_equal(a.neg(), expected_result)
 
-    def test_reciprocal(self):
-        pass
-
     def test_reshape(self):
-        pass
+        a = self._random_npinterval(shape=(4, 5, 6))
+        result = a.reshape((2, 6, 5, 2, 1))
+        self.assertTrue(result.shape == (2, 6, 5, 2, 1))
 
     def test_abs_random(self):
         for _ in xrange(20):
@@ -572,14 +568,29 @@ class TestSmallFunctions(TestNpInterval):
         expexted_result = NpInterval(np.array([1, 0, 0]), np.array([3, 3, 2]))
         self._assert_npintervals_equal(a.abs(), expexted_result)
 
+    def test_T_random(self):
+        a = self._random_npinterval(shape=(8, 5))
+        self.assertTrue(a.T.shape == (5, 8))
+        self._assert_npintervals_equal(a[2, 1], a.T[1, 2])
+
     def test_T(self):
-        pass
+        a = NpInterval(np.array([[1, 2], [3, 4]]), np.array([[6, 7], [8, 9]]))
+        expected_result = NpInterval(np.array([[1, 3], [2, 4]]),
+                                     np.array([[6, 8], [7, 9]]))
+        self._assert_npintervals_equal(a.T, expected_result)
 
     def test_derest_output(self):
-        for size in xrange(40):
+        for size in xrange(2, 40):
             output = NpInterval.derest_output(size)
             self.assertTrue(output.shape == (size, size))
 
+            self.assertTrue(output.lower.sum(0) == size)
+            self.assertTrue(output.lower.sum(1) == size)
+            self.assertTrue(output.upper.sum(0) == size)
+            self.assertTrue(output.upper.sum(1) == size)
+
+            self.assertTrue((output.lower == 0 or output.lower == 1).all())
+            self.assertTrue((output.upper == 0 or output.upper == 1).all())
 
 
 class Just(TestCase):
