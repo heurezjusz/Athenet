@@ -3,6 +3,7 @@ from unittest import TestCase, main, expectedFailure
 from random import randrange, random, randint, uniform
 from itertools import product
 import numpy as np
+import math
 
 
 class TestNpInterval(TestCase):
@@ -584,13 +585,15 @@ class TestSmallFunctions(TestNpInterval):
             output = NpInterval.derest_output(size)
             self.assertTrue(output.shape == (size, size))
 
-            self.assertTrue(output.lower.sum(0) == size)
-            self.assertTrue(output.lower.sum(1) == size)
-            self.assertTrue(output.upper.sum(0) == size)
-            self.assertTrue(output.upper.sum(1) == size)
+            self.assertTrue((output.lower.sum(0) == 1).all())
+            self.assertTrue((output.lower.sum(1) == 1).all())
+            self.assertTrue((output.upper.sum(0) == 1).all())
+            self.assertTrue((output.upper.sum(1) == 1).all())
 
-            self.assertTrue((output.lower == 0 or output.lower == 1).all())
-            self.assertTrue((output.upper == 0 or output.upper == 1).all())
+            self.assertTrue(
+                np.logical_or(output.lower == 0., output.lower == 1.).all())
+            self.assertTrue(
+                np.logical_or(output.upper == 0., output.upper == 1.).all())
 
 
 class Just(TestCase):

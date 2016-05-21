@@ -182,7 +182,7 @@ class NpInterval(Numlike):
 
         :rtype: NpInterval
         """
-        raise NpInterval(np.exp(self.lower), np.exp(self.upper))
+        return NpInterval(np.exp(self.lower), np.exp(self.upper))
 
     def _has_zero(self):
         """For any interval in NpInterval, returns whether is contains zero.
@@ -327,7 +327,7 @@ class NpInterval(Numlike):
 
         :rtype: NpInterval
         """
-        raise NpInterval(self.lower.T, self.upper.T)
+        return NpInterval(self.lower.T, self.upper.T)
 
     @staticmethod
     def from_shape(shp, neutral=True, lower_val=None, upper_val=None):
