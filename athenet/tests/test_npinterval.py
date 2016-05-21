@@ -484,7 +484,18 @@ class TestPower(TestNpInterval):
 
 
 class TestDot(TestNpInterval):
-    pass
+    def test_dot_simple(self):
+        a = NpInterval(np.array([[1, 2]]), np.array([[3, 4]]))
+        b = np.array([[1], [1]])
+        expexted_result = NpInterval(np.array([3]), np.array([7]))
+        self._assert_npintervals_equal(a.dot(b), expexted_result)
+
+    def test_dot_random(self):
+        a_np = self._random_ndarray(shape=(5, 8))
+        a = NpInterval(a_np, a_np)
+        b = self._random_ndarray(shape=(8, 5))
+        expected_result = NpInterval(a_np.dot(b), a_np.dot(b))
+        self._assert_npintervals_equal(a.dot(b), expected_result)
 
 
 class TestMax(TestNpInterval):
