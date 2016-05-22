@@ -1,4 +1,4 @@
-"""Testing athenet.algorithm.numlike.Interval class with its methods.
+"""Testing athenet.algorithm.numlike.TheanoInterval class with its methods.
 """
 
 import unittest
