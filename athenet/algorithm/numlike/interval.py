@@ -5,16 +5,6 @@ This module contains Interval class and auxiliary objects.
 """
 
 from numlike import Numlike
-import theano
-from theano import function
-from theano import tensor as T
-from theano import shared
-
-import numpy
-
-from athenet.utils.misc import convolution, reshape_for_padding as \
-    misc_reshape_for_padding
-
 
 class Interval(Numlike):
     """Interval matrix class
