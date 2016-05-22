@@ -626,9 +626,13 @@ class ConvDerivativeTest(TestCase):
         filter_shape = (1,3,3)
         filter = np.asarray([[1,2,4],[-1,-2,-4],[0,0,0]]).reshape((1,1,3,3))
         A = D.op_d_conv(input_shape, filter_shape, filter, (1, 2), (0, 0), 1)
-        print ""
-        print filter
-        print A
+
+        result = np.asarray([[[[ 1., 2., 3., -2., -4.],
+                               [-1., -2., -3., 2., 4.],
+                               [ 0., 0., 0., 0., 0.]]]])
+        self.assertEquals(A.shape, result.shape)
+        self.assertTrue((A.upper == result).all())
+        self.assertTrue((A.lower == result).all())
 
 
 if __name__ == '__main__':
