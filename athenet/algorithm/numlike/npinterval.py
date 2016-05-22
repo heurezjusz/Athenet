@@ -249,12 +249,33 @@ class NpInterval(Interval):
         return NpInterval(lower, upper)
 
     def op_softmax(self, input_shp):
-        """Returns result of softmax operation on given Numlike.
+        """Returns result of softmax operation on given NpInterval.
 
         :param integer input_shp: shape of 1D input
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        result = NpInterval.from_shape(input_shp, neutral=True)
+        for i in xrange(input_shp):
+            input_low = (self - self.upper[i]).exp()
+            input_upp = (self - self.lower[i]).exp()
+            sum_low = NpInterval.from_shape(1, neutral=True)
+            sum_upp = NpInterval.from_shape(1, neutral=True)
+            for j in xrange(input_shp):
+                if j != i:
+                    sum_low = sum_low + input_low[j]
+                    sum_upp = sum_upp + input_upp[j]
+            # Could consider evaluation below but it gives wrong answers.
+            # It might be because of arithmetic accuracy.
+            # sum_low = input_low.sum() - input_low[i]
+            # sum_upp = input_upp.sum() - input_upp[i]
+            upper_counter_low = input_low.upper[i]
+            lower_counter_upp = input_upp.lower[i]
+            upper_low = upper_counter_low / \
+                (sum_low[0].lower + upper_counter_low)
+            lower_upp = lower_counter_upp / \
+                (sum_upp[0].upper + lower_counter_upp)
+            result[i] = NpInterval(lower_upp, upper_low)
+        return result
 
     def op_norm(self, input_shape, local_range, k, alpha, beta):
         """Returns estimated activation of LRN layer.
