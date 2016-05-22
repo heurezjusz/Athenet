@@ -210,7 +210,7 @@ class TestSub(TestNpInterval):
         B = NpInterval(bl, bu)
 
         rl = np.asarray([[-1, -4, -6], [-3, -4, -2]])
-        ru = np.asarray([[ 1, -2, -3], [43, -2, 20]])
+        ru = np.asarray([[1, -2, -3], [43, -2, 20]])
 
         R = A - B
         self.assertTrue((rl == R.lower).all())
@@ -248,10 +248,10 @@ class TestSub(TestNpInterval):
 class TestSquare(TestNpInterval):
     def test_case(self):
         al = np.asarray([[1, -2, -1], [-42, -5, -1]])
-        au = np.asarray([[2, -1,  1], [  4, -4, 7]])
+        au = np.asarray([[2, -1,  1], [4, -4, 7]])
         A = NpInterval(al, au)
 
-        rl = np.asarray([[1, 1, 0], [   0, 16, 0]])
+        rl = np.asarray([[1, 1, 0], [0, 16, 0]])
         ru = np.asarray([[4, 4, 1], [1764, 25, 49]])
 
         R = A.square()
@@ -287,14 +287,14 @@ class TestGetSetitem(TestNpInterval):
         n = 100
         I = NpInterval(np.zeros((n,)), np.zeros((n,)))
         for i in xrange(n):
-            I[i] = NpInterval(np.asarray([-i]),np.asarray([i]))
+            I[i] = NpInterval(np.asarray([-i]), np.asarray([i]))
         for i in xrange(n):
             self.assertEquals(I[i].lower, -i)
             self.assertEquals(I[i].upper, i)
 
     def test_2D(self):
         n = 100
-        I = NpInterval(np.zeros((n,n)), np.zeros((n,n)))
+        I = NpInterval(np.zeros((n, n)), np.zeros((n, n)))
         for i, j in product(xrange(n), xrange(n)):
             I[i][j] = NpInterval(np.asarray([i ^ (j**2) - 42]),
                                  np.asarray([i**2 + j**3 / 7]))
@@ -317,7 +317,7 @@ class TestGetSetitem(TestNpInterval):
         I = NpInterval(np.zeros((n, n, n, n)), np.zeros((n, n, n, n)))
         for i, j, k, l in product(xrange(n), xrange(n), xrange(n), xrange(n)):
             I[i][j][k][l] = NpInterval(np.asarray([i*l ^ j*k]),
-                                        np.asarray([(i*j ^ l*k) + 1000]))
+                                       np.asarray([(i*j ^ l*k) + 1000]))
         for i, j, k, l in product(xrange(n), xrange(n), xrange(n), xrange(n)):
             self.assertEquals(I[i][j][k][l].lower, i*l ^ j*k)
             self.assertEquals(I[i][j][k][l].upper, (i*j ^ l*k) + 1000)
@@ -358,8 +358,8 @@ class TestDiv(TestNpInterval):
 
             result = a / b
             if a < 0:
-                self.assertTrue(( a / b.lower == result.lower).all())
-                self.assertTrue(( a / b.upper == result.upper).all())
+                self.assertTrue((a / b.lower == result.lower).all())
+                self.assertTrue((a / b.upper == result.upper).all())
             else:
                 self.assertTrue((a / b.lower == result.upper).all())
                 self.assertTrue((a / b.upper == result.lower).all())
@@ -386,7 +386,7 @@ class TestDiv(TestNpInterval):
 
         result = a / b
         expected_result = NpInterval(
-             np.array([[-2., -5.], [-0.5, 4.]]),
+            np.array([[-2., -5.], [-0.5, 4.]]),
             np.array([[-1, -0.5], [2.5, 5.]])
         )
         self._assert_npintervals_equal(result, expected_result)
@@ -400,7 +400,7 @@ class TestDiv(TestNpInterval):
 
         result = a / b
         expected_result = NpInterval(
-             np.array([[0.5, 0.2], [-2., -0.25]]),
+            np.array([[0.5, 0.2], [-2., -0.25]]),
             np.array([[1, 2.], [-0.4, -0.2]])
         )
         self._assert_npintervals_equal(result, expected_result)
@@ -452,7 +452,7 @@ class TestPower(TestNpInterval):
     def pow_to_positive_integer(self):
         a = NpInterval(np.array([-1, 0, 3, -4]), np.array([2, 1, 4, -2]))
         expected_odd_result = NpInterval(np.array([-1, 0, 27, -64]),
-                                     np.array([8, 1, 64, -8]))
+                                         np.array([8, 1, 64, -8]))
         self._assert_npintervals_equal(a.pow(3), expected_odd_result)
 
         expected_even_result = NpInterval(np.array([0, 0, 9, 4]),
