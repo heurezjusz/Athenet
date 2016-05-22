@@ -694,7 +694,7 @@ class Interval(Numlike):
             # at_h
             at_out_h = at_h / stride_h
             for at_w in xrange(0, w - fw + 1, stride_w):
-                # at_out_w - height of output corresponding to pool at
+                # at_out_w - width of output corresponding to pool at
                 # position at_w
                 at_out_w = at_w / stride_w
                 # any input on any filter frame
