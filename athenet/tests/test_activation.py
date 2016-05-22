@@ -9,7 +9,7 @@ from math import e
 from nose.tools import assert_almost_equal as aae, \
     assert_greater as ag
 from numpy.testing import assert_array_almost_equal
-from athenet.algorithm.numlike import Interval as Itv, Nplike
+from athenet.algorithm.numlike import TheanoInterval as Itv, Nplike
 from athenet.algorithm.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
