@@ -288,7 +288,7 @@ class NpInterval(Interval):
         :param integer alpha: local range normalization alpha argument
         :param integer beta: local range normalization beta argument
         :type input_shape: tuple of 3 integers
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         raise NotImplementedError
 
