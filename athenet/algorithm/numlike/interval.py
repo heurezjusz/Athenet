@@ -768,9 +768,6 @@ class Interval(Numlike):
         """
         n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(input_shape, padding,
-                                                    lower_val=0,
-                                                    upper_val=0)
         input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
@@ -782,8 +779,8 @@ class Interval(Numlike):
         output = self
         result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
-            # at_out_h - height of output corresponding to pool at position at
-            # h
+            # at_out_h - height of output corresponding to pool at position
+            # at_h
             at_out_h = at_h / stride_h
             for at_w in xrange(0, w - fw + 1, stride_w):
                 # at_out_w - width of output corresponding to pool at
