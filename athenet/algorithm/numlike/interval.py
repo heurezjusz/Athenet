@@ -802,7 +802,6 @@ class Interval(Numlike):
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
-        # TODO: Tests
         """Returns estimated impact of input of norm layer on output of
         network.
 
@@ -875,10 +874,6 @@ class Interval(Numlike):
                                          upper_val=-numpy.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
-        # TODO: Debug below
-        # print 's', s.eval()
-        # print 'x', x.eval()
-        # print 'c', c.eval()
         for corner in corners:
             mid_impact.lower = T.minimum(mid_impact.lower, mid_d_norm(corner))
             mid_impact.upper = T.maximum(mid_impact.upper, mid_d_norm(corner))
@@ -967,13 +962,6 @@ class Interval(Numlike):
                                                neigh_d_norm(corner))
                     y_impact.upper = T.maximum(y_impact.upper,
                                                neigh_d_norm(corner))
-                # TODO: Below
-                #print ''
-                #print 'x', x.eval()
-                #print 'y', y.eval()
-                #print 'c', c.eval()
-                #print 'neigh_d_norm', neigh_d_norm(corner).eval()
-                #print 'y_impact', y_impact.eval()
 
                 # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0
 
@@ -1168,9 +1156,6 @@ class Interval(Numlike):
                         T.switch(cond, T.maximum(y_impact.upper,
                                                  neigh_d_norm(m_extr)),
                                  y_impact.upper)
-                # TODO: Below
-                #print ''
-                #print 'final y_impact', y_impact.eval()
                 y_impact = mid_impact * output
                 T.inc_subtensor(neigh_impact.lower[:, i:i + n_channels, :, :],
                                 y_impact.lower)
@@ -1180,19 +1165,17 @@ class Interval(Numlike):
             neigh_impact.lower[:, half:half + n_channels, :, :]
         neigh_impact.upper = \
             neigh_impact.upper[:, half:half + n_channels, :, :]
-        # sum impacts
+        # This code might be useful in case of future problems with numeric
+        # operation
         # mid_impact.lower = T.switch(T.isinf(mid_impact.lower),
         #                             shared(0), mid_impact.lower)
         # mid_impact.upper = T.switch(T.isinf(mid_impact.upper),
         #                             shared(0), mid_impact.upper)
-        #print 'neigh_impact', neigh_impact.eval()
         neigh_impact.lower = T.switch(T.isinf(neigh_impact.lower),
                                       shared(0), neigh_impact.lower)
         neigh_impact.upper = T.switch(T.isinf(neigh_impact.upper),
                                       shared(0), neigh_impact.upper)
         impact = mid_impact + neigh_impact
-        #print 'mid_impact', mid_impact.eval()
-        #print 'neigh_impact', neigh_impact.eval()
         return impact
 
     def op_d_conv(self, input_shape, filter_shape, weights,
