@@ -3,6 +3,7 @@ from athenet.algorithm.derest.layers import DerestSoftmaxLayer,\
     DerestFullyConnectedLayer, DerestConvolutionalLayer, DerestDropoutLayer
 from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
     ConvolutionalLayer, Dropout, FullyConnectedLayer, InceptionLayer
+from athenet.algorithm.derest.utils import add_tuples, change_order
 
 
 def get_derest_layer(layer, normalize=False):
@@ -70,16 +71,23 @@ class DerestInceptionLayer(DerestLayer):
         output_list = []
         last = 0
         for layer in self.layer.top_layers:
-            width = layer.output_shape[1]
-            output_list.append(output[:, last:(last + width), ::])
-            last += width
+            channels = layer.output_shape[2]
+            output_list.append(output[:, last : (last + channels), ::])
+            last += channels
 
+        batches = input_shape[0]
         result = None
-        for output, derest_list in zip(output, self.derest_layer_lists):
+        for output, derest_list in zip(output_list, self.derest_layer_lists):
             out = output
+
             for derest_layer in reversed(derest_list):
-                out = derest_list.count_derivatives(out, normalize)
+                if normalize:
+                    out = self._normalize(out)
                 derest_layer.derivatives = out
+                local_input_shape = add_tuples(
+                    batches, change_order(derest_layer.layer.input_shape))
+                out = derest_layer.count_derivatives(out, local_input_shape)
+
             if result is None:
                 result = out
             else:
