@@ -290,7 +290,68 @@ class NpInterval(Interval):
         :type input_shape: tuple of 3 integers
         :rtype: NpInterval
         """
-        raise NotImplementedError
+        alpha /= local_range
+        half = local_range / 2
+        x = self
+        sq = self.square()
+        n_channels, h, w = input_shape
+        extra_channels = self.from_shape((n_channels + 2 * half, h, w),
+                                         neutral=True)
+        extra_channels[half:half + n_channels, :, :] = sq
+        s = self.from_shape(input_shape, neutral=True)
+
+        for i in xrange(local_range):
+            if i != half:
+                s += extra_channels[i:i + n_channels, :, :]
+
+        c = s * alpha + k
+
+        def norm((arg_x, arg_c)):
+            return arg_x / np.power(arg_c + alpha * np.sqr(arg_x), beta)
+
+        def in_range((range_), val):
+            return np.logical_and(np.less(range_.lower, val),
+                                  np.less(val, range_.upper))
+
+        def c_extr_from_x(arg_x):
+            return np.square(arg_x) * ((2 * beta - 1) * alpha)
+
+        def x_extr_from_c(arg_c):
+            return np.sqrt(arg_c / ((2 * beta - 1) * alpha))
+
+        res = NpInterval.from_shape(input_shape, lower_val=np.inf,
+                                    upper_val=-np.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            res.lower = np.minimum(res.lower, norm(corner))
+            res.upper = np.maximum(res.upper, norm(corner))
+        maybe_extrema = [
+            (0, c.lower), (0, c.upper),
+            (x_extr_from_c(c.lower), c.lower),
+            (x_extr_from_c(c.upper), c.upper),
+            (x_extr_from_c(c.lower) * (-1), c.lower),
+            (x_extr_from_c(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x(x.lower)),
+            (x.upper, c_extr_from_x(x.upper))
+        ]
+        extrema_conds = [
+            in_range(x, maybe_extrema[0][0]),
+            in_range(x, maybe_extrema[1][0]),
+            in_range(x, maybe_extrema[2][0]),
+            in_range(x, maybe_extrema[3][0]),
+            in_range(x, maybe_extrema[4][0]),
+            in_range(x, maybe_extrema[5][0]),
+            in_range(c, maybe_extrema[6][1]),
+            in_range(c, maybe_extrema[7][1])
+        ]
+        for m_extr, cond in zip(maybe_extrema, extrema_conds):
+            norm_res = norm(m_extr)
+            res.lower = np.select([cond, True],
+                                  [np.minimum(res.lower, norm_res), res.lower])
+            res.upper = np.select([cond, True],
+                                  [np.maximum(res.upper, norm_res), res.upper])
+        return res
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):
