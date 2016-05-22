@@ -138,7 +138,7 @@ class Interval(Numlike):
         """Returns quotient of self and other.
 
         :param other: divisor
-        :type other: Interval or numpy.ndarray or float
+        :type other: Interval or float
         :rtype: Interval
 
         .. warning:: Divisor should not contain zero.

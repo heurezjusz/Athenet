@@ -48,6 +48,9 @@ class NpInterval(Numlike):
         return "vvvvv\n" + self.lower.__str__() + "\n=====\n" + \
                self.upper.__str__() + "\n^^^^^"
 
+    def __repr__(self):
+        return str(self)
+
     @property
     def shape(self):
         """Returns shape of numlike.
@@ -100,8 +103,8 @@ class NpInterval(Numlike):
         """Returns product of two NpIntervals
 
         :param other: value to be multiplied.
-        :type other: NpInterval
-        :rtype: Numlike
+        :type other: NpInterval or numpy.array or float
+        :rtype: NpInterval
         """
         if isinstance(other, NpInterval):
             ll = self.lower * other.lower
@@ -133,9 +136,9 @@ class NpInterval(Numlike):
             self_has_pos = self.upper > 0
 
             change_other_lower = (other_pos & self_pos) \
-                                 | (other_neg & self_has_pos)
+                | (other_neg & self_has_pos)
             change_other_upper = (other_pos & self_has_pos) \
-                                 | (other_neg & self_pos)
+                | (other_neg & self_pos)
 
             self_lower = np.select([other_neg, True], [self.upper, self.lower])
             self_upper = np.select([other_neg, True], [self.lower, self.upper])
@@ -145,10 +148,11 @@ class NpInterval(Numlike):
                                     [other.lower, other.upper])
             return NpInterval(self_lower / other_lower,
                               self_upper / other_upper)
-        elif other > 0:
-            return NpInterval(self.lower / other, self.upper / other)
         else:
-            return NpInterval(self.upper / other, self.lower / other)
+            lower = self.lower / other
+            upper = self.upper / other
+            return NpInterval(np.minimum(lower, upper),
+                              np.maximum(lower, upper))
 
     def __rdiv__(self, other):
         """Returns quotient of other and self.
@@ -190,7 +194,7 @@ class NpInterval(Numlike):
 
         :rtype: NpInterval
         """
-        raise NpInterval(np.exp(self.lower), np.exp(self.upper))
+        return NpInterval(np.exp(self.lower), np.exp(self.upper))
 
     def _has_zero(self):
         """For any interval in NpInterval, returns whether is contains zero.
@@ -211,12 +215,39 @@ class NpInterval(Numlike):
         return NpInterval(lower, upper)
 
     def power(self, exponent):
-        """For numlike N, returns N^exponent.
+        """Returns NpInterval^exponent.
 
         :param float exponent: Number to be passed as exponent to N^exponent.
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        le = np.power(self.lower, exponent)
+        ue = np.power(self.upper, exponent)
+        if isinstance(exponent, (int, long)):
+            if exponent > 0:
+                if exponent % 2 == 0:
+                    l = np.select([self._has_zero(), True],
+                                  [0, np.minimum(le, ue)])
+                    u = np.maximum(le, ue)
+                else:
+                    l = le
+                    u = ue
+            else:
+                if exponent % 2 == 0:
+                    l = np.minimum(le, ue)
+                    u = np.maximum(le, ue)
+                else:
+                    l = ue
+                    u = le
+        else:
+            # Assumes self.lower >= 0. Otherwise it is incorrectly defined.
+            # There is no check.
+            if exponent > 0:
+                l = le
+                u = ue
+            else:
+                l = ue
+                u = le
+        return NpInterval(l, u)
 
     def dot(self, other):
         """Dot product of NpInterval and a other.
@@ -308,7 +339,7 @@ class NpInterval(Numlike):
 
         :rtype: NpInterval
         """
-        raise NpInterval(self.lower.T, self.upper.T)
+        return NpInterval(self.lower.T, self.upper.T)
 
     @staticmethod
     def from_shape(shp, neutral=True, lower_val=None, upper_val=None):
@@ -324,16 +355,31 @@ class NpInterval(Numlike):
         """
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
-                        DEFAULT_INTERVAL_LOWER
+                DEFAULT_INTERVAL_LOWER
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
-                        DEFAULT_INTERVAL_UPPER
+                DEFAULT_INTERVAL_UPPER
         if lower_val > upper_val:
             if lower_val != np.inf or upper_val != -np.inf:
                 raise ValueError("lower_val > upper_val")
         lower = np.full(shp, lower_val)
         upper = np.full(shp, upper_val)
         return NpInterval(lower, upper)
+
+    @staticmethod
+    def _reshape_for_padding(layer_input, image_shape, batch_size, padding,
+                             value=0.0):
+        if padding == (0, 0):
+            return layer_input
+
+        h, w, n_channels = image_shape
+        pad_h, pad_w = padding
+        h_in = h + 2 * pad_h
+        w_in = w + 2 * pad_w
+
+        extra_pixels = np.full((batch_size, n_channels, h_in, w_in), value)
+        extra_pixels[:, :, pad_h:(pad_h+h), pad_w:(pad_w+w)] = layer_input
+        return extra_pixels
 
     def reshape_for_padding(self, shape, padding, lower_val=None,
                             upper_val=None):
@@ -353,10 +399,10 @@ class NpInterval(Numlike):
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER
         n_batches, n_in, h, w = shape
-        padded_low = misc_reshape_for_padding(self.lower, (h, w, n_in),
-                                              n_batches, padding, lower_val)
-        padded_upp = misc_reshape_for_padding(self.upper, (h, w, n_in),
-                                              n_batches, padding, upper_val)
+        padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
+                                               n_batches, padding, lower_val)
+        padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
+                                               n_batches, padding, upper_val)
         return NpInterval(padded_low, padded_upp)
 
     def eval(self, *args):
@@ -560,7 +606,6 @@ class NpInterval(Numlike):
 
             return [(x, c) for x, c in possibilities_x
                     if c_low <= c and c <= c_up]
-
 
         # derivative for x not from denominator
         def der_not_eq(x, y, c):
