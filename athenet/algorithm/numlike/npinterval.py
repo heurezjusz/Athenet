@@ -240,11 +240,13 @@ class NpInterval(Interval):
         raise self
 
     def op_relu(self):
-        """Returns result of relu operation on given Numlike.
+        """Returns result of relu operation on given NpInterval.
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        lower = np.maximum(self.lower, 0.0)
+        upper = np.maximum(self.upper, 0.0)
+        return NpInterval(lower, upper)
 
     def op_softmax(self, input_shp):
         """Returns result of softmax operation on given Numlike.
