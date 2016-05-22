@@ -45,7 +45,8 @@ class NpInterval(Numlike):
         self.upper[at] = other.upper
 
     def __str__(self):
-        return "[" + self.lower.__str__() + ", " + self.upper.__str__() + "]"
+        return "vvvvv\n" + self.lower.__str__() + "\n=====\n" + \
+               self.upper.__str__() + "\n^^^^^"
 
     def __repr__(self):
         return str(self)
