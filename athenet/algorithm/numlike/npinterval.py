@@ -125,9 +125,9 @@ class NpInterval(Numlike):
             self_has_pos = self.upper > 0
 
             change_other_lower = (other_pos & self_pos) \
-                                 | (other_neg & self_has_pos)
+                | (other_neg & self_has_pos)
             change_other_upper = (other_pos & self_has_pos) \
-                                 | (other_neg & self_pos)
+                | (other_neg & self_pos)
 
             self_lower = np.select([other_neg, True], [self.upper, self.lower])
             self_upper = np.select([other_neg, True], [self.lower, self.upper])
@@ -140,7 +140,8 @@ class NpInterval(Numlike):
         else:
             lower = self.lower / other
             upper = self.upper / other
-            return NpInterval(np.minimum(lower, upper), np.maximum(lower, upper))
+            return NpInterval(np.minimum(lower, upper),
+                              np.maximum(lower, upper))
 
     def __rdiv__(self, other):
         """Returns quotient of other and self.
@@ -343,10 +344,10 @@ class NpInterval(Numlike):
         """
         if lower_val is None:
             lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
-                        DEFAULT_INTERVAL_LOWER
+                DEFAULT_INTERVAL_LOWER
         if upper_val is None:
             upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
-                        DEFAULT_INTERVAL_UPPER
+                DEFAULT_INTERVAL_UPPER
         if lower_val > upper_val:
             if lower_val != np.inf or upper_val != -np.inf:
                 raise ValueError("lower_val > upper_val")
@@ -388,9 +389,9 @@ class NpInterval(Numlike):
             upper_val = NEUTRAL_INTERVAL_UPPER
         n_batches, n_in, h, w = shape
         padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
-                                              n_batches, padding, lower_val)
+                                               n_batches, padding, lower_val)
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
-                                              n_batches, padding, upper_val)
+                                               n_batches, padding, upper_val)
         return NpInterval(padded_low, padded_upp)
 
     def eval(self, *args):
@@ -564,11 +565,11 @@ class NpInterval(Numlike):
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
             # intersects solution rectangle with half-parabola above
             possibilities_c = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
-                             for c in [c_low, c_up]]
+                               for c in [c_low, c_up]]
             possibilities_x = [(x, alpha*(2*beta+1) * x**2)
                                for x in [x_low, x_up]]
 
-            return [(x,c) for x,c in possibilities_x + possibilities_c
+            return [(x, c) for x, c in possibilities_x + possibilities_c
                     if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
@@ -585,16 +586,14 @@ class NpInterval(Numlike):
 
             :return: Returns value of derivative of norm function
             """
-            return 2 * alpha*beta * x*y / \
-                   (c + alpha*(x**2 + y**2)) ** (beta+1)
+            return 2 * alpha*beta * x*y / (c + alpha*(x**2 + y**2)) ** (beta+1)
 
         # possible extremas of this derivative
         def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
             # as far as wolfram knows, possible extremas are for x=0 and y=0
-            return [(x,y,c) for x,y,c in
+            return [(x, y, c) for x, y, c in
                     product([x_low, x_up, 0], [y_low, y_up, 0], [c_low, c_up])
                     if x_low <= x <= x_up and y_low <= y <= y_up]
-
 
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
