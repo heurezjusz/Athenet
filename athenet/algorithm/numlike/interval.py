@@ -1316,7 +1316,7 @@ class Interval(Numlike):
                     weights_neg_slice = \
                         weights_neg_slice.dimshuffle('x', 0, 1, 2, 3)
                     weights_neg_slice = T.addbroadcast(weights_neg_slice, 0)
-                    # shape of weights_slice: (n_batches, n_out, n_in, h, w)
+                    # shape of weights_slice: (n_batches, g_out, g_in, h, w)
                     out_slice_low = output.lower[:, at_out_from:at_out_to,
                                                  at_out_h, at_out_w]
                     out_slice_low = out_slice_low.dimshuffle(0, 1, 'x', 'x',
