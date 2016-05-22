@@ -332,7 +332,7 @@ class NpInterval(Numlike):
             if lower_val != np.inf or upper_val != -np.inf:
                 raise ValueError("lower_val > upper_val")
         lower = np.full(shp, lower_val)
-        upper = np.full(shp, buffer=upper_val)
+        upper = np.full(shp, upper_val)
         return NpInterval(lower, upper)
 
     def reshape_for_padding(self, shape, padding, lower_val=None,
