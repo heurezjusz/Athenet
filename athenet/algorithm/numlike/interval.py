@@ -691,7 +691,7 @@ class Interval(Numlike):
         result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at
-            # h
+            # at_h
             at_out_h = at_h / stride_h
             for at_w in xrange(0, w - fw + 1, stride_w):
                 # at_out_w - height of output corresponding to pool at
