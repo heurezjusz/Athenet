@@ -618,5 +618,18 @@ class ReluDerivativeTest(TestCase):
         self.assertTrue((u == ru).all())
 
 
+class ConvDerivativeTest(TestCase):
+    def test_case1(self):
+        input_shape = (1, 1, 3, 5)
+        derivatives = np.asarray([1, -1]).reshape((1,1,1,2))
+        D = NpInterval(derivatives, 1 * derivatives)
+        filter_shape = (1,3,3)
+        filter = np.asarray([[1,2,4],[-1,-2,-4],[0,0,0]]).reshape((1,1,3,3))
+        A = D.op_d_conv(input_shape, filter_shape, filter, (1, 2), (0, 0), 1)
+        print ""
+        print filter
+        print A
+
+
 if __name__ == '__main__':
     main(verbosity=2)

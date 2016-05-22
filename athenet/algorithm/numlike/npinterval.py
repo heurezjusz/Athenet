@@ -732,7 +732,7 @@ class NpInterval(Numlike):
         result = NpInterval.from_shape(padded_input_shape, neutral=True)
 
         # see: flipping kernel
-        weights = weights[:, :, ::-1, ::-1]
+        # weights = weights[:, :, ::-1, ::-1] nope, tests showed
         weights_neg = np.minimum(weights, 0.0)
         weights_pos = np.maximum(weights, 0.0)
 
