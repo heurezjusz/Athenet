@@ -138,8 +138,7 @@ class Interval(Numlike):
 
         :rtype: Interval
         """
-        return self.construct(self.lower.flatten(),
-                          self.upper.flatten())
+        return self.construct(self.lower.flatten(), self.upper.flatten())
 
     def reshape(self, shape):
         """Reshapes interval
@@ -206,4 +205,3 @@ class Interval(Numlike):
     def __str__(self):
         """"Standard str method."""
         return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
-

@@ -189,8 +189,8 @@ class TheanoInterval(Interval):
         return TheanoInterval(l, u)
 
     def dot(self, other):
-        """Returns dot product of TheanoInterval(self) vector and a number array
-        (other).
+        """Returns dot product of TheanoInterval(self) vector
+        and a number array (other).
 
         :param numpy.ndarray or theano.tensor other: number array to be
                                                      multiplied
@@ -219,10 +219,10 @@ class TheanoInterval(Interval):
         """
         if isinstance(other, Interval):
             return TheanoInterval(T.maximum(self.lower, other.lower),
-                            T.maximum(self.upper, other.upper))
+                                  T.maximum(self.upper, other.upper))
         else:
             return TheanoInterval(T.maximum(self.lower, other),
-                            T.maximum(self.upper, other))
+                                  T.maximum(self.upper, other))
 
     def abs(self):
         """Returns absolute value of Interval."""
@@ -234,9 +234,11 @@ class TheanoInterval(Interval):
     @classmethod
     def from_shape(cls, shp, neutral=True, lower_val=None,
                    upper_val=None):
-        """Returns TheanoInterval of shape shp with given lower and upper values.
+        """Returns TheanoInterval of shape shp with given lower
+        and upper values.
 
-        :param tuple of integers or integer shp : shape of created TheanoInterval
+        :param tuple of integers or integer shp : shape of created
+            TheanoInterval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
@@ -250,10 +252,10 @@ class TheanoInterval(Interval):
                                  "in newly created Interval")
         if lower_val is None:
             lower_val = cls.NEUTRAL_LOWER if neutral else \
-                        cls.DEFAULT_LOWER
+                cls.DEFAULT_LOWER
         if upper_val is None:
             upper_val = cls.NEUTRAL_UPPER if neutral else \
-                        cls.DEFAULT_UPPER
+                cls.DEFAULT_UPPER
         lower_array = numpy.ndarray(shp, dtype=theano.config.floatX)
         upper_array = numpy.ndarray(shp, dtype=theano.config.floatX)
         lower_array.fill(lower_val)
@@ -390,7 +392,7 @@ class TheanoInterval(Interval):
             return T.sqrt(arg_c / ((2 * beta - 1) * alpha))
 
         res = TheanoInterval.from_shape(input_shape, lower_val=numpy.inf,
-                                  upper_val=-numpy.inf)
+                                        upper_val=-numpy.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
         for corner in corners:
@@ -476,7 +478,8 @@ class TheanoInterval(Interval):
         _, n_in, h, w = conv_result_lower.shape
         conv_result_lower_3d = conv_result_lower.reshape((n_in, h, w))
         conv_result_upper_3d = conv_result_upper.reshape((n_in, h, w))
-        result_interval = TheanoInterval(conv_result_lower_3d, conv_result_upper_3d)
+        result_interval = TheanoInterval(conv_result_lower_3d,
+                                         conv_result_upper_3d)
         return result_interval + biases.dimshuffle(0, 'x', 'x')
 
     @staticmethod
@@ -484,8 +487,9 @@ class TheanoInterval(Interval):
         """Generates TheanoInterval of impact of output on output.
 
         :param int n_outputs: Number of outputs of network.
-        :returns: 2D square TheanoInterval in shape (n_batches, n_outputs) with one
-                  different "1" in every batch, like numpy.eye(n_outputs)
+        :returns: 2D square TheanoInterval in shape (n_batches, n_outputs)
+                with one different "1" in every batch,
+                like numpy.eye(n_outputs)
         :rtype: TheanoInterval
         """
         np_matrix = numpy.eye(n_outputs, dtype=theano.config.floatX)
@@ -501,7 +505,8 @@ class TheanoInterval(Interval):
         return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
 
     def _has_zero(self):
-        """For any interval in TheanoInterval, returns whether is contains zero.
+        """For any interval in TheanoInterval,
+        returns whether is contains zero.
 
         :rtype: Boolean
         """
