@@ -770,8 +770,8 @@ class Interval(Numlike):
         n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
         activation = activation.reshape_for_padding(input_shape, padding,
-                                                    lower_val=-numpy.inf,
-                                                    upper_val=-numpy.inf)
+                                                    lower_val=0,
+                                                    upper_val=0)
         input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
