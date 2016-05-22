@@ -27,31 +27,9 @@ class TheanoInterval(Interval):
               read result of given operations, use eval method.
     """
 
-    def __init__(self, lower, upper):
-        """Creates interval.
-
-        :param theano tensor lower: lower bound of Interval to be set
-        :param theano tensor upper: upper bound of Interval to be set
-
-        .. note:: lower must be lower than upper. It is not being checked.
-        """
-        super(TheanoInterval, self).__init__(lower, upper)
-        self.lower = lower
-        self.upper = upper
-
     @staticmethod
     def construct(lower, upper):
         return TheanoInterval(lower, upper)
-
-    def __getitem__(self, at):
-        """Returns specified slice of interval as a interval.
-
-        :param at: coordinates / slice to be taken
-        :rtype: Interval
-
-        .. note:: Does not copy data.
-        """
-        return TheanoInterval(self.lower[at], self.upper[at])
 
     def __setitem__(self, at, other):
         """Just like Theano set_subtensor function, but as a operator.
@@ -62,47 +40,6 @@ class TheanoInterval(Interval):
         """
         self.lower = T.set_subtensor(self.lower[at], other.lower)
         self.upper = T.set_subtensor(self.upper[at], other.upper)
-
-    @property
-    def shape(self):
-        """Returns shape of interval. Checks only 'lower' matrix.
-
-        :rtype: theano tuple of integers
-
-        .. note:: does not require self.upper for computations. Therefore it is
-        not safe, but faster.
-        """
-        return self.lower.shape
-
-    def __add__(self, other):
-        """Returns sum of two intervals.
-
-        :param other: matrix to be added
-        :type other: Interval or numpy.ndarray or float
-        :rtype: Interval
-        """
-        if isinstance(other, Interval):
-            res_lower = self.lower + other.lower
-            res_upper = self.upper + other.upper
-        else:
-            res_lower = self.lower + other
-            res_upper = self.upper + other
-        return TheanoInterval(res_lower, res_upper)
-
-    def __sub__(self, other):
-        """Returns difference between two intervals.
-
-        :param other: matrix to be subtracted
-        :type other: Interval or numpy.ndarray or float
-        :rtype: Interval
-        """
-        if isinstance(other, Interval):
-            res_lower = self.lower - other.upper
-            res_upper = self.upper - other.lower
-        else:
-            res_lower = self.lower - other
-            res_upper = self.upper - other
-        return TheanoInterval(res_lower, res_upper)
 
     def __mul__(self, other):
         """Returns product of two intervals.
@@ -161,27 +98,6 @@ class TheanoInterval(Interval):
                 return TheanoInterval(lower / other, upper / other)
             else:
                 return TheanoInterval(upper / other, lower / other)
-
-    def __rdiv__(self, other):
-        """Returns quotient of other and self.
-
-        :param other: dividend
-        :type other: Interval or numpy.ndarray or float
-        :rtype: Interval
-
-        .. warning:: Divisor (self) should not contain zero.
-        """
-        if isinstance(other, Interval):
-            # Should never happen. __div__ should be used instead.
-            raise NotImplementedError
-        else:
-            lower = self.lower
-            upper = self.upper
-            l_o = (other > 0)
-            if l_o:
-                return TheanoInterval(other / upper, other / lower)
-            else:
-                return TheanoInterval(other / lower, other / upper)
 
     def reciprocal(self):
         """Returns reciprocal of the interval.
@@ -308,69 +224,12 @@ class TheanoInterval(Interval):
             return TheanoInterval(T.maximum(self.lower, other),
                             T.maximum(self.upper, other))
 
-    def amax(self, axis=None, keepdims=False):
-        """Returns maximum of an TheanoInterval along an axis.
-
-        Works like theano.tensor.max.
-        :param axis: axis or axes along which to compute the maximum
-        :param keepdims: If this is set to True, the axes which are reduced are
-                         left in the result as dimensions with size one. With
-                         this option, the result will broadcast correctly
-                         against the original tensor.
-        :type keepdims: boolean
-        """
-        lower = self.lower.max(axis=axis, keepdims=keepdims)
-        upper = self.upper.max(axis=axis, keepdims=keepdims)
-        return TheanoInterval(lower, upper)
-
-    def reshape(self, shape):
-        """Reshapes interval tensor like theano Tensor.
-
-        :param shape: Something that can be converted to a symbolic vector of
-                      integers.
-        """
-        return TheanoInterval(self.lower.reshape(shape),
-                        self.upper.reshape(shape))
-
-    def flatten(self):
-        """Flattens interval tensor like theano Tensor.
-
-        :return: Variable with same dtype as x and outdim dimensions.
-        :rtype: Variable with the same shape as x in the leading outdim-1
-                dimensions, but with all remaining dimensions of x collapsed
-                into the last dimension.
-        """
-        return TheanoInterval(self.lower.flatten(),
-                        self.upper.flatten())
-
-    def sum(self, axis=None, dtype=None, keepdims=False):
-        """Sum of array elements over a given axis like in numpy.ndarray.
-
-        :param integer or None axis: axis along which this function sums
-        :param type or None dtype: just like dtype argument in
-                                   theano.tensor.sum
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
-        """
-        return TheanoInterval(self.lower.sum(axis=axis, dtype=dtype,
-                                       keepdims=keepdims),
-                        self.upper.sum(axis=axis, dtype=dtype,
-                                       keepdims=keepdims))
-
     def abs(self):
         """Returns absolute value of Interval."""
         lower = T.switch(T.gt(self.lower, 0.0), self.lower,
                          T.switch(T.lt(self.upper, 0.0), -self.upper, 0.0))
         upper = T.maximum(-self.lower, self.upper)
         return TheanoInterval(lower, upper)
-
-    @property
-    def T(self):
-        """Tensor transposition like in numpy.ndarray.
-
-        :rtype: TheanoInterval
-        """
-        return TheanoInterval(self.lower.T,
-                        self.upper.T)
 
     @classmethod
     def from_shape(cls, shp, neutral=True, lower_val=None,
@@ -403,29 +262,11 @@ class TheanoInterval(Interval):
         upper = shared(upper_array)
         return TheanoInterval(lower, upper)
 
-    def reshape_for_padding(self, shape, padding, lower_val=None,
-                            upper_val=None):
-        """Returns padded TheanoInterval.
-
-        :param tuple of 4 integers shape: shape of input in format
-                                          (batch size, number of channels,
-                                           height, width)
-        :param pair of integers padding: padding to be applied
-        :param float lower_val: value of lower bound in new fields
-        :param float upper_val: value of upper bound in new fields
-        :returns: padded layer_input
-        :rtype: TheanoInterval
-        """
-        if lower_val is None:
-            lower_val = self.NEUTRAL_LOWER
-        if upper_val is None:
-            upper_val = self.NEUTRAL_UPPER
-        n_batches, n_in, h, w = shape
-        padded_low = misc_reshape_for_padding(self.lower, (h, w, n_in),
-                                              n_batches, padding, lower_val)
-        padded_upp = misc_reshape_for_padding(self.upper, (h, w, n_in),
-                                              n_batches, padding, upper_val)
-        return TheanoInterval(padded_low, padded_upp)
+    @staticmethod
+    def _reshape_for_padding(layer_input, image_shape, batch_size, padding,
+                             value=0.0):
+        return misc_reshape_for_padding(layer_input, image_shape,
+                                        batch_size, padding, value)
 
     def eval(self, eval_map=None):
         """Evaluates interval in terms of theano TensorType eval method.
