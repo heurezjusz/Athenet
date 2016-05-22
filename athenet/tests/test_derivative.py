@@ -31,7 +31,7 @@ def ithv(x):
     return Itv(v, v)
 
 
-class DerivativeTest2(unittest.TestCase):
+class DerivativeTest(unittest.TestCase):
 
     def prepare(self):
         self.v = np.arange(24) + 3.0
@@ -51,9 +51,6 @@ class DerivativeTest2(unittest.TestCase):
         for i in range(sz):
             a[i] = self.s()
         return a.reshape(shp)
-
-class DerivativeTest():
-    pass
 
 
 class FullyConnectedDerivativeTest(DerivativeTest):
@@ -156,7 +153,7 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         arae(l, A([[[[18.5, 25], [31.1, 29.6]],
                     [[34.6, 57.5], [74.4, 174.8]]]]))
 
-class MaxPoolDerivativeTest(DerivativeTest2):
+class MaxPoolDerivativeTest(DerivativeTest):
 
     def atest_simple(self):
         inpl = thv([[[[1, 1], [1, 1]]]])
