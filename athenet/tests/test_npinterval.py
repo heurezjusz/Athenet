@@ -621,15 +621,31 @@ class ReluDerivativeTest(TestCase):
 class ConvDerivativeTest(TestCase):
     def test_case1(self):
         input_shape = (1, 1, 3, 5)
-        derivatives = np.asarray([1, -1]).reshape((1,1,1,2))
+        derivatives = np.asarray([1, -1]).reshape((1, 1, 1, 2))
         D = NpInterval(derivatives, 1 * derivatives)
-        filter_shape = (1,3,3)
-        filter = np.asarray([[1,2,4],[-1,-2,-4],[0,0,0]]).reshape((1,1,3,3))
+        filter_shape = (1, 3, 3)
+        filter = np.asarray([[1, 2, 4], [-1, -2, -4], [0, 0, 0]]).reshape(
+            (1, 1, 3, 3))
         A = D.op_d_conv(input_shape, filter_shape, filter, (1, 2), (0, 0), 1)
 
-        result = np.asarray([[[[ 1., 2., 3., -2., -4.],
+        result = np.asarray([[[[1., 2., 3., -2., -4.],
                                [-1., -2., -3., 2., 4.],
-                               [ 0., 0., 0., 0., 0.]]]])
+                               [0., 0., 0., 0., 0.]]]])
+        self.assertEquals(A.shape, result.shape)
+        self.assertTrue((A.upper == result).all())
+        self.assertTrue((A.lower == result).all())
+
+    def test_case2(self):
+        input_shape = (1, 1, 3, 5)
+        derivatives = np.asarray([[1, 0], [0, -1], [1, -1]]).reshape((1,1,3,2))
+        D = NpInterval(derivatives, 1 * derivatives)
+        filter_shape = (1,1,3)
+        filter = np.asarray([1,2,4]).reshape((1,1,1,3))
+        A = D.op_d_conv(input_shape, filter_shape, filter, (1, 2), (0, 0), 1)
+
+        result = np.asarray([[[[1., 2., 4., 0., 0.],
+                               [0., 0., -1., -2., -4.],
+                               [1., 2., 3., -2., -4.]]]])
         self.assertEquals(A.shape, result.shape)
         self.assertTrue((A.upper == result).all())
         self.assertTrue((A.lower == result).all())
