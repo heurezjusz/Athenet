@@ -718,10 +718,9 @@ class Interval(Numlike):
                         # must have impact on output
                         low_gt_neigh_max_upp = \
                             T.gt(act_slice.lower, neigh_max_itv.upper)
-                        # cannot have impact on output
+                        # might have impact on output
                         upp_gt_neigh_max_low = \
                             T.gt(act_slice.upper, neigh_max_itv.lower)
-                        # might have impact on output
                         output_slice = output[:, :, at_out_h, at_out_w]
                         mixed_low = T.minimum(output_slice.lower, 0.0)
                         mixed_upp = T.maximum(output_slice.upper, 0.0)
