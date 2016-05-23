@@ -6,8 +6,7 @@ import theano
 import theano.tensor as T
 import unittest
 from math import e
-from nose.tools import assert_almost_equal
-    assert_greater
+from nose.tools import assert_almost_equal, assert_greater
 from numpy.testing import assert_array_almost_equal
 from athenet.algorithm.numlike import Interval, Nplike
 from athenet.algorithm.derest.activation import *
