@@ -215,6 +215,16 @@ class TestAdding(TestNpInterval):
             R = A + B
             self.assertEqual(R.shape, shape)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random + b_random, a + b)
+
 
 class TestSub(TestNpInterval):
     def test_case(self):
@@ -261,6 +271,16 @@ class TestSub(TestNpInterval):
             R = A - B
             self.assertEqual(R.shape, shape)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random - b_random, a - b)
+
 
 class TestSquare(TestNpInterval):
     def test_case(self):
@@ -297,6 +317,14 @@ class TestSquare(TestNpInterval):
             shape = self._random_shape()
             A = NpInterval(np.ones(shape), 2 * np.ones(shape))
             self.assertEqual(A.square().shape, shape)
+
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                self._assert_in_interval(a_random * a_random, a.square())
 
 
 class TestGetSetitem(TestNpInterval):
@@ -448,6 +476,16 @@ class TestDiv(TestNpInterval):
         )
         self._assert_npintervals_equal(result, expected_result)
 
+    def test_div_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval_without_zeros(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random / b_random, a / b)
+
 
 class TestPower(TestNpInterval):
     def pow_to_zero(self):
@@ -496,6 +534,14 @@ class TestPower(TestNpInterval):
     def pow_negative_to_fraction(self):
         a = NpInterval(np.array([-5]), np.array([-1]))
         a.pow(0.5)
+
+    def test_random_example(self):
+        for _ in xrange(20):
+            a = self._random_npinterval(shape=(1, ))
+            b = randint(2, 10**3)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                self._assert_in_interval(np.power(a_random, b), a.power(b))
 
 
 class TestDot(TestNpInterval):
