@@ -152,6 +152,16 @@ class TestMultiplying(TestNpInterval):
         self.assertTrue((a.upper * b == result.upper).all())
         self._check_lower_upper(result)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random * b_random, a * b)
+
 
 class TestAdding(TestNpInterval):
     def test_case(self):
