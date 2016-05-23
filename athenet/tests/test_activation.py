@@ -6,7 +6,7 @@ import theano
 import theano.tensor as T
 import unittest
 from math import e
-from nose.tools import assert_almost_equal as aae, \
+from nose.tools import assert_almost_equal
     assert_greater
 from numpy.testing import assert_array_almost_equal
 from athenet.algorithm.numlike import Interval, Nplike
@@ -370,7 +370,7 @@ class SoftmaxActivationTest(ActivationTest):
         l, u = res.eval(d)
         arae(l, u)
         for i in xrange(5):
-            aae(l[i], u[i])
+            assert_almost_equal(l[i], u[i])
         for i in xrange(4):
             assert_greater(l[i + 1], l[i])
 
@@ -383,9 +383,9 @@ class SoftmaxActivationTest(ActivationTest):
         l, u = res.eval(d)
         arae(l, u)
         for i in xrange(4):
-            aae(l[i], u[i])
+            assert_almost_equal(l[i], u[i])
         for i in xrange(3):
-            aae(l[i], l[i + 1])
+            assert_almost_equal(l[i], l[i + 1])
 
     def test_one_big_elt(self):
         inp = -20 * np.ones(4, dtype=theano.config.floatX)
@@ -396,10 +396,10 @@ class SoftmaxActivationTest(ActivationTest):
         d = {tinp: inp}
         l, u = res.eval(d)
         arae(l, u)
-        aae(l[0], 1)
-        aae(l[1], 0)
-        aae(l[2], 0)
-        aae(l[3], 0)
+        assert_almost_equal(l[0], 1)
+        assert_almost_equal(l[1], 0)
+        assert_almost_equal(l[2], 0)
+        assert_almost_equal(l[3], 0)
 
     def test_case1(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
@@ -595,20 +595,20 @@ class NormActivationTest(ActivationTest):
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 10.0
         l, u = out.eval(d)
-        aae(l[50, 0, 0], u[50, 0, 0])
-        aae(l[50, 0, 0], 9.9256, places=2)
+        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+        assert_almost_equal(l[50, 0, 0], 9.9256, places=2)
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 100.0
         l, u = out.eval(d)
-        aae(l[50, 0, 0], u[50, 0, 0])
-        aae(l[50, 0, 0], 59.4603, places=2)
+        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+        assert_almost_equal(l[50, 0, 0], 59.4603, places=2)
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 1000.0
         l, u = out.eval(d)
-        aae(l[50, 0, 0], u[50, 0, 0])
-        aae(l[50, 0, 0], 31.3876, places=2)
-        aae(l[49, 0, 0], 0.1991, places=2)
-        aae(l[51, 0, 0], 0.1991, places=2)
+        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+        assert_almost_equal(l[50, 0, 0], 31.3876, places=2)
+        assert_almost_equal(l[49, 0, 0], 0.1991, places=2)
+        assert_almost_equal(l[51, 0, 0], 0.1991, places=2)
 
     def test_bitonicity_and_extremas_interval(self):
         shp = (5, 1, 1)
@@ -645,8 +645,8 @@ class NormActivationTest(ActivationTest):
         assert_greater(l1[2, 0, 0], l2[2, 0, 0])
         assert_greater(l1[2, 0, 0], l3[2, 0, 0])
         assert_greater(l5[2, 0, 0], l3[2, 0, 0])
-        aae(l3[2, 0, 0], l6[2, 0, 0], places=2)
-        aae(l3[2, 0, 0], l7[2, 0, 0], places=2)
+        assert_almost_equal(l3[2, 0, 0], l6[2, 0, 0], places=2)
+        assert_almost_equal(l3[2, 0, 0], l7[2, 0, 0], places=2)
 
 
 class DropoutActivationTest(ActivationTest):

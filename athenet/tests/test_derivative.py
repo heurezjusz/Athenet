@@ -6,7 +6,7 @@ import theano
 import theano.tensor as T
 import unittest
 from math import e
-from nose.tools import assert_almost_equal as aae
+from nose.tools import assert_almost_equal
 from numpy.testing import assert_array_almost_equal
 from athenet.algorithm.numlike import Interval, Nplike
 from athenet.algorithm.derest.derivative import *
@@ -488,14 +488,14 @@ class ReluDerivativeTest(DerivativeTest):
         idout = Interval(thdout, thdout)
         idin = d_relu(idout, iact)
         l, u = idin.eval()
-        aae(l[0, 0, 0], 0.0)
-        aae(u[0, 0, 0], 1.0)
-        aae(l[2, 1, 1], 1.0)
-        aae(l[2, 2, 1], 1.0)
-        aae(l[1, 0, 1], 1.0)
-        aae(l[2, 1, 1], 1.0)
-        aae(l[2, 2, 0], 1.0)
-        aae(l[1, 0, 1], 1.0)
+        assert_almost_equal(l[0, 0, 0], 0.0)
+        assert_almost_equal(u[0, 0, 0], 1.0)
+        assert_almost_equal(l[2, 1, 1], 1.0)
+        assert_almost_equal(l[2, 2, 1], 1.0)
+        assert_almost_equal(l[1, 0, 1], 1.0)
+        assert_almost_equal(l[2, 1, 1], 1.0)
+        assert_almost_equal(l[2, 2, 0], 1.0)
+        assert_almost_equal(l[1, 0, 1], 1.0)
 
     def test_interval(self):
         actl = theano_var([-2, -1, -1, 0, 0, 1])
