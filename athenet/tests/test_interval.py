@@ -7,10 +7,17 @@ from athenet.algorithm.numlike.interval import Interval, \
     NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER, \
     DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal as arae
+from numpy.testing import assert_array_equal, assert_array_almost_equal
 import theano
 import theano.tensor as T
 from theano import function
+
+
+def arae(x, y):
+    if theano.config.floatX == 'float32':
+        return assert_array_almost_equal(x, y, decimal=3)
+    else:
+        return assert_array_almost_equal(x, y)
 
 
 def A(x):

@@ -7,16 +7,12 @@ import theano.tensor as T
 import unittest
 from math import e
 from nose.tools import assert_almost_equal as aae, \
-    assert_greater as ag
+    assert_greater
 from numpy.testing import assert_array_almost_equal
-from athenet.algorithm.numlike import Interval as Itv, Nplike
+from athenet.algorithm.numlike import Interval, Nplike
 from athenet.algorithm.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
-
-if theano.config.floatX == 'float32':
-    def arae(x, y):
-        arae(x, y, decimal=3)
 
 
 def arae(x, y):
@@ -30,7 +26,7 @@ def A(x):
     return np.array(x, dtype=theano.config.floatX)
 
 
-def npl(x):
+def nplike(x):
     return Nplike(A(x))
 
 
@@ -59,7 +55,7 @@ class ActivationTest(unittest.TestCase):
 class FullyConnectedActivationTest(ActivationTest):
 
     def test_1D_simple(self):
-        res = fully_connected(npl([1]), A([2]), A([0]))
+        res = fully_connected(nplike([1]), A([2]), A([0]))
         arae(res.eval(), A([2]))
 
     def test_2D_simple_used_1D_of_weights(self):
@@ -104,7 +100,7 @@ class FullyConnectedActivationTest(ActivationTest):
         cru = A([v[2] * v[4] + v[3] * v[6] + 1,
                  v[2] * v[5] + v[3] * v[7] + 3])
         tinpl, tinpu = T.dvectors('inpl', 'inpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
@@ -124,7 +120,7 @@ class FullyConnectedActivationTest(ActivationTest):
                  v[0] * -v[5] + v[3] * v[8] + 3,
                  v[2] * v[6] + v[3] * v[9] + 5])
         tinpl, tinpu = T.tensor3s('inpl', 'inpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
@@ -132,7 +128,7 @@ class FullyConnectedActivationTest(ActivationTest):
         arae(ru, cru)
 
     def test_negative(self):
-        inp = npl([1, -1])
+        inp = nplike([1, -1])
         w = A([[1, 1], [1, -1]])
         b = A([0, 0])
         res = fully_connected(inp, w, b)
@@ -143,92 +139,92 @@ class FullyConnectedActivationTest(ActivationTest):
 class ConvolutionalActivationTest(ActivationTest):
 
     def test_trivial(self):
-        inp = npl(A([[[1]]]))
-        w = npl(A([[[[2]]]]))
-        b = npl(A([3]))
+        inp = nplike(A([[[1]]]))
+        w = nplike(A([[[[2]]]]))
+        b = nplike(A([3]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
         arae(res.eval(), A([[[5]]]))
 
     def test_1_channel_input_1_conv_feature(self):
-        inp = npl(A([[[0, 0], [2, 3]]]))
-        w = npl(A([[[[7, 5], [3, 2]]]]))
-        b = npl(A([4]))
+        inp = nplike(A([[[0, 0], [2, 3]]]))
+        w = nplike(A([[[[7, 5], [3, 2]]]]))
+        b = nplike(A([4]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
         arae(res.eval(), A([[[35]]]))
 
     def test_1_channel_input_1_conv_feature2(self):
-        inp = npl(np.zeros((1, 3, 3), dtype=theano.config.floatX))
-        inp[0, 2, 1] = npl(2)
-        inp[0, 2, 2] = npl(3)
-        w = npl([[[[7, 5], [3, 2]]]])
-        b = npl(A([4]))
+        inp = nplike(np.zeros((1, 3, 3), dtype=theano.config.floatX))
+        inp[0, 2, 1] = nplike(2)
+        inp[0, 2, 2] = nplike(3)
+        w = nplike([[[[7, 5], [3, 2]]]])
+        b = nplike(A([4]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
         arae(res.eval(), A([[[4, 4], [18, 35]]]))
 
     def test_use_all_dims(self):
-        inp = npl(np.zeros((2, 4, 4), dtype=theano.config.floatX))
-        inp[0:2, 1:3, 1:3] = npl(A([[[2, 3], [5, 7]],
-                                   [[0.2, 0.3], [0.5, 0.7]]]))
-        w = npl(np.zeros((2, 2, 3, 3), dtype=theano.config.floatX))
-        w[0, 0, 0, 0] = npl(1.0)
-        w[0, 0, 0, 2] = npl(2.0)
-        w[0, 0, 2, 0] = npl(3.0)
-        w[0, 0, 1, 1] = npl(4.0)
-        w[1, 0, 0, 0] = npl(5.0)
-        w[1, 0, 0, 2] = npl(6.0)
-        w[1, 0, 2, 0] = npl(7.0)
-        w[1, 0, 2, 2] = npl(8.0)
-        w[0, 1, 1, 1] = npl(9.0)
-        w[0, 1, 1, 2] = npl(10.0)
-        w[0, 1, 2, 1] = npl(11.0)
-        w[0, 1, 2, 2] = npl(12.0)
-        w[1, 1, 0, 0] = npl(13.0)
-        w[1, 1, 2, 0] = npl(14.0)
-        w[1, 1, 0, 1] = npl(15.0)
-        w[1, 1, 2, 1] = npl(16.0)
+        inp = nplike(np.zeros((2, 4, 4), dtype=theano.config.floatX))
+        inp[0:2, 1:3, 1:3] = nplike(A([[[2, 3], [5, 7]],
+                                      [[0.2, 0.3], [0.5, 0.7]]]))
+        w = nplike(np.zeros((2, 2, 3, 3), dtype=theano.config.floatX))
+        w[0, 0, 0, 0] = nplike(1.0)
+        w[0, 0, 0, 2] = nplike(2.0)
+        w[0, 0, 2, 0] = nplike(3.0)
+        w[0, 0, 1, 1] = nplike(4.0)
+        w[1, 0, 0, 0] = nplike(5.0)
+        w[1, 0, 0, 2] = nplike(6.0)
+        w[1, 0, 2, 0] = nplike(7.0)
+        w[1, 0, 2, 2] = nplike(8.0)
+        w[0, 1, 1, 1] = nplike(9.0)
+        w[0, 1, 1, 2] = nplike(10.0)
+        w[0, 1, 2, 1] = nplike(11.0)
+        w[0, 1, 2, 2] = nplike(12.0)
+        w[1, 1, 0, 0] = nplike(13.0)
+        w[1, 1, 2, 0] = nplike(14.0)
+        w[1, 1, 0, 1] = nplike(15.0)
+        w[1, 1, 2, 1] = nplike(16.0)
         w_flipped = w[:, :, ::-1, ::-1]
-        b = npl(A([[[13]], [[23]]]))
+        b = nplike(A([[[13]], [[23]]]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w_flipped, f_shp, b)
         arae(res.eval(), A([[[39.7, 50.4], [50.5, 49.3]],
                             [[87.0, 76.2], [44.0, 40.1]]]))
 
     def test_padding(self):
-        inp = npl(A([[[2, 3], [5, 7]],
-                    [[0.2, 0.3], [0.5, 0.7]]]))
-        w = npl(np.zeros((2, 2, 3, 3), dtype=theano.config.floatX))
-        w[0, 0, 0, 0] = npl(1.0)
-        w[0, 0, 0, 2] = npl(2.0)
-        w[0, 0, 2, 0] = npl(3.0)
-        w[0, 0, 1, 1] = npl(4.0)
-        w[1, 0, 0, 0] = npl(5.0)
-        w[1, 0, 0, 2] = npl(6.0)
-        w[1, 0, 2, 0] = npl(7.0)
-        w[1, 0, 2, 2] = npl(8.0)
-        w[0, 1, 1, 1] = npl(9.0)
-        w[0, 1, 1, 2] = npl(10.0)
-        w[0, 1, 2, 1] = npl(11.0)
-        w[0, 1, 2, 2] = npl(12.0)
-        w[1, 1, 0, 0] = npl(13.0)
-        w[1, 1, 2, 0] = npl(14.0)
-        w[1, 1, 0, 1] = npl(15.0)
-        w[1, 1, 2, 1] = npl(16.0)
+        inp = nplike(A([[[2, 3], [5, 7]],
+                       [[0.2, 0.3], [0.5, 0.7]]]))
+        w = nplike(np.zeros((2, 2, 3, 3), dtype=theano.config.floatX))
+        w[0, 0, 0, 0] = nplike(1.0)
+        w[0, 0, 0, 2] = nplike(2.0)
+        w[0, 0, 2, 0] = nplike(3.0)
+        w[0, 0, 1, 1] = nplike(4.0)
+        w[1, 0, 0, 0] = nplike(5.0)
+        w[1, 0, 0, 2] = nplike(6.0)
+        w[1, 0, 2, 0] = nplike(7.0)
+        w[1, 0, 2, 2] = nplike(8.0)
+        w[0, 1, 1, 1] = nplike(9.0)
+        w[0, 1, 1, 2] = nplike(10.0)
+        w[0, 1, 2, 1] = nplike(11.0)
+        w[0, 1, 2, 2] = nplike(12.0)
+        w[1, 1, 0, 0] = nplike(13.0)
+        w[1, 1, 2, 0] = nplike(14.0)
+        w[1, 1, 0, 1] = nplike(15.0)
+        w[1, 1, 2, 1] = nplike(16.0)
         w_flipped = w[:, :, ::-1, ::-1]
-        b = npl(A([[[13]], [[23]]]))
+        b = nplike(A([[[13]], [[23]]]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, padding=(1, 1))
         arae(res.eval(), A([[[39.7, 50.4], [50.5, 49.3]],
                             [[87.0, 76.2], [44.0, 40.1]]]))
 
     def test_stride(self):
-        inp = npl([[[2, 3], [5, 7]]])
-        w = npl([[[[1, 2], [3, 4]]]])
+        inp = nplike([[[2, 3], [5, 7]]])
+        w = nplike([[[[1, 2], [3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        b = npl([[[0]]])
+        b = nplike([[[0]]])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, padding=(1, 1),
                    stride=(2, 2))
         arae(res.eval(), A([[[8, 9], [10, 7]]]))
@@ -237,7 +233,7 @@ class ConvolutionalActivationTest(ActivationTest):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -255,7 +251,7 @@ class ConvolutionalActivationTest(ActivationTest):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -270,23 +266,23 @@ class ConvolutionalActivationTest(ActivationTest):
         arae(ru, A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
 
     def test_group_1_in_2_out(self):
-        inp = npl([[[2, 3], [5, 7]], [[2, 3], [5, 7]]])
-        w = npl([[[[1, 2], [3, 4]]], [[[5, 6], [7, 8]]],
-                 [[[5, 6], [7, 8]]], [[[1, 2], [3, 4]]]])
+        inp = nplike([[[2, 3], [5, 7]], [[2, 3], [5, 7]]])
+        w = nplike([[[[1, 2], [3, 4]]], [[[5, 6], [7, 8]]],
+                    [[[5, 6], [7, 8]]], [[[1, 2], [3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        b = npl([[[0]]])
+        b = nplike([[[0]]])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, n_groups=2)
         arae(res.eval(), A([[[51.0]], [[119.0]], [[119.0]], [[51.0]]]))
 
     def test_group_2_in_1_out(self):
-        inp = npl([[[1, 2], [3, 4]], [[5, 6], [7, 8]],
-                   [[2, 3], [4, 5]], [[6, 7], [8, 9]]])
-        w = npl([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
-                 [[[3, 4], [5, 6]], [[7, 8], [9, 1]]]])
+        inp = nplike([[[1, 2], [3, 4]], [[5, 6], [7, 8]],
+                      [[2, 3], [4, 5]], [[6, 7], [8, 9]]])
+        w = nplike([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]],
+                    [[[3, 4], [5, 6]], [[7, 8], [9, 1]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        b = npl([[[0]]])
+        b = nplike([[[0]]])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, n_groups=2)
         arae(res.eval(), A([[[204.0]], [[247.0]]]))
 
@@ -294,7 +290,7 @@ class ConvolutionalActivationTest(ActivationTest):
 class PoolActivationTest(ActivationTest):
 
     def test_simple(self):
-        inp = npl([[[1, 2], [3, 4]]])
+        inp = nplike([[[1, 2], [3, 4]]])
         resmax = pool(inp, inp.shape, (1, 1), mode="max")
         resavg = pool(inp, inp.shape, (1, 1), mode="avg")
         arae(resmax.eval(), inp.eval())
@@ -337,7 +333,7 @@ class PoolActivationTest(ActivationTest):
         inpu = A([[[1, 3, 4], [7, 5, 6], [7, 9, 9]],
                   [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         resmax = pool(iinp, (2, 3, 3), (2, 2), mode="max")
         resavg = pool(iinp, (2, 3, 3), (2, 2), mode="avg")
         d = {tinpl: inpl, tinpu: inpu}
@@ -352,13 +348,14 @@ class PoolActivationTest(ActivationTest):
 class SoftmaxActivationTest(ActivationTest):
 
     def test_simple(self):
-        inp = npl([1, 2, 3])
+        inp = nplike([1, 2, 3])
         res = softmax(inp, 3)
         s = e * (1 + e * (1 + e))
         arae(res.eval(), A([e / s, e ** 2 / s, e ** 3 / s]))
 
     def test_corner_cases(self):
-        inps = [npl([1]), npl([2]), npl([1, 1]), npl([0]), npl([0, 0])]
+        inps = [nplike([1]), nplike([2]), nplike([1, 1]), nplike([0]),
+                nplike([0, 0])]
         ress = [softmax(inp, 5) for inp in inps]
         cress = [1, 1, 0.5, 1, 0.5]
         for (cres, res) in zip(cress, ress):
@@ -367,7 +364,7 @@ class SoftmaxActivationTest(ActivationTest):
     def test_interval_flat(self):
         inp = A([1, 2, 3, 4, 5])
         tinp = T.dvector('tinp')
-        itv = Itv(tinp, tinp)
+        itv = Interval(tinp, tinp)
         res = softmax(itv, 5)
         d = {tinp: inp}
         l, u = res.eval(d)
@@ -375,12 +372,12 @@ class SoftmaxActivationTest(ActivationTest):
         for i in xrange(5):
             aae(l[i], u[i])
         for i in xrange(4):
-            ag(l[i + 1], l[i])
+            assert_greater(l[i + 1], l[i])
 
     def test_uniform_input(self):
         inp = np.ones(4, dtype=theano.config.floatX) * 4
         tinp = T.dvector('tinp')
-        itv = Itv(tinp, tinp)
+        itv = Interval(tinp, tinp)
         res = softmax(itv, 4)
         d = {tinp: inp}
         l, u = res.eval(d)
@@ -394,7 +391,7 @@ class SoftmaxActivationTest(ActivationTest):
         inp = -20 * np.ones(4, dtype=theano.config.floatX)
         inp[0] = 1
         tinp = T.dvector('tinp')
-        itv = Itv(tinp, tinp)
+        itv = Interval(tinp, tinp)
         res = softmax(itv, 4)
         d = {tinp: inp}
         l, u = res.eval(d)
@@ -406,7 +403,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_case1(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Itv(tinpl, tinpu)
+        itv = Interval(tinpl, tinpu)
         res = softmax(itv, 3)
         inp = A([1, 2, 3])
         d = {tinpl: inp, tinpu: inp}
@@ -417,7 +414,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_case2(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Itv(tinpl, tinpu)
+        itv = Interval(tinpl, tinpu)
         res = softmax(itv, 2)
         inpl = A([1, -1])
         inpu = A([2, 3])
@@ -436,7 +433,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_case3(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Itv(tinpl, tinpu)
+        itv = Interval(tinpl, tinpu)
         res = softmax(itv, 3)
         inpl = A([1, -1, 2])
         inpu = A([2, 3, 4])
@@ -455,7 +452,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_best_worst_case_for_specific_interval(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Itv(tinpl, tinpu)
+        itv = Interval(tinpl, tinpu)
         res = softmax(itv, 4)
         inpl1 = np.ones(4, dtype=theano.config.floatX) + 1
         inpu1 = inpl1 + 1
@@ -470,14 +467,14 @@ class SoftmaxActivationTest(ActivationTest):
         l3, u3 = res.eval(d3)
         d1 = l1[0] - l2[0]
         d2 = u1[0] - u3[0]
-        ag(0.01, abs(d1))
-        ag(0.01, abs(d2))
+        assert_greater(0.01, abs(d1))
+        assert_greater(0.01, abs(d2))
 
 
 class NormActivationTest(ActivationTest):
 
     def test_case1(self):
-        inp = npl([[[1, 10], [100, 1000]]])
+        inp = nplike([[[1, 10], [100, 1000]]])
         out = norm(inp, (1, 2, 2))
         arae(out.eval(), A([[[0.9999850, 9.9850262],
                              [87.2195949, 101.9378639]]]))
@@ -485,7 +482,7 @@ class NormActivationTest(ActivationTest):
     def test_case1_interval(self):
         inp = A([[[1, 10], [100, 1000]]])
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         out = norm(iinp, (1, 2, 2))
         d = {tinpl: inp, tinpu: inp}
         l, u = out.eval(d)
@@ -494,10 +491,10 @@ class NormActivationTest(ActivationTest):
                     [87.2195949, 101.9378639]]]))
 
     def test_case2(self):
-        inp1 = npl([[[1]]])
-        inp2 = npl([[[10]]])
-        inp3 = npl([[[100]]])
-        inp4 = npl([[[1000]]])
+        inp1 = nplike([[[1]]])
+        inp2 = nplike([[[10]]])
+        inp3 = nplike([[[100]]])
+        inp4 = nplike([[[1000]]])
         out1 = norm(inp1, (1, 1, 1))
         out2 = norm(inp2, (1, 1, 1))
         out3 = norm(inp3, (1, 1, 1))
@@ -513,7 +510,7 @@ class NormActivationTest(ActivationTest):
 
     def test_case2_interval(self):
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         out = norm(iinp, (1, 1, 1))
         inp1 = A([[[1]]])
         inp2 = A([[[10]]])
@@ -537,10 +534,10 @@ class NormActivationTest(ActivationTest):
         arae(l4, A([[[101.9378639]]]))
 
     def test_case3(self):
-        inp1 = npl([[[1]], [[1]]])
-        inp2 = npl([[[10]], [[10]]])
-        inp3 = npl([[[100]], [[100]]])
-        inp4 = npl([[[1000]], [[1000]]])
+        inp1 = nplike([[[1]], [[1]]])
+        inp2 = nplike([[[10]], [[10]]])
+        inp3 = nplike([[[100]], [[100]]])
+        inp4 = nplike([[[1000]], [[1000]]])
         out1 = norm(inp1, (2, 1, 1))
         out2 = norm(inp2, (2, 1, 1))
         out3 = norm(inp3, (2, 1, 1))
@@ -560,7 +557,7 @@ class NormActivationTest(ActivationTest):
 
     def test_case3_interval(self):
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         out = norm(iinp, (2, 1, 1))
         inp1 = A([[[1]], [[1]]])
         inp2 = A([[[10]], [[10]]])
@@ -590,7 +587,7 @@ class NormActivationTest(ActivationTest):
     def test_case4_interval(self):
         shp = (100, 1, 1)
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         out = norm(iinp, shp)
         inp = np.zeros(shp, dtype=theano.config.floatX)
         d = {tinpl: inp, tinpu: inp}
@@ -616,7 +613,7 @@ class NormActivationTest(ActivationTest):
     def test_bitonicity_and_extremas_interval(self):
         shp = (5, 1, 1)
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         out = norm(iinp, shp)
         b = 200.0
         a = (2.0 * (50000.0 + b * b)) ** 0.5
@@ -645,9 +642,9 @@ class NormActivationTest(ActivationTest):
         l8, _ = out.eval(d2)
         inpl[2, 0, 0] = a - 19.0
         inpu[2, 0, 0] = a + 20.0
-        ag(l1[2, 0, 0], l2[2, 0, 0])
-        ag(l1[2, 0, 0], l3[2, 0, 0])
-        ag(l5[2, 0, 0], l3[2, 0, 0])
+        assert_greater(l1[2, 0, 0], l2[2, 0, 0])
+        assert_greater(l1[2, 0, 0], l3[2, 0, 0])
+        assert_greater(l5[2, 0, 0], l3[2, 0, 0])
         aae(l3[2, 0, 0], l6[2, 0, 0], places=2)
         aae(l3[2, 0, 0], l7[2, 0, 0], places=2)
 
@@ -656,7 +653,7 @@ class DropoutActivationTest(ActivationTest):
 
     def test_2x2_matrix(self):
         s, v, m = self.prepare()
-        a = npl([[[s(), s()], [s(), s()]]])
+        a = nplike([[[s(), s()], [s(), s()]]])
         res = dropout(a, 0.8)
         arae(res.eval(), a.eval() * A([0.2]))
 
@@ -665,7 +662,7 @@ class DropoutActivationTest(ActivationTest):
         l = A([[[s(), s()], [s(), s()]]])
         u = A([[[s(), s()], [s(), s()]]])
         tl, tu = T.dtensor3s('l', 'u')
-        i = Itv(tl, tu)
+        i = Interval(tl, tu)
         drp = dropout(i, 0.8)
         d = {tl: l, tu: u}
         (rl, ru) = drp.eval(d)
@@ -676,14 +673,14 @@ class DropoutActivationTest(ActivationTest):
 class ReluActivationTest(ActivationTest):
 
     def test_simple(self):
-        inp = npl([[[-3, -1, 1]]])
+        inp = nplike([[[-3, -1, 1]]])
         arae(relu(inp).eval(), A([[[0, 0, 1]]]))
 
     def test_interval_simple(self):
         inpl = A([[[-3, -1, 1]]])
         inpu = A([[[-2, 3, 2]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         res = relu(iinp)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
@@ -696,7 +693,7 @@ class ReluActivationTest(ActivationTest):
         inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
                   [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Itv(tinpl, tinpu)
+        iinp = Interval(tinpl, tinpu)
         res = relu(iinp)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
