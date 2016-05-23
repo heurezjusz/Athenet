@@ -3,11 +3,14 @@ sparsifying.
 
 This module contains NpInterval class and auxiliary objects.
 """
+from theano import function
+from theano import tensor as T
 
-from athenet.algorithm.numlike import Interval
 from itertools import product
 import numpy as np
 import math
+
+from athenet.algorithm.numlike import Interval
 
 
 class NpInterval(Interval):
@@ -382,7 +385,17 @@ class NpInterval(Interval):
         :type n_groups: integer
         :rtype: Numlike
         """
-        raise NotImplementedError
+        if self.op_conv_function is None:
+            l, u = T.tensor4(), T.tensor4()
+            self.op_conv_function = function(
+                [l, u],
+                [self._theano_op_conv(l, u, weights, image_shape, filter_shape,
+                                      biases, stride, padding, n_groups)]
+            )
+
+        lower, upper = self.op_conv_function(self.lower, self.upper)
+
+        return NpInterval(lower, upper)
 
     def op_d_relu(self, activation):
         """Returns estimated impact of input of relu layer on output of
