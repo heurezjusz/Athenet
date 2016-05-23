@@ -5,16 +5,6 @@ This module contains Interval class and auxiliary objects.
 """
 
 from numlike import Numlike
-import theano
-from theano import function
-from theano import tensor as T
-from theano import shared
-
-import numpy
-
-from athenet.utils.misc import convolution, reshape_for_padding as \
-    misc_reshape_for_padding
-
 
 class Interval(Numlike):
     """Interval matrix class
@@ -143,7 +133,8 @@ class Interval(Numlike):
     def reshape(self, shape):
         """Reshapes interval
 
-        :param shape: ?
+        :param shape: tuple of integers
+        :rtype: Interval
         """
         return self.construct(self.lower.reshape(shape),
                               self.upper.reshape(shape))
@@ -188,9 +179,9 @@ class Interval(Numlike):
         :rtype: Interval
         """
         if lower_val is None:
-            lower_val = NEUTRAL_INTERVAL_LOWER
+            lower_val = self.NEUTRAL_LOWER
         if upper_val is None:
-            upper_val = NEUTRAL_INTERVAL_UPPER
+            upper_val = self.NEUTRAL_UPPER
         n_batches, n_in, h, w = shape
         padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
                                                n_batches, padding, lower_val)
