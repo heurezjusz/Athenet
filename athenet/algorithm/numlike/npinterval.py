@@ -353,7 +353,7 @@ class NpInterval(Numlike):
             if lower_val != np.inf or upper_val != -np.inf:
                 raise ValueError("lower_val > upper_val")
         lower = np.full(shp, lower_val)
-        upper = np.ndarray(shp, upper_val)
+        upper = np.full(shp, upper_val)
         return NpInterval(lower, upper)
 
     @staticmethod
@@ -397,7 +397,7 @@ class NpInterval(Numlike):
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
-        raise self
+        return self
 
     def op_relu(self):
         """Returns result of relu operation on given Numlike.
