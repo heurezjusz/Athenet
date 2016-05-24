@@ -28,7 +28,7 @@ parser.add_argument("-a", "--algorithm",
                          " * sender2: simple_neuron_deleter2\n"
                          " * rat: sparsify_smallest_on_network\n"
                          " * rat2: sparsify_smallest_on_layers\n"
-                         " * filters: sharpen_filters",
+                         " * filters: sharpen_filters\n"
                          " * derest: derest",
                     choices=["sender", "sender2", "rat", "rat2", "filters", "derest"],
                     default="sender")
