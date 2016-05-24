@@ -15,8 +15,8 @@ class LRN(Layer):
         :param local_range: Local channel range. Should be odd, otherwise it
                             will be incremented.
         :param k: Additive constant.
-        :param alpha: The scaling parameter.
-        :param beta: The exponent.
+        :param alpha: The scaling parameter. Must be additive.
+        :param beta: The exponent. Must be additive.
         """
         super(LRN, self).__init__(input_layer_name, name)
         if local_range % 2 == 0:

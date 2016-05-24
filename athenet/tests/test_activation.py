@@ -9,7 +9,8 @@ from math import e
 from nose.tools import assert_almost_equal as aae, \
     assert_greater as ag
 from numpy.testing import assert_array_almost_equal
-from athenet.algorithm.numlike import Interval as Itv, Nplike
+
+from athenet.algorithm.numlike import TheanoInterval as Itv, Nplike
 
 from athenet.algorithm.derest.layers.fully_connected import a_fully_connected
 from athenet.algorithm.derest.layers.convolutional import a_conv
@@ -18,7 +19,6 @@ from athenet.algorithm.derest.layers.dropout import a_dropout
 from athenet.algorithm.derest.layers.norm import a_norm
 from athenet.algorithm.derest.layers.relu import a_relu
 from athenet.algorithm.derest.layers.softmax import a_softmax
-
 
 theano.config.exception_verbosity = 'high'
 

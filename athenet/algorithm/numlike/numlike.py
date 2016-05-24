@@ -100,6 +100,9 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def __neg__(self):
+        return self.neg()
+
     def exp(self):
         """Returns Numlike representing the exponential of the Numlike.
 
@@ -121,6 +124,9 @@ class Numlike(object):
         :rtype: Numlike
         """
         raise NotImplementedError
+
+    def __pow__(self, exponent):
+        return self.power(exponent)
 
     def dot(self, other):
         """Dot product of numlike vector and a other.
@@ -184,6 +190,9 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def __abs__(self):
+        return self.abs()
+
     @property
     def T(self):
         """Tensor transposition like in numpy.ndarray.
@@ -192,8 +201,8 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def from_shape(shp, neutral=True):
+    @classmethod
+    def from_shape(cls, shp, neutral=True):
         """Returns Numlike of given shape.
 
         :param integer tuple shp: shape to be set
@@ -359,9 +368,9 @@ class Numlike(object):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
-        :param Numlike output: estimated impact of output of layer on output
-                               of network in shape (batch_size,
-                               number of channels, height, width)
+        :param Numlike self: estimated impact of output of layer on output
+                             of network in shape (batch_size,
+                             number of channels, height, width)
         :param input_shape: shape of layer input in the format
                             (number of batches,
                              number of input channels,

@@ -78,7 +78,8 @@ network = get_network(args.network)
 ok()
 
 print "generating results..."
-results = run_algorithm(network, algorithm, dataset, verbose=True)
+results = run_algorithm(network, algorithm, dataset, verbose=True).\
+    get_zeros_fraction()
 ok()
 
 for config in dataset:
