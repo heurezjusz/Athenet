@@ -11,9 +11,10 @@
 import argparse
 import sys
 from argparse import RawTextHelpFormatter
+from datetime import datetime
+
 from config.algorithm import datasets, algorithms, get_network, ok
 from athenet.utils import run_algorithm, plot_2d_results
-
 
 parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
                                  description="Runs chosen algorithm on chosen "
@@ -26,15 +27,16 @@ parser.add_argument("-a", "--algorithm",
                          " * sender: simple_neuron_deleter (default)\n"
                          " * sender2: simple_neuron_deleter2\n"
                          " * rat: sparsify_smallest_on_network\n"
-                         " * filters: sharpen_filters\n"
+                         " * rat2: sparsify_smallest_on_layers\n"
+                         " * filters: sharpen_filters",
                          " * derest: derest",
-                    choices=["sender", "sender2", "rat", "filters", "derest"],
+                    choices=["sender", "sender2", "rat", "rat2", "filters", "derest"],
                     default="sender")
 
 parser.add_argument("-n", "--network",
                     help="Algorithm will be ran on chosen kind of network. "
                          "Default option is \"lenet\".",
-                    choices=["lenet"],
+                    choices=["lenet", "alexnet", "googlenet"],
                     default="lenet")
 
 parser.add_argument("-p", "--plot",
@@ -53,12 +55,16 @@ parser.add_argument("-d", "--dataset", type=int,
                          "dataset. Datasets are numered from 0. "
                          "Default dataset is 0.\n"
                          "Amount of datasets depends on algorithm:\n"
-                         " * simple_neuron_deleter (sender): 2\n"
-                         " * simple_neuron_deleter2 (sender2): 2\n"
-                         " * sparsify_smallest_on_network (rat): 3\n"
+                         " * simple_neuron_deleter (sender): 3\n"
+                         " * simple_neuron_deleter2 (sender2): 5\n"
+                         " * sparsify_smallest_on_network (rat): 5\n"
+                         " * sparsify_smallest_on_layers (rat2): 4\n"
                          " * sharpen_filters (filters): 3\n"
-                         " * derest: 3",
+                         " * derest: 3\n",
                     default=0)
+
+parser.add_argument("-f", "--file", type=str,
+                    help="Name of file to save results to", default=None)
 
 
 args = parser.parse_args()
@@ -77,9 +83,12 @@ print "loading network..."
 network = get_network(args.network)
 ok()
 
+file_name = args.file if args.file \
+    else args.network + "_" + datetime.now().strftime("%d%b_%H:%M:%S:%f")
+
 print "generating results..."
-results = run_algorithm(network, algorithm, dataset, verbose=True).\
-    get_zeros_fraction()
+results = run_algorithm(network, algorithm, dataset, verbose=True,
+                        results_pkl=file_name).get_zeros_fraction()
 ok()
 
 for config in dataset:
