@@ -934,120 +934,130 @@ class MaxPoolDerivativeTest(TestCase):
         assert_array_almost_equal(l, np.asarray([[[[0, 0], [0, 0]]]]))
         assert_array_almost_equal(u, np.asarray([[[[5, 5], [5, 5]]]]))
 
-    # def test_neg_output(self):
-    #     inpl = theano_var([[[[1, 1], [1, 1]]]])
-    #     inpu = theano_var([[[[2, 2], [2, 2]]]])
-    #     iinp = Interval(inpl, inpu)
-    #     idout = theano_interval([[[[-3]]]])
-    #     shp = (1, 1, 2, 2)
-    #     din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
-    #     l, u = din.eval()
-    #     array_almost_equal(l, A([[[[-3, -3], [-3, -3]]]]))
-    #     array_almost_equal(u, A([[[[0, 0], [0, 0]]]]))
-    #
-    # def test_2D(self):
-    #     inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
-    #     inpu = theano_var([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
-    #     iinp = Interval(inpl, inpu)
-    #     doutl = theano_var([[[[-1, -2], [-3, -4]]]])
-    #     doutu = theano_var([[[[5, 4], [3, 2]]]])
-    #     idout = Interval(doutl, doutu)
-    #     shp = (1, 1, 3, 3)
-    #     din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
-    #     l, u = din.eval()
-    #     array_almost_equal(l, A([[[[-1, -3, -2], [-4, -10, -6],
-    #                                [-3, -7, -4]]]]))
-    #     array_almost_equal(u, A([[[[5, 9, 4], [8, 14, 6],
-    #                                [3, 5, 2]]]]))
-    #
-    # def test_channels_batch(self):
-    #     inpl = theano_var([[
-    #                  [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-    #                  [[0, 0, 0], [0, 0, 0], [3, 0, 0]]
-    #                  ],
-    #                 [
-    #                  [[0, 3, 3], [4, 5, 6], [7, 8, 4]],
-    #                  [[-3, -3, -3], [-3, -3, -3], [3, 3, 3]]
-    #                 ]])
-    #     inpu = theano_var([[
-    #                  [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
-    #                  [[1, 1, 1], [1, 1, 1], [4, 1, 1]]
-    #                 ],
-    #                 [
-    #                  [[2, 4, 4], [9, 9, 9], [9, 9, 9]],
-    #                  [[2, 2, 2], [2, 2, 2], [5, 5, 5]]
-    #                 ]])
-    #     iinp = Interval(inpl, inpu)
-    #     doutl = theano_var([[
-    #                   [[-1, -2], [-3, -4]],
-    #                   [[1, 2], [-3, -2]]
-    #                  ],
-    #                  [
-    #                   [[1, 2], [-3, -2]],
-    #                   [[-1, 1], [-1, 1]]
-    #                  ]])
-    #     doutu = theano_var([[
-    #                   [[5, 4], [3, 2]],
-    #                   [[4, 4], [4, 4]],
-    #                  ],
-    #                  [
-    #                   [[4, 5], [0, 1]],
-    #                   [[0, 2], [0, 2]]
-    #                  ]])
-    #     idout = Interval(doutl, doutu)
-    #     shp = (2, 2, 3, 3)
-    #     din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
-    #     l, u = din.eval()
-    #     array_almost_equal(l, A([[
-    #                 [[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]],
-    #                 [[0, 0, 0], [0, -2, -2], [-3, -2, -2]]
-    #                ],
-    #                [
-    #                 [[0, 0, 0], [-3, -5, -2], [-3, -5, -2]],
-    #                 [[-1, -1, 0], [-1, -1, 0], [-1, -1, 0]]
-    #                ]]))
-    #     array_almost_equal(u, A([[
-    #                 [[5, 9, 4], [8, 14, 6], [3, 5, 2]],
-    #                 [[4, 8, 4], [4, 12, 8], [4, 4, 4]]
-    #                ],
-    #                [
-    #                 [[0, 0, 0], [4, 10, 6], [0, 1, 1]],
-    #                 [[0, 2, 2], [0, 2, 2], [0, 2, 2]]
-    #                ]]))
-    #
-    # def test_stride(self):
-    #     tinpl = theano.shared(np.arange(25).reshape((1, 1, 5, 5)))
-    #     tinpu = theano.shared(np.arange(25).reshape((1, 1, 5, 5)) + 2)
-    #     iinp = Interval(tinpl, tinpu)
-    #     idout = theano_interval([[[[-1, 2], [-3, 4]]]])
-    #     shp = (1, 1, 5, 5)
-    #     din = d_pool(idout, iinp, shp, poolsize=(2, 2), stride=(3, 3),
-    #                  mode='max')
-    #     l, u = din.eval()
-    #     array_almost_equal(l, A([[[[0, 0, 0, 0, 0],
-    #                                [-1, -1, 0, 0, 0],
-    #                                [0, 0, 0, 0, 0],
-    #                                [0, 0, 0, 0, 0],
-    #                                [-3, -3, 0, 0, 0]]]]))
-    #     array_almost_equal(u, A([[[[0, 0, 0, 0, 0],
-    #                                [0, 0, 0, 2, 2],
-    #                                [0, 0, 0, 0, 0],
-    #                                [0, 0, 0, 0, 0],
-    #                                [0, 0, 0, 4, 4]]]]))
-    #
-    # def test_padding(self):
-    #     inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
-    #     inpu = theano_var([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
-    #     iinp = Interval(inpl, inpu)
-    #     doutl = theano_var([[[[-1, -2], [-3, -4]]]])
-    #     doutu = theano_var([[[[5, 4], [3, 2]]]])
-    #     idout = Interval(doutl, doutu)
-    #     shp = (1, 1, 3, 3)
-    #     din = d_pool(idout, iinp, shp, poolsize=(2, 2), padding=(1, 1),
-    #                  stride=(3, 3), mode='max')
-    #     l, u = din.eval()
-    #     array_almost_equal(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
-    #     array_almost_equal(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
+    def test_neg_output(self):
+        inp_l = np.asarray([[[[1, 1], [1, 1]]]])
+        inp_u = np.asarray([[[[2, 2], [2, 2]]]])
+        I = NpInterval(inp_l, inp_u)
+        derivative = np.asarray([[[[-3]]]])
+        D = NpInterval(derivative, 1 * derivative)
+        shp = (1, 1, 2, 2)
+
+        R = D.op_d_max_pool(I, shp, poolsize=(2, 2), stride=(1, 1),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-3, -3], [-3, -3]]]]))
+        assert_array_almost_equal(u, np.asarray([[[[0, 0], [0, 0]]]]))
+
+    def test_2D(self):
+        inp_l = np.asarray([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inp_u = np.asarray([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        I = NpInterval(inp_l, inp_u)
+        der_l = np.asarray([[[[-1, -2], [-3, -4]]]])
+        der_u = np.asarray([[[[5, 4], [3, 2]]]])
+        D = NpInterval(der_l, der_u)
+        shp = (1, 1, 3, 3)
+
+        R = D.op_d_max_pool(I, shp, poolsize=(2, 2), stride=(1, 1),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-1, -3, -2], [-4, -10, -6],
+                                                   [-3, -7, -4]]]]))
+        assert_array_almost_equal(u, np.asarray([[[[5, 9, 4], [8, 14, 6],
+                                                   [3, 5, 2]]]]))
+    
+    def test_channels_batch(self):
+        inp_l = np.asarray([[
+                     [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                     [[0, 0, 0], [0, 0, 0], [3, 0, 0]]
+                     ],
+                    [
+                     [[0, 3, 3], [4, 5, 6], [7, 8, 4]],
+                     [[-3, -3, -3], [-3, -3, -3], [3, 3, 3]]
+                    ]])
+        inp_u = np.asarray([[
+                     [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+                     [[1, 1, 1], [1, 1, 1], [4, 1, 1]]
+                    ],
+                    [
+                     [[2, 4, 4], [9, 9, 9], [9, 9, 9]],
+                     [[2, 2, 2], [2, 2, 2], [5, 5, 5]]
+                    ]])
+        I = NpInterval(inp_l, inp_u)
+        der_l = np.asarray([[
+                      [[-1, -2], [-3, -4]],
+                      [[1, 2], [-3, -2]]
+                     ],
+                     [
+                      [[1, 2], [-3, -2]],
+                      [[-1, 1], [-1, 1]]
+                     ]])
+        der_u = np.asarray([[
+                      [[5, 4], [3, 2]],
+                      [[4, 4], [4, 4]],
+                     ],
+                     [
+                      [[4, 5], [0, 1]],
+                      [[0, 2], [0, 2]]
+                     ]])
+        D = NpInterval(der_l, der_u)
+        shp = (2, 2, 3, 3)
+
+        R = D.op_d_max_pool(I, shp, poolsize=(2, 2), stride=(1, 1),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-1, -3, -2], [-4, -10, -6],
+                                                   [-3, -7, -4]],
+                                                  [[0, 0, 0], [0, -2, -2],
+                                                   [-3, -2, -2]]],
+                                                 [[[0, 0, 0], [-3, -5, -2],
+                                                   [-3, -5, -2]],
+                                                  [[-1, -1, 0], [-1, -1, 0],
+                                                   [-1, -1, 0]]]]))
+        assert_array_almost_equal(u, np.asarray([[[[5, 9, 4], [8, 14, 6],
+                                                   [3, 5, 2]],
+                                                  [[4, 8, 4], [4, 12, 8],
+                                                   [4, 4, 4]]],
+                                                 [[[0, 0, 0], [4, 10, 6],
+                                                   [0, 1, 1]],
+                                                  [[0, 2, 2], [0, 2, 2],
+                                                   [0, 2, 2]]]]))
+
+    def test_stride(self):
+        tinp_l = np.arange(25).reshape((1, 1, 5, 5))
+        tinp_u = np.arange(25).reshape((1, 1, 5, 5)) + 2
+        I = NpInterval(tinp_l, tinp_u)
+        derivative = np.asarray([[[[-1, 2], [-3, 4]]]])
+        D = NpInterval(derivative, 1 * derivative)
+        shp = (1, 1, 5, 5)
+
+        R = D.op_d_max_pool(I, shp, poolsize=(2, 2), stride=(3, 3),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[0, 0, 0, 0, 0],
+                                                   [-1, -1, 0, 0, 0],
+                                                   [0, 0, 0, 0, 0],
+                                                   [0, 0, 0, 0, 0],
+                                                   [-3, -3, 0, 0, 0]]]]))
+        assert_array_almost_equal(u, np.asarray([[[[0, 0, 0, 0, 0],
+                                                   [0, 0, 0, 2, 2],
+                                                   [0, 0, 0, 0, 0],
+                                                   [0, 0, 0, 0, 0],
+                                                   [0, 0, 0, 4, 4]]]]))
+
+    def test_padRg(self):
+        inp_l = np.asarray([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inp_u = np.asarray([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        I = NpInterval(inp_l, inp_u)
+        der_l = np.asarray([[[[-1, -2], [-3, -4]]]])
+        der_u = np.asarray([[[[5, 4], [3, 2]]]])
+        D = NpInterval(der_l, der_u)
+        shp = (1, 1, 3, 3)
+
+        R = D.op_d_max_pool(I, shp, poolsize=(2, 2), padding=(1, 1),
+                            stride=(3, 3))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
+        assert_array_almost_equal(u, np.asarray([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
 
 
 class TestDiv(TestNpInterval):
