@@ -441,12 +441,13 @@ class NpInterval(Interval):
         :type n_groups: integer
         :rtype: Numlike
         """
-        if self.op_conv_function is None:
-            l, u = T.tensor4(), T.tensor4()
+        if True:
+            l, u = T.tensor3(), T.tensor3()
+            l2, u2 = self._theano_op_conv(l, u, weights, image_shape, filter_shape,
+                                      biases, stride, padding, n_groups)
             self.op_conv_function = function(
                 [l, u],
-                [self._theano_op_conv(l, u, weights, image_shape, filter_shape,
-                                      biases, stride, padding, n_groups)]
+                [l2, u2]
             )
 
         lower, upper = self.op_conv_function(self.lower, self.upper)

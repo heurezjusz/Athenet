@@ -6,7 +6,7 @@ import theano
 from athenet.algorithm.deleting import delete_weights_by_global_fraction
 from athenet.algorithm.derest.network import DerestNetwork
 from athenet.algorithm.derest.utils import change_order
-from athenet.algorithm.numlike.interval import Interval
+from athenet.algorithm.numlike.npinterval import NpInterval
 from athenet.algorithm.utils import to_indicators
 
 
@@ -17,7 +17,7 @@ def sum_max(values):
     :param Numlike values: values to count indicator from
     :return: int
     """
-    return values.sum()
+    return values.sum().upper
 
 
 def get_derest_indicators(network, input, count_function=sum_max):
@@ -48,10 +48,8 @@ def derest(network, fraction, (min_value, max_value)=(0., 255.)):
     """
 
     input_shape = change_order(network.layers[0].input_shape)
-    input = Interval(
-        theano.shared(numpy.full(input_shape, min_value)),
-        theano.shared(numpy.full(input_shape, max_value))
-    )
+    input = NpInterval(numpy.full(input_shape, min_value),
+                       numpy.full(input_shape, max_value))
     indicators = get_derest_indicators(network, input, sum_max)
     delete_weights_by_global_fraction(network.weighted_layers,
                                       fraction, indicators)

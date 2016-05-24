@@ -42,8 +42,10 @@ class DerestNetwork(object):
         :param boolean normalize: whenever normalize number between layers
         :return Numlike:
         """
-        batches = outp.shape.eval()[0]
+        batches = outp.shape[0]
         for layer in reversed(self.layers):
+#            print "warstwa: ", type(layer)
+#            print "output: ", outp
             if normalize:
                 outp = self._normalize(outp)
             input_shape = add_tuples(batches,

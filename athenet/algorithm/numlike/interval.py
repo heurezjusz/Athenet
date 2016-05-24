@@ -191,7 +191,7 @@ class Interval(Numlike):
                                                n_batches, padding, lower_val)
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
                                                n_batches, padding, upper_val)
-        return Interval(padded_low, padded_upp)
+        return self.construct(padded_low, padded_upp)
 
     @staticmethod
     def _theano_op_conv(lower, upper, weights, image_shape, filter_shape, biases, stride,
