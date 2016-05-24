@@ -19,6 +19,7 @@ class NpInterval(Interval):
     def construct(lower, upper):
         return NpInterval(lower, upper)
 
+
     def __setitem__(self, at, other):
         """Just like numpy __setitem__ function, but as a operator.
         :at: Coordinates / slice to be set.
@@ -26,6 +27,61 @@ class NpInterval(Interval):
         """
         self.lower[at] = other.lower
         self.upper[at] = other.upper
+
+    def __str__(self):
+        return "vvvvv\n" + self.lower.__str__() + "\n=====\n" + \
+               self.upper.__str__() + "\n^^^^^"
+
+    def __repr__(self):
+        return str(self)
+
+    @property
+    def shape(self):
+        """Returns shape of numlike.
+
+        :rtype: tuple of integers
+        """
+        return self.lower.shape
+
+    def __add__(self, other):
+        """Returns sum of two NpIntervals.
+
+        :param other: value to be added.
+        :type other: NpInterval or numpy.array or float
+        :rtype: NpInterval
+        """
+        if isinstance(other, NpInterval):
+            res_lower = self.lower + other.lower
+            res_upper = self.upper + other.upper
+        else:
+            res_lower = self.lower + other
+            res_upper = self.upper + other
+        return NpInterval(res_lower, res_upper)
+
+    def antiadd(self, other):
+        """For given NpInterval returns NpInterval which shuold be added
+        to id to get NpInterval equal to self.
+
+        :param other: NpInterval which was added.
+        :type other: NpInterval
+        :rtype: NpInterval
+        """
+        return NpInterval(self.lower - other.lower, self.upper - other.upper)
+
+    def __sub__(self, other):
+        """Returns difference between two numlikes.
+
+        :param other: value to be subtracted.
+        :type other: NpInterval or np.ndarray or float
+        :rtype: NpInterval
+        """
+        if isinstance(other, NpInterval):
+            res_lower = self.lower - other.upper
+            res_upper = self.upper - other.lower
+        else:
+            res_lower = self.lower - other
+            res_upper = self.upper - other
+        return NpInterval(res_lower, res_upper)
 
     def __mul__(self, other):
         """Returns product of two NpIntervals
@@ -401,14 +457,25 @@ class NpInterval(Interval):
         """Returns estimated impact of input of relu layer on output of
         network.
 
-        :param Numlike activation: estimated activation of input
-        :param Numlike self: estimated impact of output of layer on output
+        :param NpInterval activation: estimated activation of input
+        :param NpInterval self: estimated impact of output of layer on output
                                of network in shape (batch_size, number of
                                channels, height, width)
         :returns: Estimated impact of input on output of network
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        lower_than_zero = activation.upper <= 0.
+        contains_zero = np.logical_and(activation.lower < 0,
+                                       activation.upper > 0)
+
+        der_with_zero_l = np.minimum(self.lower, 0.)
+        der_with_zero_u = np.maximum(self.upper, 0.)
+
+        result_l = np.select([lower_than_zero, contains_zero, True],
+                             [0., der_with_zero_l, self.lower])
+        result_u = np.select([lower_than_zero, contains_zero, True],
+                             [0., der_with_zero_u, self.upper])
+        return NpInterval(result_l, result_u)
 
     def op_d_max_pool(self, activation, input_shape, poolsize, stride,
                       padding):
@@ -428,7 +495,66 @@ class NpInterval(Interval):
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
-        raise NotImplementedError
+        # n_batches, n_in, h, w - number of batches, number of channels,
+        # image height, image width
+        n_batches, n_in, h, w = input_shape
+
+        pad_h, pad_w = padding
+        activation = activation.reshape_for_padding(input_shape, padding,
+                                                    lower_val=-np.inf,
+                                                    upper_val=-np.inf)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        h += 2 * pad_h
+        w += 2 * pad_w
+
+        # fh, fw - pool height, pool width
+        fh, fw = poolsize
+        stride_h, stride_w = stride
+        output = self
+        result = activation.from_shape(input_shape, neutral=True)
+
+        for at_h, at_w in product(xrange(0, h - fh + 1, stride_h),
+                                  xrange(0, w - fw + 1, stride_w)):
+            # at_out_h - height of output corresponding to pool at position
+            # at_h
+            at_out_h = at_h / stride_h
+            # at_out_w - width of output corresponding to pool at position
+            # at_w
+            at_out_w = at_w / stride_w
+
+            for at_f_h, at_f_w in product(xrange(at_h, at_h + fh),
+                                          xrange(at_w, at_w + fw)):
+                # maximum lower and upper value of neighbours
+                neigh_max_low = -np.inf
+                neigh_max_upp = -np.inf
+                neigh_max_itv = NpInterval(neigh_max_low, neigh_max_upp)
+                act_slice = activation[:, :, at_f_h, at_f_w]
+
+                # setting maximum lower and upper of neighbours
+                for at_f_h_neigh, at_f_w_neigh in \
+                        product(xrange(at_h, at_h + fh),
+                                xrange(at_w, at_w + fw)):
+
+                    if (at_f_h_neigh, at_f_w_neigh) != (at_f_h, at_f_w):
+                        neigh_slice = activation[:, :, at_f_h_neigh,
+                                                 at_f_w_neigh]
+                        neigh_max_itv = neigh_max_itv.max(neigh_slice)
+
+                # must have impact on output
+                must = act_slice.lower > neigh_max_itv.upper
+                # cannot have impact on output
+                cannot = act_slice.upper < neigh_max_itv.lower
+                # or might have impact on output
+
+                output_slice = output[:, :, at_out_h, at_out_w]
+                output_wtih_0 = NpInterval(np.minimum(output_slice.lower, 0.),
+                                           np.maximum(output_slice.upper, 0.))
+
+                result[:, :, at_f_h, at_f_w] += np.select([must, cannot, True],
+                                                          [output_slice, 0.,
+                                                           output_wtih_0])
+
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_avg_pool(self, activation, input_shape, poolsize, stride,
                       padding):
@@ -448,7 +574,42 @@ class NpInterval(Interval):
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
-        raise NotImplementedError
+        # n_batches, n_in, h, w - number of batches, number of channels,
+        # image height, image width
+        n_batches, n_in, h, w = input_shape
+
+        pad_h, pad_w = padding
+        activation = activation.reshape_for_padding(input_shape, padding,
+                                                    lower_val=0.,
+                                                    upper_val=0.)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        h += 2 * pad_h
+        w += 2 * pad_w
+
+        # fh, fw - pool height, pool width
+        fh, fw = poolsize
+        stride_h, stride_w = stride
+        output = self
+        result = activation.from_shape(input_shape, neutral=True)
+
+        for at_h, at_w in product(xrange(0, h - fh + 1, stride_h),
+                                  xrange(0, w - fw + 1, stride_w)):
+            # at_out_h - height of output corresponding to pool at position
+            # at_h
+            at_out_h = at_h / stride_h
+            # at_out_w - width of output corresponding to pool at position
+            # at_w
+            at_out_w = at_w / stride_w
+
+            output_slice = output[:, :, at_out_h, at_out_w].\
+                reshape((n_batches, n_in, 1, 1))
+
+            result_slice = result[:, :, at_h:at_h + fh, at_w:at_w + fw]
+            result_slice += output_slice
+            result[:, :, at_h:at_h + fh, at_w:at_w + fw] = result_slice
+
+        result /= np.prod(poolsize)
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
@@ -469,9 +630,11 @@ class NpInterval(Interval):
         :param float beta: local range normalization beta argument
         :rtype: NpInterval
         """
-        result = NpInterval(np.zeros_like(activation.lower),
-                            np.zeros_like(activation.upper))
+        result = NpInterval(np.zeros(input_shape),
+                            np.zeros(input_shape))
         activation_sqares = activation.square()
+        local_range /= 2
+
 
         # some piece of math, unnecessary in any other place:
         # derivative for x placed in denominator of norm function
@@ -486,29 +649,40 @@ class NpInterval(Interval):
 
             :return: value of derivative of norm function
             """
-            return (alpha * (1-2*beta) * x**2 + c) / \
-                   (alpha * x**2 + c) ** (beta + 1)
+            return (alpha * (1 - 2 * beta) * x ** 2 + c) / \
+                   (alpha * x ** 2 + c) ** (beta + 1)
+
 
         # possible extremas
         def root1_2d(c_low, c_up, x_low, x_up):
+            # df / dx = 0
             # returns roots of derivative of derivetive of norm function
             # x = 0
             # intersects solution rectangle with x = 0
-            if x_low <= 0 and x_up >= 0:
-                return [(0, c_low), (0, c_up)]
-            return []
+
+            possibilities_c0 = [(0., c) for c in [c_low, c_up]]
+            possibilities_c1 = [
+                (-math.sqrt(3 * c) / math.sqrt(alpha * (2 * beta - 1)), c)
+                for c in [c_low, c_up]]
+            possibilities_c2 = [
+                (math.sqrt(3 * c) / math.sqrt(alpha * (2 * beta - 1)), c)
+                for c in [c_low, c_up]]
+
+            return [(x, c) for x, c in possibilities_c0 + possibilities_c1
+                    + possibilities_c2 if x_low <= x <= x_up]
+
 
         def root2_2d(c_low, c_up, x_low, x_up):
+            # df / dc = 0
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
-            # intersects solution rectangle with half-parabola above
-            possibilities_c = [(-math.sqrt(c) / math.sqrt(alpha*(2*beta+1)), c)
-                               for c in [c_low, c_up]]
-            possibilities_x = [(x, alpha*(2*beta+1) * x**2)
+            # intersects solution rectangle with parabola above
+
+            possibilities_x = [(x, alpha * (2 * beta + 1) * x ** 2)
                                for x in [x_low, x_up]]
 
-            return [(x, c) for x, c in possibilities_x + possibilities_c
-                    if x_low <= x and x <= x_up and c_low <= c and c <= c_up]
+            return [(x, c) for x, c in possibilities_x
+                    if c_low <= c and c <= c_up]
 
         # derivative for x not from denominator
         def der_not_eq(x, y, c):
@@ -524,21 +698,60 @@ class NpInterval(Interval):
 
             :return: Returns value of derivative of norm function
             """
-            return 2 * alpha*beta * x*y / (c + alpha*(x**2 + y**2)) ** (beta+1)
+            return -2 * alpha * beta * x * y / \
+                   (c + alpha * (x ** 2 + y ** 2)) ** (beta + 1)
+
 
         # possible extremas of this derivative
         def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
-            # as far as wolfram knows, possible extremas are for x=0 and y=0
             return [(x, y, c) for x, y, c in
-                    product([x_low, x_up, 0], [y_low, y_up, 0], [c_low, c_up])
+                    product([x_low, x_up], [y_low, y_up], [c_low, c_up])
+                    if x_low <= x <= x_up and y_low <= y <= y_up]
+
+
+        def extremas_3d_dx(x_low, x_up, y_low, y_up, c_low, c_up):
+            # ddf/dx/dx = 0
+            # a*y**2=a(2*b+1)*x**2-c
+            a = alpha
+            b = beta
+            sqrt1 = [(math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
+                     for y, c in product([y_low, y_up], [c_low, c_up])]
+            sqrt2 = [(-math.sqrt((c + a * y ** 2) / (a * (2 * b + 1))), y, c)
+                     for y, c in product([y_low, y_up], [c_low, c_up])]
+            return [(x, y, c) for x, y, c in sqrt1 + sqrt2
+                    if x_low <= x <= x_up]
+
+        def extremas_3d_dy(x_low, x_up, y_low, y_up, c_low, c_up):
+            # ddf/dx/dy = 0
+            # a*x**2=a(2*b+1)*y**2-c
+            a = alpha
+            b = beta
+            sqrt1 = [(x, math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
+                     for x, c in product([x_low, x_up], [c_low, c_up])]
+            sqrt2 = [(x, -math.sqrt((c + a * x ** 2) / (a * (2 * b + 1))), c)
+                     for x, c in product([x_low, x_up], [c_low, c_up])]
+            return [(x, y, c) for x, y, c in sqrt1 + sqrt2
+                    if y_low <= y <= y_up]
+
+        def extremas_3d_dxdy(x_low, x_up, y_low, y_up, c_low, c_up):
+            # ddf/dx/dy = 0 && ddf/dx/dx = 0
+            vals_cl = [sign * math.sqrt(c_low / (2 * alpha * beta))
+                       for sign in [-1, 1]]
+            vals_cu = [sign * math.sqrt(c_up / (2 * alpha * beta))
+                       for sign in [-1, 1]]
+
+            pts_low = [(x, y, c_low) for x, y in product(vals_cl, vals_cl)]
+            pts_up = [(x, y, c_up) for x, y in product(vals_cu, vals_cu)]
+
+            return [(x, y, c) for x, y, c in pts_low + pts_up
                     if x_low <= x <= x_up and y_low <= y <= y_up]
 
         batches, channels, h, w = input_shape
         for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
                                               xrange(h), xrange(w)):
             C = NpInterval(np.asarray([k]), np.asarray([k]))
-            for i in xrange(-local_range, local_range):
-                if 0 <= i + channel < channels and i != 0:
+            for i in xrange(-local_range, local_range + 1):
+                if channels > i + channel >= 0 != i:
                     C += activation_sqares[b][channel + i][at_h][at_w]
 
             Y = activation[b][channel][at_h][at_w]
@@ -555,18 +768,24 @@ class NpInterval(Interval):
                     der.lower = val
                 if der.upper is None or der.upper < val:
                     der.upper = val
-            result[b][channel][at_h][at_w] += self[b][channel][at_h][at_w]*der
+            result[b][channel][at_h][at_w] += der * self[b][channel][at_h][at_w]
 
-            #not_eq_case
-            for i in xrange(-local_range, local_range):
-                if i != 0 and 0 <= i + channel < channels:
-                    X = activation_sqares[b][channel + i][at_h][at_w]
-                    C = NpInterval(np.asarray([k]), np.asarray([k]))
-                    for j in xrange(-local_range, local_range):
-                        if j != 0 and j != i and 0 <= j + channel < channels:
-                            C += activation_sqares[b][channel + j][at_h][at_w]
-                    extremas = extremas_3d(X.lower, X.upper, Y.lower, Y.upper,
-                                           C.lower, C.upper)
+            # not_eq_case
+            for i in xrange(-local_range, local_range + 1):
+                if i != 0 and 0 <= (i + channel) < channels:
+                    X = activation[b][channel + i][at_h][at_w]
+                    X2 = activation_sqares[b][channel + i][at_h][at_w]
+                    C = C.antiadd(X2)
+
+                    extremas = extremas_3d(X.lower, X.upper, Y.lower,
+                                           Y.upper, C.lower, C.upper) + \
+                               extremas_3d_dx(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) + \
+                               extremas_3d_dy(X.lower, X.upper, Y.lower,
+                                              Y.upper, C.lower, C.upper) + \
+                               extremas_3d_dxdy(X.lower, X.upper, Y.lower,
+                                                Y.upper, C.lower, C.upper)
+
                     der = NpInterval()
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)
@@ -576,6 +795,7 @@ class NpInterval(Interval):
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
                         der * self[b][channel][at_h][at_w]
+                    C += X2
 
         return result
 
@@ -614,7 +834,81 @@ class NpInterval(Interval):
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
-        raise NotImplementedError
+
+        # n_in, h, w - number of input channels, image height, image width
+        n_batches, n_in, h, w = input_shape
+        # n_out, fh, fw - number of output channels, filter height, filter
+        # width
+        n_out, fh, fw = filter_shape
+        pad_h, pad_w = padding
+        output = self
+
+        # g_in - number of input channels per group
+        g_in = n_in / n_groups
+        # g_out - number of output channels per group
+        g_out = n_out / n_groups
+        stride_h, stride_w = stride
+        h += 2 * pad_h
+        w += 2 * pad_w
+        padded_input_shape = (n_batches, n_in, h, w)
+        result = NpInterval.from_shape(padded_input_shape, neutral=True)
+
+        # see: flipping kernel
+        # in convolution flipped kernel is used
+        weights = weights[:, :, ::-1, ::-1]
+        weights_neg = np.minimum(weights, 0.0)
+        weights_pos = np.maximum(weights, 0.0)
+
+        for at_g in xrange(n_groups):
+            # beginning and end of at_g'th group of input channel in input
+            at_in_from = at_g * g_in
+            at_in_to = at_in_from + g_in
+            # beginning and end of at_g'th group of output channel in weights
+            # note: amount of input and output group are equal
+            at_out_from = at_g * g_out
+            at_out_to = at_out_from + g_out
+
+            for at_h, at_w in product(xrange(0, h - fh + 1, stride_h),
+                                      xrange(0, w - fw + 1, stride_w)):
+                # at_out_h - height of output corresponding to filter at
+                # position at_h
+                at_out_h = at_h / stride_h
+                # at_out_w - height of output corresponding to filter at
+                # position at_w
+                at_out_w = at_w / stride_w
+
+                # weights slice that impacts on (at_out_h, at_out_w) in
+                # output
+                weights_pos_slice = weights_pos[at_out_from:at_out_to, :, :, :]
+                weights_neg_slice = weights_neg[at_out_from:at_out_to, :, :, :]
+                # shape of weights_slice: (g_out, g_in, h, w)
+
+                # slice of output
+                out_slice_low = output.lower[:, at_out_from:at_out_to,
+                                             at_out_h, at_out_w]
+                out_slice_low = \
+                    out_slice_low.reshape((n_batches, g_out, 1, 1, 1))
+                out_slice_upp = output.upper[:, at_out_from:at_out_to,
+                                             at_out_h, at_out_w]
+                out_slice_upp = \
+                    out_slice_upp.reshape((n_batches, g_out, 1, 1, 1))
+
+                # results
+                res_low_pos = (out_slice_low * weights_pos_slice).sum(axis=1)
+                res_low_neg = (out_slice_low * weights_neg_slice).sum(axis=1)
+                res_upp_pos = (out_slice_upp * weights_pos_slice).sum(axis=1)
+                res_upp_neg = (out_slice_upp * weights_neg_slice).sum(axis=1)
+
+                res_slice_lower = res_low_pos + res_upp_neg
+                res_slice_upper = res_upp_pos + res_low_neg
+                res_slice = NpInterval(res_slice_lower, res_slice_upper)
+
+                result[:, at_in_from:at_in_to, at_h:(at_h + fh),
+                       at_w:(at_w + fw)] += res_slice
+
+        # remove padding
+        result = result[:, :, pad_h:(h - pad_h), pad_w:(w - pad_w)]
+        return result
 
     @staticmethod
     def derest_output(n_outputs):
