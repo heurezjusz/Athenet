@@ -1,3 +1,3 @@
-from lenet import *
-from alexnet import *
-from googlenet import *
+from lenet import lenet
+from alexnet import alexnet
+from googlenet import googlenet
