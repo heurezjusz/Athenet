@@ -565,8 +565,7 @@ class NpInterval(Interval):
                     NpInterval.select([must, cannot, True],
                                       [output_slice, 0., output_with_0])
 
-#        return result[:, pad_h:h - pad_h, pad_w:w - pad_w]
-        return result # I don't know what I am doing but I need result to be the same size as activation
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_avg_pool(self, activation, input_shape, poolsize, stride,
                       padding):
