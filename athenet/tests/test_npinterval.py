@@ -2,6 +2,7 @@ from athenet.algorithm.numlike import NpInterval
 from unittest import TestCase, main, expectedFailure
 from random import randrange, randint, uniform
 from itertools import product
+from numpy.testing import assert_array_almost_equal
 import numpy as np
 
 
@@ -728,6 +729,48 @@ class ConvDerivativeTest(TestCase):
         self.assertEquals(A.shape, result.shape)
         self.assertTrue((A.upper == result).all())
         self.assertTrue((A.lower == result).all())
+
+    def test_dims(self):
+        derivarives = np.ones((1, 2, 2, 4))
+        D = NpInterval(derivarives, 1 * derivarives)
+        w = np.ones((2, 1, 3, 4))
+        w = w[:, :, ::-1, ::-1]
+        R = D.op_d_conv((1, 1, 4, 7), (2, 3, 4), w, stride=(1,1),
+                        padding=(0,0), n_groups=1)
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, u)
+        assert_array_almost_equal(l, np.asarray(
+            [[[[2, 4, 6, 8, 6, 4, 2], [4, 8, 12, 16, 12, 8, 4],
+               [4, 8, 12, 16, 12, 8, 4], [2, 4, 6, 8, 6, 4, 2]]]]))
+
+    def test_2x2_float(self):
+        derivatives = np.asarray([[[[4, 8], [2, 3]]]])
+        D = NpInterval(derivatives, 1 * derivatives)
+        w = np.asarray([[[[2, 3, 0], [5, 7, 0], [0, 0, 0]]]])
+        w = w[:, :, ::-1, ::-1]
+        R = D.op_d_conv((1, 1, 2, 2), (1, 3, 3), w, padding=(1, 1),
+                        stride=(1,1), n_groups=1)
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, u)
+        assert_array_almost_equal(l, np.asarray([[[[80, 65], [29, 21]]]]))
+
+    def test_all_dims(self):
+        derivatives = np.asarray([[[[2, 3], [5, 7]],
+                                   [[0.2, 0.3], [0.5, 0.7]]]])
+        D = NpInterval(derivatives, 1 * derivatives)
+        w = np.asarray([[[[1, 0, 2], [0, 4, 0], [3, 0, 0]],
+                         [[0, 0, 0], [0, 9, 10], [0, 11, 12]]],
+                        [[[5, 0, 6], [0, 0, 0], [7, 0, 8]],
+                         [[13, 15, 0], [0, 0, 0], [14, 16, 0]]]])
+        w = w[:, :, ::-1, ::-1]
+        R = D.op_d_conv((1, 2, 2, 2), (2, 3, 3), w, padding=(1, 1),
+                        stride=(1,1), n_groups=1)
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, u)
+        assert_array_almost_equal(l, np.asarray([[[[18.5, 25], [31.1, 29.6]],
+                                                  [[34.6, 57.5],
+                                                   [74.4, 174.8]]]]))
+        
 
 
 class TestDiv(TestNpInterval):
