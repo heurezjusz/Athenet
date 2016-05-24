@@ -85,6 +85,13 @@ class TestNpInterval(TestCase):
         self.assertTrue((a.lower == b.lower).all())
         self.assertTrue((a.upper == b.upper).all())
 
+    def _random_ndarray_from_interval(self, interval):
+        return np.random.uniform(interval.lower, interval.upper,
+                                 interval.shape)
+
+    def _assert_in_interval(self, array, interval):
+        self.assertTrue((interval.lower <= array).all())
+        self.assertTrue((interval.upper >= array).all())
 
 class TestShape(TestCase):
     def _run_test(self, shape):
@@ -190,6 +197,16 @@ class TestMultiplying(TestNpInterval):
         self.assertTrue((a.upper * b == result.upper).all())
         self._check_lower_upper(result)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random * b_random, a * b)
+
 
 class TestAdding(TestNpInterval):
     def test_case(self):
@@ -243,6 +260,16 @@ class TestAdding(TestNpInterval):
             R = A + B
             self.assertEqual(R.shape, shape)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random + b_random, a + b)
+
 
 class TestSub(TestNpInterval):
     def test_case(self):
@@ -289,6 +316,16 @@ class TestSub(TestNpInterval):
             R = A - B
             self.assertEqual(R.shape, shape)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random - b_random, a - b)
+
 
 class TestSquare(TestNpInterval):
     def test_case(self):
@@ -325,6 +362,14 @@ class TestSquare(TestNpInterval):
             shape = self._random_shape()
             A = NpInterval(np.ones(shape), 2 * np.ones(shape))
             self.assertEqual(A.square().shape, shape)
+
+    def test_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                self._assert_in_interval(a_random * a_random, a.square())
 
 
 class TestGetSetitem(TestNpInterval):
@@ -1026,6 +1071,16 @@ class TestDiv(TestNpInterval):
         )
         self._assert_npintervals_equal(result, expected_result)
 
+    def test_div_random_example(self):
+        for _ in xrange(20):
+            shape = self._random_shape()
+            a = self._random_npinterval(shape=shape)
+            b = self._random_npinterval_without_zeros(shape=shape)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                b_random = self._random_ndarray_from_interval(b)
+                self._assert_in_interval(a_random / b_random, a / b)
+
 
 class TestPower(TestNpInterval):
     def pow_to_zero(self):
@@ -1075,6 +1130,14 @@ class TestPower(TestNpInterval):
         a = NpInterval(np.array([-5]), np.array([-1]))
         a.pow(0.5)
 
+    def test_random_example(self):
+        for _ in xrange(20):
+            a = self._random_npinterval(shape=(1, ))
+            b = randint(2, 10**3)
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                self._assert_in_interval(np.power(a_random, b), a.power(b))
+
 
 class TestDot(TestNpInterval):
     def test_dot_simple(self):
@@ -1083,12 +1146,29 @@ class TestDot(TestNpInterval):
         expexted_result = NpInterval(np.array([3]), np.array([7]))
         self._assert_npintervals_equal(a.dot(b), expexted_result)
 
-    def test_dot_random(self):
-        a_np = self._random_ndarray(shape=(5, 8))
-        a = NpInterval(a_np, a_np)
-        b = self._random_ndarray(shape=(8, 5))
-        expected_result = NpInterval(a_np.dot(b), a_np.dot(b))
+    def test_dot(self):
+        a = NpInterval(np.array([[1, -3, 5, -7], [0, 3, -1, -3]]),
+                       np.array([[3, -1, 9, 0], [3.5, 3, -0.5, 2]]))
+        b = np.array([[2, -1], [1, 3], [-1, 0], [0, 2]])
+        expected_result = NpInterval(np.array([[-10, -26], [3.5, -0.5]]),
+                                     np.array([[0, -4], [11, 13]]))
         self._assert_npintervals_equal(a.dot(b), expected_result)
+
+    def test_dot_random(self):
+        for _ in xrange(20):
+            a_np = self._random_ndarray(shape=(5, 8))
+            a = NpInterval(a_np, a_np)
+            b = self._random_ndarray(shape=(8, 5))
+            expected_result = NpInterval(a_np.dot(b), a_np.dot(b))
+            self._assert_npintervals_equal(a.dot(b), expected_result)
+
+    def test_dot_check_random_example(self):
+        for _ in xrange(20):
+            a = self._random_npinterval(shape=(8, 12))
+            b = self._random_ndarray(shape=(12, 8))
+            for _ in xrange(20):
+                a_random = self._random_ndarray_from_interval(a)
+                self._assert_in_interval(a_random.dot(b), a.dot(b))
 
 
 class TestMax(TestNpInterval):
