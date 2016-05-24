@@ -564,12 +564,18 @@ class NpInterval(Numlike):
                 # or might have impact on output
 
                 output_slice = output[:, :, at_out_h, at_out_w]
-                output_wtih_0 = NpInterval(np.minimum(output_slice.lower, 0.),
+                output_with_0 = NpInterval(np.minimum(output_slice.lower, 0.),
                                            np.maximum(output_slice.upper, 0.))
 
-                result[:, :, at_f_h, at_f_w] += np.select([must, cannot, True],
-                                                          [output_slice, 0.,
-                                                           output_wtih_0])
+                to_add = NpInterval.select([must, cannot, True],[output_slice, 0.,output_with_0])
+                print to_add
+                print to_add.shape
+                print result[:, :, at_f_h, at_f_w]
+                print result[:, :, at_f_h, at_f_w].shape
+                r_added = result[:, :, at_f_h, at_f_w] + to_add
+                print r_added
+
+                result[:, :, at_f_h, at_f_w] = r_added
 
         return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
