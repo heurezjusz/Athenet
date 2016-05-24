@@ -791,6 +791,26 @@ class ConvDerivativeTest(TestCase):
         assert_array_almost_equal(-res, R.lower)
         assert_array_almost_equal(res, R.upper)
 
+    def test_correct(self):
+        input_shape = (2, 3, 3, 5)
+        w_shape = (1, 3, 2, 2)
+        filter_shape = (1, 2, 2)
+        der_shape = (2, 1, 4, 6)
+        stride = (1, 1)
+        padding = (1, 1)
+
+        for _ in xrange(10):
+            D = _random_npinterval(der_shape)
+            w = np.random.rand(*w_shape)
+            R = D.op_d_conv(input_shape, filter_shape, w, stride, padding, 1)
+            for i in xrange(100):
+                der_val = _rand_from_npinterval(D)
+                d = NpInterval(der_val, 1 * der_val)
+                r = d.op_d_conv(input_shape, filter_shape, w, stride,
+                                padding, 1)
+                self.assertTrue((R.lower <= r.lower).all())
+                self.assertTrue((R.upper >= r.upper).all())
+
 
 class TestDiv(TestNpInterval):
 
