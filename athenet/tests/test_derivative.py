@@ -413,7 +413,6 @@ class SoftmaxDerivativeTest(DerivativeTest):
 
 
 class NormDerivativeTest(DerivativeTest):
-    # TODO: tests, interval test, channels_2, channels_higher
 
     alpha = 0.00002
     beta = 0.75
@@ -463,7 +462,6 @@ class NormDerivativeTest(DerivativeTest):
         ishp = (1, 2, 1, 1)
         din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
         l, u = din.eval()
-        # TODO: Count array_almost_equal
 
 
 class DropoutDerivativeTest(DerivativeTest):
