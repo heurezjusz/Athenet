@@ -14,7 +14,7 @@ from athenet.algorithm.derest.activation import *
 theano.config.exception_verbosity = 'high'
 
 
-def arae(x, y):
+def array_almost_equal(x, y):
     if theano.config.floatX == 'float32':
         return assert_array_almost_equal(x, y, decimal=3)
     else:
@@ -55,29 +55,30 @@ class FullyConnectedActivationTest(ActivationTest):
 
     def test_1D_simple(self):
         res = fully_connected(nplike([1]), A([2]), A([0]))
-        arae(res.eval(), A([2]))
+        array_almost_equal(res.eval(), A([2]))
 
     def test_2D_simple_used_1D_of_weights(self):
         s, v, m = self.prepare()
         inp, w, b = m(2), m(2), A([1.0])
         res = fully_connected(inp, w, b)
-        arae(res, A([v[0] * v[2] + v[1] * v[3] + 1.0]))
+        array_almost_equal(res, A([v[0] * v[2] + v[1] * v[3] + 1.0]))
 
     def test_2D_simple_used_2D_of_weights(self):
         s, v, m = self.prepare()
         inp = m(1)
         w = m((1, 2))
         b = m(2)
-        arae(fully_connected(inp, w, b), A([v[0] * v[1] + v[3],
-             v[0] * v[2] + v[4]]))
+        array_almost_equal(fully_connected(inp, w, b), A([v[0] * v[1] + v[3],
+                           v[0] * v[2] + v[4]]))
 
     def test_2D_simple(self):
         s, v, m = self.prepare()
         inp = m(2)
         w = m((2, 2))
         b = m(2)
-        arae(fully_connected(inp, w, b), A([v[0] * v[2] + v[1] * v[4] + v[6],
-             v[0] * v[3] + v[1] * v[5] + v[7]]))
+        array_almost_equal(fully_connected(inp, w, b),
+                           A([v[0] * v[2] + v[1] * v[4] + v[6],
+                              v[0] * v[3] + v[1] * v[5] + v[7]]))
 
     def test_2D_2(self):
         s, v, m = self.prepare()
@@ -86,7 +87,7 @@ class FullyConnectedActivationTest(ActivationTest):
         b = m(2)
         rl = v[0] * v[4] + v[1] * v[6] + v[2] * v[8] + v[3] * v[10] + v[12]
         ru = v[0] * v[5] + v[1] * v[7] + v[2] * v[9] + v[3] * v[11] + v[13]
-        arae(fully_connected(inp, w, b), A([rl, ru]))
+        array_almost_equal(fully_connected(inp, w, b), A([rl, ru]))
 
     def test_3D_using_intervals(self):
         s, v, m = self.prepare()
@@ -103,8 +104,8 @@ class FullyConnectedActivationTest(ActivationTest):
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
-        arae(rl, crl)
-        arae(ru, cru)
+        array_almost_equal(rl, crl)
+        array_almost_equal(ru, cru)
 
     def test_3D_negative_weights_using_intervals(self):
         s, v, m = self.prepare()
@@ -123,8 +124,8 @@ class FullyConnectedActivationTest(ActivationTest):
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
-        arae(rl, crl)
-        arae(ru, cru)
+        array_almost_equal(rl, crl)
+        array_almost_equal(ru, cru)
 
     def test_negative(self):
         inp = nplike([1, -1])
@@ -132,7 +133,7 @@ class FullyConnectedActivationTest(ActivationTest):
         b = A([0, 0])
         res = fully_connected(inp, w, b)
         c = A([0, 2])
-        arae(res.eval(), c)
+        array_almost_equal(res.eval(), c)
 
 
 class ConvolutionalActivationTest(ActivationTest):
@@ -143,7 +144,7 @@ class ConvolutionalActivationTest(ActivationTest):
         b = nplike(A([3]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
-        arae(res.eval(), A([[[5]]]))
+        array_almost_equal(res.eval(), A([[[5]]]))
 
     def test_1_channel_input_1_conv_feature(self):
         inp = nplike(A([[[0, 0], [2, 3]]]))
@@ -151,7 +152,7 @@ class ConvolutionalActivationTest(ActivationTest):
         b = nplike(A([4]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
-        arae(res.eval(), A([[[35]]]))
+        array_almost_equal(res.eval(), A([[[35]]]))
 
     def test_1_channel_input_1_conv_feature2(self):
         inp = nplike(np.zeros((1, 3, 3), dtype=theano.config.floatX))
@@ -161,7 +162,7 @@ class ConvolutionalActivationTest(ActivationTest):
         b = nplike(A([4]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w, f_shp, b)
-        arae(res.eval(), A([[[4, 4], [18, 35]]]))
+        array_almost_equal(res.eval(), A([[[4, 4], [18, 35]]]))
 
     def test_use_all_dims(self):
         inp = nplike(np.zeros((2, 4, 4), dtype=theano.config.floatX))
@@ -188,8 +189,8 @@ class ConvolutionalActivationTest(ActivationTest):
         b = nplike(A([[[13]], [[23]]]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w_flipped, f_shp, b)
-        arae(res.eval(), A([[[39.7, 50.4], [50.5, 49.3]],
-                            [[87.0, 76.2], [44.0, 40.1]]]))
+        array_almost_equal(res.eval(), A([[[39.7, 50.4], [50.5, 49.3]],
+                                          [[87.0, 76.2], [44.0, 40.1]]]))
 
     def test_padding(self):
         inp = nplike(A([[[2, 3], [5, 7]],
@@ -215,8 +216,8 @@ class ConvolutionalActivationTest(ActivationTest):
         b = nplike(A([[[13]], [[23]]]))
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, padding=(1, 1))
-        arae(res.eval(), A([[[39.7, 50.4], [50.5, 49.3]],
-                            [[87.0, 76.2], [44.0, 40.1]]]))
+        array_almost_equal(res.eval(), A([[[39.7, 50.4], [50.5, 49.3]],
+                                          [[87.0, 76.2], [44.0, 40.1]]]))
 
     def test_stride(self):
         inp = nplike([[[2, 3], [5, 7]]])
@@ -226,7 +227,7 @@ class ConvolutionalActivationTest(ActivationTest):
         b = nplike([[[0]]])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, padding=(1, 1),
                    stride=(2, 2))
-        arae(res.eval(), A([[[8, 9], [10, 7]]]))
+        array_almost_equal(res.eval(), A([[[8, 9], [10, 7]]]))
 
     def test_interval_simple(self):
         inpl = A([[[-1, 3], [4, 7]]])
@@ -243,8 +244,8 @@ class ConvolutionalActivationTest(ActivationTest):
         res = conv(iinp, inp_shape, tw, f_shp, tb)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, A([[[18]]]))
-        arae(ru, A([[[32]]]))
+        array_almost_equal(rl, A([[[18]]]))
+        array_almost_equal(ru, A([[[32]]]))
 
     def test_interval_3x3(self):
         inpl = A([[[-1, 3], [4, 7]]])
@@ -261,8 +262,8 @@ class ConvolutionalActivationTest(ActivationTest):
         res = conv(iinp, inp_shape, tw, f_shp, tb, padding=(1, 1))
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
-        arae(ru, A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
+        array_almost_equal(rl, A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
+        array_almost_equal(ru, A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
 
     def test_group_1_in_2_out(self):
         inp = nplike([[[2, 3], [5, 7]], [[2, 3], [5, 7]]])
@@ -272,7 +273,8 @@ class ConvolutionalActivationTest(ActivationTest):
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         b = nplike([[[0]]])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, n_groups=2)
-        arae(res.eval(), A([[[51.0]], [[119.0]], [[119.0]], [[51.0]]]))
+        array_almost_equal(res.eval(), A([[[51.0]], [[119.0]],
+                                          [[119.0]], [[51.0]]]))
 
     def test_group_2_in_1_out(self):
         inp = nplike([[[1, 2], [3, 4]], [[5, 6], [7, 8]],
@@ -283,7 +285,7 @@ class ConvolutionalActivationTest(ActivationTest):
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         b = nplike([[[0]]])
         res = conv(inp, inp.shape, w_flipped, f_shp, b, n_groups=2)
-        arae(res.eval(), A([[[204.0]], [[247.0]]]))
+        array_almost_equal(res.eval(), A([[[204.0]], [[247.0]]]))
 
 
 class PoolActivationTest(ActivationTest):
@@ -292,39 +294,39 @@ class PoolActivationTest(ActivationTest):
         inp = nplike([[[1, 2], [3, 4]]])
         resmax = pool(inp, inp.shape, (1, 1), mode="max")
         resavg = pool(inp, inp.shape, (1, 1), mode="avg")
-        arae(resmax.eval(), inp.eval())
-        arae(resavg.eval(), inp.eval())
+        array_almost_equal(resmax.eval(), inp.eval())
+        array_almost_equal(resavg.eval(), inp.eval())
 
     def test_simple2(self):
         inp = Nplike(A([[[1, 2], [3, 4]]]))
         resmax = pool(inp, inp.shape, (2, 2), mode="max")
         resavg = pool(inp, inp.shape, (2, 2), mode="avg")
-        arae(resmax.eval(), A([[[4.0]]]))
-        arae(resavg.eval(), A([[[2.5]]]))
+        array_almost_equal(resmax.eval(), A([[[4.0]]]))
+        array_almost_equal(resavg.eval(), A([[[2.5]]]))
 
     def test_2D1(self):
         inp = Nplike(A([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]))
         resmax = pool(inp, inp.shape, (2, 2), mode="max")
         resavg = pool(inp, inp.shape, (2, 2), mode="avg")
-        arae(resmax.eval(), A([[[5.0, 6.0], [8.0, 9.0]]]))
-        arae(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]]]))
+        array_almost_equal(resmax.eval(), A([[[5.0, 6.0], [8.0, 9.0]]]))
+        array_almost_equal(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]]]))
 
     def test_2D2(self):
         inp = Nplike(A([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]))
         resmax = pool(inp, inp.shape, (3, 3), mode="max")
         resavg = pool(inp, inp.shape, (3, 3), mode="avg")
-        arae(resmax.eval(), A([[[9.0]]]))
-        arae(resavg.eval(), A([[[5.0]]]))
+        array_almost_equal(resmax.eval(), A([[[9.0]]]))
+        array_almost_equal(resavg.eval(), A([[[5.0]]]))
 
     def test_3D(self):
         inp = Nplike(A([[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
                         [[2, 3, 4], [5, 6, 7], [8, 9, 1]]]))
         resmax = pool(inp, inp.shape, (2, 2), mode="max")
         resavg = pool(inp, inp.shape, (2, 2), mode="avg")
-        arae(resmax.eval(), A([[[5.0, 6.0], [8.0, 9.0]],
-                               [[6.0, 7.0], [9.0, 9.0]]]))
-        arae(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]],
-                               [[4.0, 5.0], [7.0, 5.75]]]))
+        array_almost_equal(resmax.eval(), A([[[5.0, 6.0], [8.0, 9.0]],
+                                             [[6.0, 7.0], [9.0, 9.0]]]))
+        array_almost_equal(resavg.eval(), A([[[3.0, 4.0], [6.0, 7.0]],
+                                             [[4.0, 5.0], [7.0, 5.75]]]))
 
     def test_3D_interval(self):
         inpl = A([[[-1, 2, 3], [4, 5, 6], [7, -3, 0]],
@@ -338,10 +340,12 @@ class PoolActivationTest(ActivationTest):
         d = {tinpl: inpl, tinpu: inpu}
         rlmax, rumax = resmax.eval(d)
         rlavg, ruavg = resavg.eval(d)
-        arae(rlmax, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]]))
-        arae(rumax, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]]))
-        arae(rlavg, A([[[10, 16], [13, 8]], [[16, 20], [28, 23]]]) / 4.0)
-        arae(ruavg, A([[[16, 18], [28, 29]], [[16, 20], [28, 23]]]) / 4.0)
+        array_almost_equal(rlmax, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]]))
+        array_almost_equal(rumax, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]]))
+        array_almost_equal(rlavg, A([[[10, 16], [13, 8]],
+                                     [[16, 20], [28, 23]]]) / 4.0)
+        array_almost_equal(ruavg, A([[[16, 18], [28, 29]],
+                                     [[16, 20], [28, 23]]]) / 4.0)
 
 
 class SoftmaxActivationTest(ActivationTest):
@@ -350,7 +354,7 @@ class SoftmaxActivationTest(ActivationTest):
         inp = nplike([1, 2, 3])
         res = softmax(inp, 3)
         s = e * (1 + e * (1 + e))
-        arae(res.eval(), A([e / s, e ** 2 / s, e ** 3 / s]))
+        array_almost_equal(res.eval(), A([e / s, e ** 2 / s, e ** 3 / s]))
 
     def test_corner_cases(self):
         inps = [nplike([1]), nplike([2]), nplike([1, 1]), nplike([0]),
@@ -358,7 +362,7 @@ class SoftmaxActivationTest(ActivationTest):
         ress = [softmax(inp, 5) for inp in inps]
         cress = [1, 1, 0.5, 1, 0.5]
         for (cres, res) in zip(cress, ress):
-            arae(res.eval(), cres)
+            array_almost_equal(res.eval(), cres)
 
     def test_interval_flat(self):
         inp = A([1, 2, 3, 4, 5])
@@ -367,7 +371,7 @@ class SoftmaxActivationTest(ActivationTest):
         res = softmax(itv, 5)
         d = {tinp: inp}
         l, u = res.eval(d)
-        arae(l, u)
+        array_almost_equal(l, u)
         for i in xrange(5):
             assert_almost_equal(l[i], u[i])
         for i in xrange(4):
@@ -380,7 +384,7 @@ class SoftmaxActivationTest(ActivationTest):
         res = softmax(itv, 4)
         d = {tinp: inp}
         l, u = res.eval(d)
-        arae(l, u)
+        array_almost_equal(l, u)
         for i in xrange(4):
             assert_almost_equal(l[i], u[i])
         for i in xrange(3):
@@ -394,7 +398,7 @@ class SoftmaxActivationTest(ActivationTest):
         res = softmax(itv, 4)
         d = {tinp: inp}
         l, u = res.eval(d)
-        arae(l, u)
+        array_almost_equal(l, u)
         assert_almost_equal(l[0], 1)
         assert_almost_equal(l[1], 0)
         assert_almost_equal(l[2], 0)
@@ -408,8 +412,8 @@ class SoftmaxActivationTest(ActivationTest):
         d = {tinpl: inp, tinpu: inp}
         l, u = res.eval(d)
         cres = (e - 1) / (e ** 3 - 1)
-        arae(l, u)
-        arae(l, A([cres, cres * e, cres * e ** 2]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([cres, cres * e, cres * e ** 2]))
 
     def test_case2(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
@@ -427,8 +431,8 @@ class SoftmaxActivationTest(ActivationTest):
                    [(1, 3), (-1, 2)]])
         cresu = A([calc_cres(a, b) for (a, b) in
                    [(2, -1), (3, 1)]])
-        arae(l, cresl)
-        arae(u, cresu)
+        array_almost_equal(l, cresl)
+        array_almost_equal(u, cresu)
 
     def test_case3(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
@@ -446,8 +450,8 @@ class SoftmaxActivationTest(ActivationTest):
                    [(1, 3, 4), (-1, 2, 4), (2, 2, 3)]])
         cresu = A([calc_cres(a, b, c) for (a, b, c) in
                    [(2, -1, 2), (3, 1, 2), (4, 1, -1)]])
-        arae(l, cresl)
-        arae(u, cresu)
+        array_almost_equal(l, cresl)
+        array_almost_equal(u, cresu)
 
     def test_best_worst_case_for_specific_interval(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
@@ -475,8 +479,8 @@ class NormActivationTest(ActivationTest):
     def test_case1(self):
         inp = nplike([[[1, 10], [100, 1000]]])
         out = norm(inp, (1, 2, 2))
-        arae(out.eval(), A([[[0.9999850, 9.9850262],
-                             [87.2195949, 101.9378639]]]))
+        array_almost_equal(out.eval(), A([[[0.9999850, 9.9850262],
+                                           [87.2195949, 101.9378639]]]))
 
     def test_case1_interval(self):
         inp = A([[[1, 10], [100, 1000]]])
@@ -485,9 +489,9 @@ class NormActivationTest(ActivationTest):
         out = norm(iinp, (1, 2, 2))
         d = {tinpl: inp, tinpu: inp}
         l, u = out.eval(d)
-        arae(l, u)
-        arae(l, A([[[0.9999850, 9.9850262],
-                    [87.2195949, 101.9378639]]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[[0.9999850, 9.9850262],
+                                  [87.2195949, 101.9378639]]]))
 
     def test_case2(self):
         inp1 = nplike([[[1]]])
@@ -502,10 +506,10 @@ class NormActivationTest(ActivationTest):
         res2 = out2.eval()
         res3 = out3.eval()
         res4 = out4.eval()
-        arae(res1, A([[[0.9999850]]]))
-        arae(res2, A([[[9.9850262]]]))
-        arae(res3, A([[[87.2195949]]]))
-        arae(res4, A([[[101.9378639]]]))
+        array_almost_equal(res1, A([[[0.9999850]]]))
+        array_almost_equal(res2, A([[[9.9850262]]]))
+        array_almost_equal(res3, A([[[87.2195949]]]))
+        array_almost_equal(res4, A([[[101.9378639]]]))
 
     def test_case2_interval(self):
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
@@ -523,14 +527,14 @@ class NormActivationTest(ActivationTest):
         l2, u2 = out.eval(d2)
         l3, u3 = out.eval(d3)
         l4, u4 = out.eval(d4)
-        arae(l1, u1)
-        arae(l2, u2)
-        arae(l3, u3)
-        arae(l4, u4)
-        arae(l1, A([[[0.9999850]]]))
-        arae(l2, A([[[9.9850262]]]))
-        arae(l3, A([[[87.2195949]]]))
-        arae(l4, A([[[101.9378639]]]))
+        array_almost_equal(l1, u1)
+        array_almost_equal(l2, u2)
+        array_almost_equal(l3, u3)
+        array_almost_equal(l4, u4)
+        array_almost_equal(l1, A([[[0.9999850]]]))
+        array_almost_equal(l2, A([[[9.9850262]]]))
+        array_almost_equal(l3, A([[[87.2195949]]]))
+        array_almost_equal(l4, A([[[101.9378639]]]))
 
     def test_case3(self):
         inp1 = nplike([[[1]], [[1]]])
@@ -549,10 +553,10 @@ class NormActivationTest(ActivationTest):
         v2 = 9.9701046
         v3 = 77.6969504
         v4 = 61.7180374
-        arae(res1, A([[[v1]], [[v1]]]))
-        arae(res2, A([[[v2]], [[v2]]]))
-        arae(res3, A([[[v3]], [[v3]]]))
-        arae(res4, A([[[v4]], [[v4]]]))
+        array_almost_equal(res1, A([[[v1]], [[v1]]]))
+        array_almost_equal(res2, A([[[v2]], [[v2]]]))
+        array_almost_equal(res3, A([[[v3]], [[v3]]]))
+        array_almost_equal(res4, A([[[v4]], [[v4]]]))
 
     def test_case3_interval(self):
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
@@ -570,18 +574,18 @@ class NormActivationTest(ActivationTest):
         l2, u2 = out.eval(d2)
         l3, u3 = out.eval(d3)
         l4, u4 = out.eval(d4)
-        arae(l1, u1)
-        arae(l2, u2)
-        arae(l3, u3)
-        arae(l4, u4)
+        array_almost_equal(l1, u1)
+        array_almost_equal(l2, u2)
+        array_almost_equal(l3, u3)
+        array_almost_equal(l4, u4)
         v1 = 0.99997
         v2 = 9.9701046
         v3 = 77.6969504
         v4 = 61.7180374
-        arae(l1, A([[[v1]], [[v1]]]))
-        arae(l2, A([[[v2]], [[v2]]]))
-        arae(l3, A([[[v3]], [[v3]]]))
-        arae(l4, A([[[v4]], [[v4]]]))
+        array_almost_equal(l1, A([[[v1]], [[v1]]]))
+        array_almost_equal(l2, A([[[v2]], [[v2]]]))
+        array_almost_equal(l3, A([[[v3]], [[v3]]]))
+        array_almost_equal(l4, A([[[v4]], [[v4]]]))
 
     def test_case4_interval(self):
         shp = (100, 1, 1)
@@ -654,7 +658,7 @@ class DropoutActivationTest(ActivationTest):
         s, v, m = self.prepare()
         a = nplike([[[s(), s()], [s(), s()]]])
         res = dropout(a, 0.8)
-        arae(res.eval(), a.eval() * A([0.2]))
+        array_almost_equal(res.eval(), a.eval() * A([0.2]))
 
     def test_2x2_matrix_interval(self):
         s, v, m = self.prepare()
@@ -665,15 +669,15 @@ class DropoutActivationTest(ActivationTest):
         drp = dropout(i, 0.8)
         d = {tl: l, tu: u}
         (rl, ru) = drp.eval(d)
-        arae(rl, 0.2 * l)
-        arae(ru, 0.2 * u)
+        array_almost_equal(rl, 0.2 * l)
+        array_almost_equal(ru, 0.2 * u)
 
 
 class ReluActivationTest(ActivationTest):
 
     def test_simple(self):
         inp = nplike([[[-3, -1, 1]]])
-        arae(relu(inp).eval(), A([[[0, 0, 1]]]))
+        array_almost_equal(relu(inp).eval(), A([[[0, 0, 1]]]))
 
     def test_interval_simple(self):
         inpl = A([[[-3, -1, 1]]])
@@ -683,8 +687,8 @@ class ReluActivationTest(ActivationTest):
         res = relu(iinp)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, A([[[0, 0, 1]]]))
-        arae(ru, A([[[0, 3, 2]]]))
+        array_almost_equal(rl, A([[[0, 0, 1]]]))
+        array_almost_equal(ru, A([[[0, 3, 2]]]))
 
     def test_interval_3D(self):
         inpl = A([[[-1, 2, -1], [0, 3, 5], [1, 2, 3]],
@@ -696,10 +700,10 @@ class ReluActivationTest(ActivationTest):
         res = relu(iinp)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
-                    [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
-        arae(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
-                    [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
+        array_almost_equal(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
+                                  [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
+        array_almost_equal(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
+                                  [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

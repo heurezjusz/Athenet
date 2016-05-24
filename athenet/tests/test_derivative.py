@@ -14,7 +14,7 @@ from athenet.algorithm.derest.derivative import *
 theano.config.exception_verbosity = 'high'
 
 
-def arae(x, y):
+def array_almost_equal(x, y):
     if theano.config.floatX == 'float32':
         return assert_array_almost_equal(x, y, decimal=3)
     else:
@@ -65,8 +65,8 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         shp = (1, 1)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[2]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[2]]))
 
     def test_2D_simple_used_1D_of_weights(self):
         dout = theano_var([[3, 6]])
@@ -75,8 +75,8 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         shp = (1, 1)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[99]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[99]]))
 
     def test_2D_simple_used_2D_of_weights(self):
         dout = theano_var([[3, 0]])
@@ -85,8 +85,8 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[18, 27]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[18, 27]]))
 
     def test_2D_1(self):
         dout = theano_var([[3, 6]])
@@ -95,8 +95,8 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[117, 144]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[117, 144]]))
 
     def test_2D_Intervals(self):
         doutl = theano_var([[-3, -6, 3]])
@@ -106,8 +106,8 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         shp = (1, 2, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, A([[[-15, -27], [6, -33]]]))
-        arae(u, A([[[27, 18], [87, 12]]]))
+        array_almost_equal(l, A([[[-15, -27], [6, -33]]]))
+        array_almost_equal(u, A([[[27, 18], [87, 12]]]))
 
     def test_2D_batches(self):
         dout = theano_var([[3, 6], [1, 2]])
@@ -116,8 +116,8 @@ class FullyConnectedDerivativeTest(DerivativeTest):
         shp = (2, 2)
         din = d_fully_connected(idout, w, shp)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[117, 144], [39, 48]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[117, 144], [39, 48]]))
 
 
 class ConvolutionalDerivativeTest(DerivativeTest):
@@ -128,11 +128,11 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         w = w[:, :, ::-1, ::-1]
         din = d_conv(dout, (1, 1, 4, 7), (2, 3, 4), w)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[[[2, 4, 6, 8, 6, 4, 2],
-                     [4, 8, 12, 16, 12, 8, 4],
-                     [4, 8, 12, 16, 12, 8, 4],
-                     [2, 4, 6, 8, 6, 4, 2]]]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[[[2, 4, 6, 8, 6, 4, 2],
+                                   [4, 8, 12, 16, 12, 8, 4],
+                                   [4, 8, 12, 16, 12, 8, 4],
+                                   [2, 4, 6, 8, 6, 4, 2]]]]))
 
     def test_2x2_float(self):
         dout = theano_interval(A([[[[4, 8], [2, 3]]]]))
@@ -140,8 +140,8 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         w = w[:, :, ::-1, ::-1]
         din = d_conv(dout, (1, 1, 2, 2), (1, 3, 3), w, padding=(1, 1))
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[[[80, 65], [29, 21]]]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[[[80, 65], [29, 21]]]]))
 
     def test_all_dims(self):
         dout = theano_interval(A([[[[2, 3], [5, 7]],
@@ -153,9 +153,9 @@ class ConvolutionalDerivativeTest(DerivativeTest):
         w = w[:, :, ::-1, ::-1]
         din = d_conv(dout, (1, 2, 2, 2), (2, 3, 3), w, padding=(1, 1))
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[[[18.5, 25], [31.1, 29.6]],
-                    [[34.6, 57.5], [74.4, 174.8]]]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[[[18.5, 25], [31.1, 29.6]],
+                                  [[34.6, 57.5], [74.4, 174.8]]]]))
 
 
 class MaxPoolDerivativeTest(DerivativeTest):
@@ -168,8 +168,8 @@ class MaxPoolDerivativeTest(DerivativeTest):
         shp = (1, 1, 2, 2)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
         l, u = din.eval()
-        arae(l, A([[[[0, 0], [0, 0]]]]))
-        arae(u, A([[[[5, 5], [5, 5]]]]))
+        array_almost_equal(l, A([[[[0, 0], [0, 0]]]]))
+        array_almost_equal(u, A([[[[5, 5], [5, 5]]]]))
 
     def test_neg_output(self):
         inpl = theano_var([[[[1, 1], [1, 1]]]])
@@ -179,8 +179,8 @@ class MaxPoolDerivativeTest(DerivativeTest):
         shp = (1, 1, 2, 2)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
         l, u = din.eval()
-        arae(l, A([[[[-3, -3], [-3, -3]]]]))
-        arae(u, A([[[[0, 0], [0, 0]]]]))
+        array_almost_equal(l, A([[[[-3, -3], [-3, -3]]]]))
+        array_almost_equal(u, A([[[[0, 0], [0, 0]]]]))
 
     def test_2D(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
@@ -192,8 +192,10 @@ class MaxPoolDerivativeTest(DerivativeTest):
         shp = (1, 1, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
         l, u = din.eval()
-        arae(l, A([[[[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]]]]))
-        arae(u, A([[[[5, 9, 4], [8, 14, 6], [3, 5, 2]]]]))
+        array_almost_equal(l, A([[[[-1, -3, -2], [-4, -10, -6],
+                                   [-3, -7, -4]]]]))
+        array_almost_equal(u, A([[[[5, 9, 4], [8, 14, 6],
+                                   [3, 5, 2]]]]))
 
     def test_channels_batch(self):
         inpl = theano_var([[
@@ -233,7 +235,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
         shp = (2, 2, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
         l, u = din.eval()
-        arae(l, A([[
+        array_almost_equal(l, A([[
                     [[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]],
                     [[0, 0, 0], [0, -2, -2], [-3, -2, -2]]
                    ],
@@ -241,7 +243,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
                     [[0, 0, 0], [-3, -5, -2], [-3, -5, -2]],
                     [[-1, -1, 0], [-1, -1, 0], [-1, -1, 0]]
                    ]]))
-        arae(u, A([[
+        array_almost_equal(u, A([[
                     [[5, 9, 4], [8, 14, 6], [3, 5, 2]],
                     [[4, 8, 4], [4, 12, 8], [4, 4, 4]]
                    ],
@@ -259,16 +261,16 @@ class MaxPoolDerivativeTest(DerivativeTest):
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), stride=(3, 3),
                      mode='max')
         l, u = din.eval()
-        arae(l, A([[[[0, 0, 0, 0, 0],
-                     [-1, -1, 0, 0, 0],
-                     [0, 0, 0, 0, 0],
-                     [0, 0, 0, 0, 0],
-                     [-3, -3, 0, 0, 0]]]]))
-        arae(u, A([[[[0, 0, 0, 0, 0],
-                     [0, 0, 0, 2, 2],
-                     [0, 0, 0, 0, 0],
-                     [0, 0, 0, 0, 0],
-                     [0, 0, 0, 4, 4]]]]))
+        array_almost_equal(l, A([[[[0, 0, 0, 0, 0],
+                                   [-1, -1, 0, 0, 0],
+                                   [0, 0, 0, 0, 0],
+                                   [0, 0, 0, 0, 0],
+                                   [-3, -3, 0, 0, 0]]]]))
+        array_almost_equal(u, A([[[[0, 0, 0, 0, 0],
+                                   [0, 0, 0, 2, 2],
+                                   [0, 0, 0, 0, 0],
+                                   [0, 0, 0, 0, 0],
+                                   [0, 0, 0, 4, 4]]]]))
 
     def test_padding(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
@@ -281,8 +283,8 @@ class MaxPoolDerivativeTest(DerivativeTest):
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), padding=(1, 1),
                      stride=(3, 3), mode='max')
         l, u = din.eval()
-        arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
-        arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
+        array_almost_equal(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]))
+        array_almost_equal(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]))
 
 
 class AvgPoolDerivativeTest(DerivativeTest):
@@ -297,8 +299,9 @@ class AvgPoolDerivativeTest(DerivativeTest):
         shp = (1, 1, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='avg')
         l, u = din.eval()
-        arae(l, A([[[[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]]]]) / 4.0)
-        arae(u, A([[[[5, 9, 4], [8, 14, 6], [3, 5, 2]]]]) / 4.0)
+        array_almost_equal(l, A([[[[-1, -3, -2], [-4, -10, -6],
+                                   [-3, -7, -4]]]]) / 4.0)
+        array_almost_equal(u, A([[[[5, 9, 4], [8, 14, 6], [3, 5, 2]]]]) / 4.0)
 
     def test_channels_batch(self):
         inpl = theano_var([[
@@ -338,7 +341,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
         shp = (2, 2, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='avg')
         l, u = din.eval()
-        arae(l, A([[
+        array_almost_equal(l, A([[
                     [[-1, -3, -2], [-4, -10, -6], [-3, -7, -4]],
                     [[1, 3, 2], [-2, -2, 0], [-3, -5, -2]]
                    ],
@@ -346,7 +349,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
                     [[1, 3, 2], [-2, -2, 0], [-3, -5, -2]],
                     [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]]
                    ]]) / 4.0)
-        arae(u, A([[
+        array_almost_equal(u, A([[
                     [[5, 9, 4], [8, 14, 6], [3, 5, 2]],
                     [[4, 8, 4], [8, 16, 8], [4, 8, 4]]
                    ],
@@ -364,16 +367,16 @@ class AvgPoolDerivativeTest(DerivativeTest):
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), stride=(3, 3),
                      mode='avg')
         l, u = din.eval()
-        arae(l, A([[[[-1, -1, 0, 2, 2],
-                     [-1, -1, 0, 2, 2],
-                     [0, 0, 0, 0, 0],
-                     [-3, -3, 0, 4, 4],
-                     [-3, -3, 0, 4, 4]]]]) / 4.0)
-        arae(u, A([[[[-1, -1, 0, 2, 2],
-                     [-1, -1, 0, 2, 2],
-                     [0, 0, 0, 0, 0],
-                     [-3, -3, 0, 4, 4],
-                     [-3, -3, 0, 4, 4]]]]) / 4.0)
+        array_almost_equal(l, A([[[[-1, -1, 0, 2, 2],
+                                   [-1, -1, 0, 2, 2],
+                                   [0, 0, 0, 0, 0],
+                                   [-3, -3, 0, 4, 4],
+                                   [-3, -3, 0, 4, 4]]]]) / 4.0)
+        array_almost_equal(u, A([[[[-1, -1, 0, 2, 2],
+                                   [-1, -1, 0, 2, 2],
+                                   [0, 0, 0, 0, 0],
+                                   [-3, -3, 0, 4, 4],
+                                   [-3, -3, 0, 4, 4]]]]) / 4.0)
 
     def test_padding(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
@@ -386,8 +389,10 @@ class AvgPoolDerivativeTest(DerivativeTest):
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), padding=(1, 1),
                      stride=(3, 3), mode='avg')
         l, u = din.eval()
-        arae(l, A([[[[-1, 0, -2], [0, 0, 0], [-3, 0, -4]]]]) / 4.0)
-        arae(u, A([[[[5, 0, 4], [0, 0, 0], [3, 0, 2]]]]) / 4.0)
+        array_almost_equal(l, A([[[[-1, 0, -2], [0, 0, 0],
+                                   [-3, 0, -4]]]]) / 4.0)
+        array_almost_equal(u, A([[[[5, 0, 4], [0, 0, 0],
+                                   [3, 0, 2]]]]) / 4.0)
 
 
 class SoftmaxDerivativeTest(DerivativeTest):
@@ -396,15 +401,15 @@ class SoftmaxDerivativeTest(DerivativeTest):
         dout = Interval.derest_output(1)
         din = d_softmax(dout)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[1]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[1]]))
 
     def test_3_outputs(self):
         dout = Interval.derest_output(3)
         din = d_softmax(dout)
         l, u = din.eval()
-        arae(l, u)
-        arae(l, A([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
+        array_almost_equal(l, u)
+        array_almost_equal(l, A([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
 
 
 class NormDerivativeTest(DerivativeTest):
@@ -421,8 +426,8 @@ class NormDerivativeTest(DerivativeTest):
         ishp = (1, 1, 1, 1)
         din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
         l, u = din.eval()
-        arae(l, A([[[[65.4146962]]]]))
-        arae(u, A([[[[65.4146962]]]]))
+        array_almost_equal(l, A([[[[65.4146962]]]]))
+        array_almost_equal(u, A([[[[65.4146962]]]]))
 
     def test_2x2(self):
         iint = theano_interval([[[[1, 10], [100, 1000]]]])
@@ -430,10 +435,10 @@ class NormDerivativeTest(DerivativeTest):
         ishp = (1, 1, 2, 2)
         din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
         l, u = din.eval()
-        arae(l, A([[[[0.9999550, 9.9551309],
-                     [65.4146962, -43.6876559]]]]))
-        arae(u, A([[[[0.9999550, 9.9551309],
-                     [65.4146962, -43.6876559]]]]))
+        array_almost_equal(l, A([[[[0.9999550, 9.9551309],
+                                   [65.4146962, -43.6876559]]]]))
+        array_almost_equal(u, A([[[[0.9999550, 9.9551309],
+                                   [65.4146962, -43.6876559]]]]))
 
     def test_batches(self):
         iint = theano_interval([[[[1, 10], [100, 1000]]],
@@ -443,14 +448,14 @@ class NormDerivativeTest(DerivativeTest):
         ishp = (2, 1, 2, 2)
         din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
         l, u = din.eval()
-        arae(l, A([[[[0.9999550, 9.9551309],
-                     [65.4146962, -43.6876559]]],
-                   [[[0.9999550, 9.9551309],
-                     [65.4146962, -43.6876559]]]]))
-        arae(u, A([[[[0.9999550, 9.9551309],
-                     [65.4146962, -43.6876559]]],
-                   [[[0.9999550, 9.9551309],
-                     [65.4146962, -43.6876559]]]]))
+        array_almost_equal(l, A([[[[0.9999550, 9.9551309],
+                                   [65.4146962, -43.6876559]]],
+                                 [[[0.9999550, 9.9551309],
+                                   [65.4146962, -43.6876559]]]]))
+        array_almost_equal(u, A([[[[0.9999550, 9.9551309],
+                                   [65.4146962, -43.6876559]]],
+                                 [[[0.9999550, 9.9551309],
+                                   [65.4146962, -43.6876559]]]]))
 
     def test_channels_2(self):
         iint = theano_interval([[[[100]], [[100]]]])
@@ -458,7 +463,7 @@ class NormDerivativeTest(DerivativeTest):
         ishp = (1, 2, 1, 1)
         din = d_norm(idout, iint, ishp, self.n, self.k, self.alpha, self.beta)
         l, u = din.eval()
-        # TODO: Count arae
+        # TODO: Count array_almost_equal
 
 
 class DropoutDerivativeTest(DerivativeTest):
@@ -471,8 +476,8 @@ class DropoutDerivativeTest(DerivativeTest):
         l, u = idin.eval()
         rl = A([[-0.6, 0, 0.6], [0.6, -0.6, -1], [-0.6, -0.4, 0.2]])
         ru = A([[-0.6, 0.4, 0.6], [1, 0.6, 0.4], [-0.2, 0.6, 0.6]])
-        arae(l, rl)
-        arae(u, ru)
+        array_almost_equal(l, rl)
+        array_almost_equal(u, ru)
 
 
 class ReluDerivativeTest(DerivativeTest):
@@ -508,8 +513,8 @@ class ReluDerivativeTest(DerivativeTest):
         l, u = idin.eval()
         rl = A([0, 0, 0, 0, 0, 13])
         ru = A([0, 5, 7, 11, 13, 17])
-        arae(l, rl)
-        arae(u, ru)
+        array_almost_equal(l, rl)
+        array_almost_equal(u, ru)
 
     def test_interval_negative(self):
         actl = theano_var([-2, -1, -1, 0, 0, 1])
@@ -522,8 +527,8 @@ class ReluDerivativeTest(DerivativeTest):
         l, u = idin.eval()
         rl = A([0, -5, -7, -11, -13, -17])
         ru = A([0, 0, 0, 0, 0, -13])
-        arae(l, rl)
-        arae(u, ru)
+        array_almost_equal(l, rl)
+        array_almost_equal(u, ru)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

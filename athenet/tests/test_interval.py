@@ -13,7 +13,7 @@ import theano.tensor as T
 from theano import function
 
 
-def arae(x, y):
+def array_almost_equal(x, y):
     if theano.config.floatX == 'float32':
         return assert_array_almost_equal(x, y, decimal=3)
     else:
@@ -34,7 +34,7 @@ class IntervalTest(unittest.TestCase):
         assert_is(y, u)
         z = u - l
         f = function([x, y], z)
-        arae(f(1.1, 3.2), 2.1)
+        array_almost_equal(f(1.1, 3.2), 2.1)
 
     def test_interval_matrix(self):
         x, y = T.matrices('x', 'y')
@@ -132,7 +132,7 @@ class IntervalTest(unittest.TestCase):
                    r_sub1l, r_sub1u, r_sub2l, r_sub2u,
                    r_mul1l, r_mul1u, r_mul2l, r_mul2u]
         for i in range(len(ops_results)):
-            arae(ops_results, results)
+            array_almost_equal(ops_results, results)
 
     def test_ops2(self):
         # reciprocal, neg, exp, square
@@ -203,12 +203,12 @@ class IntervalTest(unittest.TestCase):
         u = 7.0 / 4.0
         ans3l = A([-l, u])
         ans3u = A([-u, l])
-        arae(res1[0], ans1l)
-        arae(res1[1], ans1u)
-        arae(res2[0], ans2l)
-        arae(res2[1], ans2u)
-        arae(res3[0], ans3l)
-        arae(res3[1], ans3u)
+        array_almost_equal(res1[0], ans1l)
+        array_almost_equal(res1[1], ans1u)
+        array_almost_equal(res2[0], ans2l)
+        array_almost_equal(res2[1], ans2u)
+        array_almost_equal(res3[0], ans3l)
+        array_almost_equal(res3[1], ans3u)
 
     def test_ops4(self):
         # power
@@ -275,13 +275,13 @@ class IntervalTest(unittest.TestCase):
         ans3u = [A([4., 4., 4., 1., 1., 4., 0.25, 1., 4.]),
                  A([0.125, 1., 8., 0.125, 1., 8., 0.125, 1., 8.])]
         for i in range(4):
-            arae(res1[i][0], ans1l[i])
-            arae(res1[i][1], ans1u[i])
-            arae(res2[i][0], ans2l[i])
-            arae(res2[i][1], ans2u[i])
+            array_almost_equal(res1[i][0], ans1l[i])
+            array_almost_equal(res1[i][1], ans1u[i])
+            array_almost_equal(res2[i][0], ans2l[i])
+            array_almost_equal(res2[i][1], ans2u[i])
         for i in range(2):
-            arae(res3[i][0], ans3l[i])
-            arae(res3[i][1], ans3u[i])
+            array_almost_equal(res3[i][0], ans3l[i])
+            array_almost_equal(res3[i][1], ans3u[i])
 
     def test_dot(self):
         inpl = A([[[0, 1]]])
@@ -300,8 +300,8 @@ class IntervalTest(unittest.TestCase):
         res += b
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, crl)
-        arae(ru, cru)
+        array_almost_equal(rl, crl)
+        array_almost_equal(ru, cru)
 
     def test_max(self):
         al = A([[1, 2], [3, 4]])
@@ -318,8 +318,8 @@ class IntervalTest(unittest.TestCase):
         ru = res[1]
         ansl = A([[1, 3], [3, 4]])
         ansu = A([[2, 4], [4, 7]])
-        arae(rl, ansl)
-        arae(ru, ansu)
+        array_almost_equal(rl, ansl)
+        array_almost_equal(ru, ansu)
 
     def test_amax(self):
         al = A([[1, 2], [3, 4]])
@@ -333,8 +333,8 @@ class IntervalTest(unittest.TestCase):
         ru = res[1]
         ansl = A([[2], [4]])
         ansu = A([[2], [7]])
-        arae(rl, ansl)
-        arae(ru, ansu)
+        array_almost_equal(rl, ansl)
+        array_almost_equal(ru, ansu)
 
     def test_reshape(self):
         tl, tu = T.matrices('l', 'u')
@@ -417,12 +417,12 @@ class IntervalTest(unittest.TestCase):
         l4, _ = res4.eval(d)
         l5, _ = res5.eval(d)
         l6, _ = res6.eval(d)
-        arae(l1, A([[-2, 1], [14, 14]]))
-        arae(l2, A([[2, 8], [10, 7]]))
-        arae(l3, A([[-1, 11], [0, 17]]))
-        arae(l4, A([[[-2, 1], [14, 14]]]))
-        arae(l5, A([[[2, 8]], [[10, 7]]]))
-        arae(l6, A([[[-1], [11]], [[0], [17]]]))
+        array_almost_equal(l1, A([[-2, 1], [14, 14]]))
+        array_almost_equal(l2, A([[2, 8], [10, 7]]))
+        array_almost_equal(l3, A([[-1, 11], [0, 17]]))
+        array_almost_equal(l4, A([[[-2, 1], [14, 14]]]))
+        array_almost_equal(l5, A([[[2, 8]], [[10, 7]]]))
+        array_almost_equal(l6, A([[[-1], [11]], [[0], [17]]]))
 
     def test_abs(self):
         vl = A([[[-3, 2],
@@ -438,10 +438,10 @@ class IntervalTest(unittest.TestCase):
         itv = Interval(tvl, tvu)
         res = itv.abs()
         l, u = res.eval(d)
-        arae(l, A([[[2, 2], [5, 6]],
-                   [[1, 0], [9, 8]]]))
-        arae(u, A([[[3, 3], [5, 7]],
-                   [[1, 1], [9, 9]]]))
+        array_almost_equal(l, A([[[2, 2], [5, 6]],
+                                 [[1, 0], [9, 8]]]))
+        array_almost_equal(u, A([[[3, 3], [5, 7]],
+                                 [[1, 1], [9, 9]]]))
 
     def test_T(self):
         vl = A([[1, 2], [3, 4]])
@@ -451,8 +451,8 @@ class IntervalTest(unittest.TestCase):
         itv = Interval(tvl, tvu)
         res = itv.T
         l, u = res.eval(d)
-        arae(l, A([[1, 3], [2, 4]]))
-        arae(u, A([[5, 7], [6, 8]]))
+        array_almost_equal(l, A([[1, 3], [2, 4]]))
+        array_almost_equal(u, A([[5, 7], [6, 8]]))
 
     def test_from_shape(self):
         shp = (3, 4)
@@ -462,19 +462,19 @@ class IntervalTest(unittest.TestCase):
         assert_array_equal(i.lower.shape.eval(), np_shp)
         assert_array_equal(i.upper.shape.eval(), np_shp)
         l, u = i.eval()
-        arae(l, np.ones(shp, dtype=theano.config.floatX) *
-             NEUTRAL_INTERVAL_LOWER)
-        arae(u, np.ones(shp, dtype=theano.config.floatX) *
-             NEUTRAL_INTERVAL_UPPER)
+        array_almost_equal(l, np.ones(shp, dtype=theano.config.floatX) *
+                           NEUTRAL_INTERVAL_LOWER)
+        array_almost_equal(u, np.ones(shp, dtype=theano.config.floatX) *
+                           NEUTRAL_INTERVAL_UPPER)
         i = Interval.from_shape(shp, neutral=False)
         assert_array_equal(i.shape.eval(), np_shp)
         assert_array_equal(i.lower.shape.eval(), np_shp)
         assert_array_equal(i.upper.shape.eval(), np_shp)
         l, u = i.eval()
-        arae(l, np.ones(shp, dtype=theano.config.floatX) *
-             DEFAULT_INTERVAL_LOWER)
-        arae(u, np.ones(shp, dtype=theano.config.floatX) *
-             DEFAULT_INTERVAL_UPPER)
+        array_almost_equal(l, np.ones(shp, dtype=theano.config.floatX) *
+                           DEFAULT_INTERVAL_LOWER)
+        array_almost_equal(u, np.ones(shp, dtype=theano.config.floatX) *
+                           DEFAULT_INTERVAL_UPPER)
 
     def test_eval(self):
         txl, txu, tyl, tyu = T.matrices('xl', 'xu', 'yl', 'yu')
@@ -487,8 +487,8 @@ class IntervalTest(unittest.TestCase):
         iz = ix + iy
         d = {txl: xl, txu: xu, tyl: yl, tyu: yu}
         zl, zu = iz.eval(d)
-        arae(zl, xl + yl)
-        arae(zu, xu + yu)
+        array_almost_equal(zl, xl + yl)
+        array_almost_equal(zu, xu + yu)
         i2 = Interval(theano.shared(1), theano.shared(3))
         i2l, i2u = i2.eval()
         assert_equal(i2l, 1)
@@ -505,19 +505,19 @@ class IntervalTest(unittest.TestCase):
         res = iinp.op_relu()
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
-        arae(rl, A([[[0, 0, 1]]]))
-        arae(ru, A([[[0, 3, 2]]]))
+        array_almost_equal(rl, A([[[0, 0, 1]]]))
+        array_almost_equal(ru, A([[[0, 3, 2]]]))
 
     def test_derest_output(self):
         o1 = Interval.derest_output(1)
         o4 = Interval.derest_output(4)
         l1, u1 = o1.eval()
         l4, u4 = o4.eval()
-        arae(l1, u1)
-        arae(l4, u4)
-        arae(l1, A([[1]]))
-        arae(l4, A([[1, 0, 0, 0], [0, 1, 0, 0],
-                    [0, 0, 1, 0], [0, 0, 0, 1]]))
+        array_almost_equal(l1, u1)
+        array_almost_equal(l4, u4)
+        array_almost_equal(l1, A([[1]]))
+        array_almost_equal(l4, A([[1, 0, 0, 0], [0, 1, 0, 0],
+                                  [0, 0, 1, 0], [0, 0, 0, 1]]))
 
 
 if __name__ == '__main__':
