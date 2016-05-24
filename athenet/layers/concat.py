@@ -35,7 +35,9 @@ class Concatenation(Layer):
                 raise ValueError('all input layer image size must match')
 
         self.input = [layer.output for layer in input_layers]
-        self.train_input = [layer.train_output for layer in input_layers]
+        train_input = [layer.train_output for layer in input_layers]
+        if all([ti is not None for ti in train_input]):
+            self.train_input = train_input
 
     @property
     def output_shape(self):
