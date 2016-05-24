@@ -771,6 +771,26 @@ class ConvDerivativeTest(TestCase):
                                                   [[34.6, 57.5],
                                                    [74.4, 174.8]]]]))
 
+    def test_interval_behavior(self):
+        derivatives = np.asarray([1, 1]).reshape(1, 1, 1, 2)
+        w = np.asarray([[1, -10, 3], [-2, 5, 6]]).reshape((1, 1, 2, 3))
+        stride = (1, 2)
+        image_size = (1, 1, 2, 5)
+        filter_shape = (1, 2, 3)
+        D = NpInterval(1 * derivatives, derivatives)
+        R = D.op_d_conv(image_size, filter_shape, w, stride, (0, 0), 1)
+        res = np.asarray([[[[6., 5., 4., 5., -2.],
+                            [3., -10., 4., -10., 1.]]]])
+        assert_array_almost_equal(res, R.lower)
+        assert_array_almost_equal(res, R.upper)
+
+        D = NpInterval(-derivatives, derivatives)
+        R = D.op_d_conv(image_size, filter_shape, w, stride, (0, 0), 1)
+        res = np.asarray([[[[6., 5., 8., 5., 2.],
+                            [3., 10., 4., 10., 1.]]]])
+        assert_array_almost_equal(-res, R.lower)
+        assert_array_almost_equal(res, R.upper)
+
 
 class TestDiv(TestNpInterval):
 
