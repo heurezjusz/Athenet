@@ -773,12 +773,12 @@ class NpInterval(Interval):
                                                    [C.lower, C.upper])]
             extremas.extend(root1_2d(C.lower, C.upper, Y.lower, Y.upper))
             extremas.extend(root2_2d(C.lower, C.upper, Y.lower, Y.upper))
-            der = NpInterval()
+            der = NpInterval(np.inf, -np.inf)
             for x, c in extremas:
                 val = der_eq(x, c)
-                if der.lower is None or der.lower > val:
+                if der.lower > val:
                     der.lower = val
-                if der.upper is None or der.upper < val:
+                if der.upper < val:
                     der.upper = val
             result[b][channel][at_h][at_w] += der * self[b][channel][at_h][at_w]
 
@@ -798,12 +798,12 @@ class NpInterval(Interval):
                                extremas_3d_dxdy(X.lower, X.upper, Y.lower,
                                                 Y.upper, C.lower, C.upper)
 
-                    der = NpInterval()
+                    der = NpInterval(np.inf, -np.inf)
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)
-                        if der.lower is None or der.lower > val:
+                        if der.lower > val:
                             der.lower = val
-                        if der.upper is None or der.upper < val:
+                        if der.upper < val:
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
                         der * self[b][channel][at_h][at_w]
