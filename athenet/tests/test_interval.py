@@ -482,7 +482,7 @@ class IntervalTest(unittest.TestCase):
         zl, zu = iz.eval(d)
         arae(zl, xl + yl)
         arae(zu, xu + yu)
-        i2 = Interval(theano.shared(1), theano.shared(3))
+        i2 = Interval(theano.shared(A([1])), theano.shared(A([3])))
         i2l, i2u = i2.eval()
         assert_equal(i2l, 1)
         assert_equal(i2u, 3)
