@@ -6,10 +6,14 @@ def _delete_weights_in_layer_by_fraction(layer, fraction,
     if fraction == 0:
         return
 
-    W = layer.W
-    percentile = numpy.percentile(importance_indicator, (1 - fraction) * 100)
-    W[importance_indicator >= percentile] = 0
-    layer.W = W
+    try:
+        W = layer.W
+        percentile = numpy.percentile(importance_indicator,
+                                      (1 - fraction) * 100)
+        W[importance_indicator >= percentile] = 0
+        layer.W = W
+    except AttributeError:
+        pass
 
 
 def delete_weights_by_layer_fractions(layers, fractions,
@@ -50,6 +54,8 @@ def delete_weights_by_global_fraction(layers, fraction,
     if that is not possible, takes the ceiling of such number.
     Weights to be changed are those with bigger indicators.
 
+    If some weight indicator is lower than 0, weight will not be changed to 0.
+
     :param WeightedLayer layers: layers for sparsifying
     :param float fraction: fraction of weights to be changed to zeros
     :param numpy.ndarray importance_indicators:
@@ -61,12 +67,18 @@ def delete_weights_by_global_fraction(layers, fraction,
 
     flattened_importance_indicators = numpy.concatenate(
         [layer_importance_indicators.flatten()
-         for layer_importance_indicators in importance_indicators])
+         for layer_importance_indicators in importance_indicators
+         if layer_importance_indicators is not None])
 
     percentile = numpy.percentile(flattened_importance_indicators,
                                   (1 - fraction) * 100)
+    if percentile < 0:
+        percentile = 0
 
     for layer, indicator in zip(layers, importance_indicators):
-        weights = layer.W
-        weights[indicator >= percentile] = 0
-        layer.W = weights
+        try:
+            weights = layer.W
+            weights[indicator >= percentile] = 0
+            layer.W = weights
+        except AttributeError:
+            pass
