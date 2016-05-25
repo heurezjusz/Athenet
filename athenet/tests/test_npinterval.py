@@ -421,10 +421,10 @@ class TestAntiadd(TestCase):
         bu = np.asarray([[2, 2, 5], [-1, -1,   1]])
         B = NpInterval(bl, bu)
 
-        R = (A + B).antiadd(B)
+        R = (A + B)._antiadd(B)
         self.assertTrue((A.lower == R.lower).all())
         self.assertTrue((A.upper == R.upper).all())
-        R = (A + B).antiadd(A)
+        R = (A + B)._antiadd(A)
         self.assertTrue((B.lower == R.lower).all())
         self.assertTrue((B.upper == R.upper).all())
 
@@ -439,10 +439,10 @@ class TestAntiadd(TestCase):
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
 
-            R = (A + B).antiadd(B)
+            R = (A + B)._antiadd(B)
             self.assertTrue((A.lower == R.lower).all())
             self.assertTrue((A.upper == R.upper).all())
-            R = (A + B).antiadd(A)
+            R = (A + B)._antiadd(A)
             self.assertTrue((B.lower == R.lower).all())
             self.assertTrue((B.upper == R.upper).all())
 
@@ -451,7 +451,7 @@ class TestAntiadd(TestCase):
             shape = _random_shape()
             A = NpInterval(np.ones(shape), 100 * np.ones(shape))
             B = NpInterval(np.ones(shape) * 2, np.ones(shape) * 3)
-            R = A.antiadd(B)
+            R = A._antiadd(B)
             self.assertEqual(R.shape, shape)
 
 

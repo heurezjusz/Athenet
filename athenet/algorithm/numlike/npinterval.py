@@ -74,7 +74,7 @@ class NpInterval(Numlike):
             res_upper = self.upper + other
         return NpInterval(res_lower, res_upper)
 
-    def antiadd(self, other):
+    def _antiadd(self, other):
         """For given NpInterval returns NpInterval which shuold be added
         to id to get NpInterval equal to self.
 
@@ -681,7 +681,7 @@ class NpInterval(Numlike):
                 if i != 0 and 0 <= (i + channel) < channels:
                     X = activation[b][channel + i][at_h][at_w]
                     X2 = activation_sqares[b][channel + i][at_h][at_w]
-                    C = C.antiadd(X2)
+                    C = C._antiadd(X2)
 
                     extremas = extremas_3d(X.lower, X.upper, Y.lower,
                                            Y.upper, C.lower, C.upper) + \
