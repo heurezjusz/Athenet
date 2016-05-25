@@ -90,8 +90,10 @@ class TestMultiplying(TestNpInterval):
     def test_correct(self):
         for i in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
-            A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
-            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+            A = NpInterval(np.asarray([min(l[0], l[1])]),
+                           np.asarray([max(l[0], l[1])]))
+            B = NpInterval(np.asarray([min(l[2], l[3])]),
+                           np.asarray([max(l[2], l[3])]))
 
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
@@ -197,8 +199,10 @@ class TestAdding(TestNpInterval):
     def test_correct(self):
         for i in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
-            A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
-            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+            A = NpInterval(np.asarray([min(l[0], l[1])]),
+                           np.asarray([max(l[0], l[1])]))
+            B = NpInterval(np.asarray([min(l[2], l[3])]),
+                           np.asarray([max(l[2], l[3])]))
 
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
@@ -253,8 +257,10 @@ class TestSub(TestNpInterval):
     def test_correct(self):
         for i in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
-            A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
-            B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
+            A = NpInterval(np.asarray([min(l[0], l[1])]),
+                           np.asarray([max(l[0], l[1])]))
+            B = NpInterval(np.asarray([min(l[2], l[3])]),
+                           np.asarray([max(l[2], l[3])]))
 
             if A.lower[0] > A.upper[0]:
                 A.lower, A.upper = A.upper, A.lower
@@ -351,10 +357,10 @@ class TestGetSetitem(TestNpInterval):
         n = 10
         I = NpInterval(np.zeros((n, n, n)), np.zeros((n, n, n)))
         for i, j, k in product(xrange(n), xrange(n), xrange(n)):
-            I[i][j][k] = NpInterval(np.asarray([i + j - k ^ 67]),
+            I[i][j][k] = NpInterval(np.asarray([i + j - (k ^ 67)]),
                                     np.asarray([i * j + 42 * k]))
         for i, j, k in product(xrange(n), xrange(n), xrange(n)):
-            self.assertEquals(I[i][j][k].lower, i + j - k ^ 67)
+            self.assertEquals(I[i][j][k].lower, i + j - (k ^ 67))
             self.assertEquals(I[i][j][k].upper, i * j + 42 * k)
 
     def test_4D(self):
