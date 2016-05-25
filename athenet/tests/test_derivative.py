@@ -6,7 +6,7 @@ import theano
 import unittest
 from nose.tools import assert_almost_equal
 from numpy.testing import assert_array_almost_equal
-from athenet.algorithm.numlike import Interval
+from athenet.algorithm.numlike import TheanoInterval
 from athenet.algorithm.derest.derivative import *
 
 theano.config.exception_verbosity = 'high'
@@ -29,7 +29,7 @@ def theano_var(x):
 
 def theano_interval(x):
     v = theano_var(x)
-    return Interval(v, v)
+    return TheanoInterval(v, v)
 
 
 class DerivativeTest(unittest.TestCase):
@@ -58,7 +58,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
 
     def test_1D_simple(self):
         dout = theano_var([[1]])
-        idout = Interval(dout, dout)
+        idout = TheanoInterval(dout, dout)
         w = theano_var([[2]])
         shp = (1, 1)
         din = d_fully_connected(idout, w, shp)
@@ -68,7 +68,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
 
     def test_2D_simple_used_1D_of_weights(self):
         dout = theano_var([[3, 6]])
-        idout = Interval(dout, dout)
+        idout = TheanoInterval(dout, dout)
         w = theano_var([9, 12])
         shp = (1, 1)
         din = d_fully_connected(idout, w, shp)
@@ -78,7 +78,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
 
     def test_2D_simple_used_2D_of_weights(self):
         dout = theano_var([[3, 0]])
-        idout = Interval(dout, dout)
+        idout = TheanoInterval(dout, dout)
         w = theano_var([[6, 0], [9, 0]])
         shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
@@ -88,7 +88,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
 
     def test_2D_1(self):
         dout = theano_var([[3, 6]])
-        idout = Interval(dout, dout)
+        idout = TheanoInterval(dout, dout)
         w = theano_var([[9, 15], [12, 18]])
         shp = (1, 2)
         din = d_fully_connected(idout, w, shp)
@@ -99,7 +99,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
     def test_2D_Intervals(self):
         doutl = theano_var([[-3, -6, 3]])
         doutu = theano_var([[9, -3, 6]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         w = theano_var([[2, -3, -3], [-3, 1, 2], [5, -4, 3], [-2, -3, -4]])
         shp = (1, 2, 2)
         din = d_fully_connected(idout, w, shp)
@@ -109,7 +109,7 @@ class FullyConnectedDerivativeTest(DerivativeTest):
 
     def test_2D_batches(self):
         dout = theano_var([[3, 6], [1, 2]])
-        idout = Interval(dout, dout)
+        idout = TheanoInterval(dout, dout)
         w = theano_var([[9, 15], [12, 18]])
         shp = (2, 2)
         din = d_fully_connected(idout, w, shp)
@@ -161,7 +161,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
     def test_simple(self):
         inpl = theano_var([[[[1, 1], [1, 1]]]])
         inpu = theano_var([[[[2, 2], [2, 2]]]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         idout = theano_interval([[[[5]]]])
         shp = (1, 1, 2, 2)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
@@ -172,7 +172,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
     def test_neg_output(self):
         inpl = theano_var([[[[1, 1], [1, 1]]]])
         inpu = theano_var([[[[2, 2], [2, 2]]]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         idout = theano_interval([[[[-3]]]])
         shp = (1, 1, 2, 2)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
@@ -183,10 +183,10 @@ class MaxPoolDerivativeTest(DerivativeTest):
     def test_2D(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
         inpu = theano_var([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         doutl = theano_var([[[[-1, -2], [-3, -4]]]])
         doutu = theano_var([[[[5, 4], [3, 2]]]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         shp = (1, 1, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
         l, u = din.eval()
@@ -212,7 +212,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
                             [[2, 4, 4], [9, 9, 9], [9, 9, 9]],
                             [[2, 2, 2], [2, 2, 2], [5, 5, 5]]
                            ]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         doutl = theano_var([[
                              [[-1, -2], [-3, -4]],
                              [[1, 2], [-3, -2]]
@@ -229,7 +229,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
                              [[4, 5], [0, 1]],
                              [[0, 2], [0, 2]]
                             ]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         shp = (2, 2, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='max')
         l, u = din.eval()
@@ -253,7 +253,7 @@ class MaxPoolDerivativeTest(DerivativeTest):
     def test_stride(self):
         tinpl = theano.shared(np.arange(25).reshape((1, 1, 5, 5)))
         tinpu = theano.shared(np.arange(25).reshape((1, 1, 5, 5)) + 2)
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         idout = theano_interval([[[[-1, 2], [-3, 4]]]])
         shp = (1, 1, 5, 5)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), stride=(3, 3),
@@ -273,10 +273,10 @@ class MaxPoolDerivativeTest(DerivativeTest):
     def test_padding(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
         inpu = theano_var([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         doutl = theano_var([[[[-1, -2], [-3, -4]]]])
         doutu = theano_var([[[[5, 4], [3, 2]]]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         shp = (1, 1, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), padding=(1, 1),
                      stride=(3, 3), mode='max')
@@ -290,10 +290,10 @@ class AvgPoolDerivativeTest(DerivativeTest):
     def test_simple(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
         inpu = theano_var([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         doutl = theano_var([[[[-1, -2], [-3, -4]]]])
         doutu = theano_var([[[[5, 4], [3, 2]]]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         shp = (1, 1, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='avg')
         l, u = din.eval()
@@ -318,7 +318,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
                             [[2, 4, 4], [9, 9, 9], [9, 9, 9]],
                             [[2, 2, 2], [2, 2, 2], [5, 5, 5]]
                            ]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         doutl = theano_var([[
                              [[-1, -2], [-3, -4]],
                              [[1, 2], [-3, -2]]
@@ -335,7 +335,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
                              [[4, 5], [0, 1]],
                              [[0, 2], [0, 2]]
                             ]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         shp = (2, 2, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), mode='avg')
         l, u = din.eval()
@@ -359,7 +359,7 @@ class AvgPoolDerivativeTest(DerivativeTest):
     def test_stride(self):
         tinpl = theano.shared(np.arange(25).reshape((1, 1, 5, 5)))
         tinpu = theano.shared(np.arange(25).reshape((1, 1, 5, 5)) + 2)
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         idout = theano_interval([[[[-1, 2], [-3, 4]]]])
         shp = (1, 1, 5, 5)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), stride=(3, 3),
@@ -379,10 +379,10 @@ class AvgPoolDerivativeTest(DerivativeTest):
     def test_padding(self):
         inpl = theano_var([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
         inpu = theano_var([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
-        iinp = Interval(inpl, inpu)
+        iinp = TheanoInterval(inpl, inpu)
         doutl = theano_var([[[[-1, -2], [-3, -4]]]])
         doutu = theano_var([[[[5, 4], [3, 2]]]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         shp = (1, 1, 3, 3)
         din = d_pool(idout, iinp, shp, poolsize=(2, 2), padding=(1, 1),
                      stride=(3, 3), mode='avg')
@@ -396,14 +396,14 @@ class AvgPoolDerivativeTest(DerivativeTest):
 class SoftmaxDerivativeTest(DerivativeTest):
 
     def test_1_output(self):
-        dout = Interval.derest_output(1)
+        dout = TheanoInterval.derest_output(1)
         din = d_softmax(dout)
         l, u = din.eval()
         array_almost_equal(l, u)
         array_almost_equal(l, A([[1]]))
 
     def test_3_outputs(self):
-        dout = Interval.derest_output(3)
+        dout = TheanoInterval.derest_output(3)
         din = d_softmax(dout)
         l, u = din.eval()
         array_almost_equal(l, u)
@@ -467,7 +467,7 @@ class DropoutDerivativeTest(DerivativeTest):
     def test_interval_3x3n(self):
         doutl = theano_var([[-3, 0, 3], [3, -3, -5], [-3, -2, 1]])
         doutu = theano_var([[-3, 2, 3], [5, 3, 2], [-1, 3, 3]])
-        idout = Interval(doutl, doutu)
+        idout = TheanoInterval(doutl, doutu)
         idin = d_dropout(idout, 0.8)
         l, u = idin.eval()
         rl = A([[-0.6, 0, 0.6], [0.6, -0.6, -1], [-0.6, -0.4, 0.2]])
@@ -484,9 +484,9 @@ class ReluDerivativeTest(DerivativeTest):
         ind_n_in, ind_h, ind_w = np.indices(shp)
         act = 100 * ind_n_in + 10 * ind_h + ind_w
         thact = theano.shared(act)
-        iact = Interval(thact, thact)
+        iact = TheanoInterval(thact, thact)
         thdout = theano.shared(np.ones(shp))
-        idout = Interval(thdout, thdout)
+        idout = TheanoInterval(thdout, thdout)
         idin = d_relu(idout, iact)
         l, u = idin.eval()
         assert_almost_equal(l[0, 0, 0], 0.0)
@@ -503,8 +503,8 @@ class ReluDerivativeTest(DerivativeTest):
         actu = theano_var([-1, 1, 0, 0, 1, 2])
         doutl = theano_var([2, 3, 4, 7, 11, 13])
         doutu = theano_var([3, 5, 7, 11, 13, 17])
-        iact = Interval(actl, actu)
-        idout = Interval(doutl, doutu)
+        iact = TheanoInterval(actl, actu)
+        idout = TheanoInterval(doutl, doutu)
         idin = d_relu(idout, iact)
         l, u = idin.eval()
         rl = A([0, 0, 0, 0, 0, 13])
@@ -517,8 +517,8 @@ class ReluDerivativeTest(DerivativeTest):
         actu = theano_var([-1, 1, 0, 0, 1, 2])
         doutl = theano_var([-3, -5, -7, -11, -13, -17])
         doutu = theano_var([-2, -3, -5, -7, -11, -13])
-        iact = Interval(actl, actu)
-        idout = Interval(doutl, doutu)
+        iact = TheanoInterval(actl, actu)
+        idout = TheanoInterval(doutl, doutu)
         idin = d_relu(idout, iact)
         l, u = idin.eval()
         rl = A([0, -5, -7, -11, -13, -17])
