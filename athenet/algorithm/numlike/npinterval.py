@@ -34,6 +34,16 @@ class NpInterval(Interval):
         self.lower[at] = other.lower
         self.upper[at] = other.upper
 
+    def _antiadd(self, other):
+        """For given NpInterval returns NpInterval which shuold be added
+        to id to get NpInterval equal to self.
+
+        :param other: NpInterval which was added.
+        :type other: NpInterval
+        :rtype: NpInterval
+        """
+        return NpInterval(self.lower - other.lower, self.upper - other.upper)
+
     def __mul__(self, other):
         """Returns product of two NpIntervals
 
