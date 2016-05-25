@@ -239,7 +239,7 @@ class NpInterval(Interval):
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
-        return self
+        return self.lower, self.upper
 
     def op_relu(self):
         """Returns result of relu operation on given NpInterval.
