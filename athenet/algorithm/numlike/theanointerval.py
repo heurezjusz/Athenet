@@ -320,7 +320,7 @@ class TheanoInterval(Interval):
                       * _upp endings are for softmax with variables shifted so
                         that input[i].lower() == 0
         """
-        result = TheanoInterval.from_shape(input_shp, neutral=True)
+        result = TheanoInterval.from_shape((input_shp, ), neutral=True)
         for i in xrange(input_shp):
             input_low = (self - self.upper[i]).exp()
             input_upp = (self - self.lower[i]).exp()
