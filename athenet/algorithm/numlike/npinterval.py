@@ -23,6 +23,7 @@ class NpInterval(Interval):
 
         """
         assert (lower <= upper).all()
+        self.op_conv_function = None
         super(NpInterval, self).__init__(lower, upper)
 
     @staticmethod
@@ -382,15 +383,16 @@ class NpInterval(Interval):
         :type stride: pair of integers
         :type padding: pair of integers
         :type n_groups: integer
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         if self.op_conv_function is None:
-            l, u = T.tensor4(), T.tensor4()
-            self.op_conv_function = function(
-                [l, u],
-                [self._theano_op_conv(l, u, weights, image_shape, filter_shape,
-                                      biases, stride, padding, n_groups)]
+            t_lower, t_upper = T.tensor3(), T.tensor3()
+            result_lower, result_upper = self._theano_op_conv(
+                t_lower, t_upper, weights, image_shape, filter_shape,
+                biases, stride, padding, n_groups
             )
+            self.op_conv_function = function([t_lower, t_upper],
+                                             [result_lower, result_upper])
 
         lower, upper = self.op_conv_function(self.lower, self.upper)
 
