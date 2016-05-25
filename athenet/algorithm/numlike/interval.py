@@ -190,11 +190,13 @@ class Interval(Numlike):
         if upper_val is None:
             upper_val = self.NEUTRAL_UPPER
         n_batches, n_in, h, w = shape
+
         padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
                                                n_batches, padding, lower_val)
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
                                                n_batches, padding, upper_val)
         return self.construct(padded_low, padded_upp)
+
 
     @staticmethod
     def _theano_op_conv(lower, upper, weights, image_shape, filter_shape, biases, stride,
@@ -259,5 +261,5 @@ class Interval(Numlike):
                + '\n^^^^^'
 
     def __repr__(self):
-        """"Standard repr method."""
+        """Standard repr method."""
         return str(self)
