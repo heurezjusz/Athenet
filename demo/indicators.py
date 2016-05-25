@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(
                 "delete weights and prints results.")
 
 parser.add_argument("-i", "--indicators",
-                    help="Chooses indicators:\n"
+                    help="Chooses method of computing indicators:\n"
                     " * smallest: get_smallest_indicators (default)\n"
                     " * global_mean: get_nearest_to_global_mean_indicators\n"
                     " * layers_mean: get_nearest_to_layers_mean_indicators\n"
@@ -64,7 +64,11 @@ parser.add_argument("-l", "--log",
                     action="store_true")
 
 parser.add_argument("-e", "--examples", type=int,
-                    help="Number of percentages to be test on",
+                    help="Choose on how many different percentages of weight "
+                         "deleting run this algorithm"
+                         "(the higher the number, the more thorough the plot "
+                         "will be and the more time it will work)."
+                         "Default is 1",
                     default=1)
 
 parser.add_argument("-f", "--file", type=str,
