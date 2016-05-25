@@ -555,7 +555,7 @@ class NpInterval(Numlike):
 
 
         # possible extremas
-        def root1_2d(c_low, c_up, x_low, x_up):
+        def extremas_2d_dx(c_low, c_up, x_low, x_up):
             # df / dx = 0
             # returns roots of derivative of derivetive of norm function
             # x = 0
@@ -573,7 +573,7 @@ class NpInterval(Numlike):
                     + possibilities_c2 if x_low <= x <= x_up]
 
 
-        def root2_2d(c_low, c_up, x_low, x_up):
+        def extremas_2d_dc(c_low, c_up, x_low, x_up):
             # df / dc = 0
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
@@ -662,8 +662,8 @@ class NpInterval(Numlike):
             # eq case
             extremas = [(x, c) for x, c in product([Y.lower, Y.upper],
                                                    [C.lower, C.upper])]
-            extremas.extend(root1_2d(C.lower, C.upper, Y.lower, Y.upper))
-            extremas.extend(root2_2d(C.lower, C.upper, Y.lower, Y.upper))
+            extremas.extend(extremas_2d_dx(C.lower, C.upper, Y.lower, Y.upper))
+            extremas.extend(extremas_2d_dc(C.lower, C.upper, Y.lower, Y.upper))
 
             der_l = np.inf
             der_u = -np.inf
