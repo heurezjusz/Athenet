@@ -36,12 +36,11 @@ def a_dropout(layer_input, p_dropout):
 
 
 def d_dropout(output, p_dropout):
-    """Returns estimated impact of input of dropout layer on output
-    of network.
+    """Returns estimated impact of input of dropout layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size,
-                           number of channels, height, width)
+                           of network in shape (batch_size, number of channels,
+                           height, width)
     :param float p_dropout: probability of dropping in dropout
     :returns: Estimated impact of input on output of network
     :rtype: Numlike

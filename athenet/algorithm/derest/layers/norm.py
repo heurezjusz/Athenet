@@ -65,7 +65,6 @@ def a_norm(layer_input, input_shape, local_range=5, k=1, alpha=0.0001,
 
 
 def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
-    # TODO: all
     """Returns estimated impact of input of LRN layer on output of network.
 
     :param Numlike output: estimated impact of output of layer on output
@@ -77,9 +76,9 @@ def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
     :type input_shape: tuple of 4 integers
     :param int local_range: Local channel range. Should be odd, otherwise it
                             will be incremented.
-    :param float k: Additive constant.
-    :param float alpha: The scaling parameter.
-    :param float beta: The exponent.
+    :param float k: Additive constant
+    :param float alpha: The scaling parameter
+    :param float beta: The exponent
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
