@@ -388,8 +388,8 @@ class NpInterval(Interval):
             for at_f_h, at_f_w in product(xrange(at_h, at_h + fh),
                                           xrange(at_w, at_w + fw)):
                 # maximum lower and upper value of neighbours
-                neigh_max_low = -np.inf
-                neigh_max_upp = -np.inf
+                neigh_max_low = np.asarray([-np.inf])
+                neigh_max_upp = np.asarray([-np.inf])
                 neigh_max_itv = NpInterval(neigh_max_low, neigh_max_upp)
                 act_slice = activation[:, :, at_f_h, at_f_w]
 
