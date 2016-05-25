@@ -518,7 +518,7 @@ class TestDNorm(TestCase):
             if i == j:
                 res[:, i, ::] += self.foo(x, c - a * x ** 2, a, b)
             else:
-                res[:, j, ::] += self.foo2(x, y, c - a * x**2 - y**2, a, b)
+                res[:, j, ::] += self.foo2(x, y, c - a * x**2 - a * y**2, a, b)
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
@@ -553,7 +553,7 @@ class TestDNorm(TestCase):
             if i == j:
                 res[:, i, ::] += foo(x, c - a * x ** 2)
             else:
-                res[:, i, ::] += foo2(x, y, c - a * x ** 2 - y ** 2)
+                res[:, i, ::] += foo2(x, y, c - a * x ** 2 - a * y ** 2)
 
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue((R.lower <= -abs(res)).all())
@@ -630,7 +630,7 @@ class TestDNorm(TestCase):
                     self.foo(x, c - a * x ** 2, a, b) * der[:, i, ::]
             else:
                 res[:, j, ::] += \
-                    self.foo2(x, y, c - a * x ** 2 - y ** 2, a, b) \
+                    self.foo2(x, y, c - a * x ** 2 - a * y ** 2, a, b) \
                     * der[:, i, ::]
 
         res2 = self._count_norm(act, der, k, a, b, 5)
