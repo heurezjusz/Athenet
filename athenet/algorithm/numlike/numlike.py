@@ -201,8 +201,8 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def from_shape(shp, neutral=True):
+    @classmethod
+    def from_shape(cls, shp, neutral=True):
         """Returns Numlike of given shape.
 
         :param integer tuple shp: shape to be set
