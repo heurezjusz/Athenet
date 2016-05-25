@@ -664,14 +664,17 @@ class NpInterval(Numlike):
                                                    [C.lower, C.upper])]
             extremas.extend(root1_2d(C.lower, C.upper, Y.lower, Y.upper))
             extremas.extend(root2_2d(C.lower, C.upper, Y.lower, Y.upper))
-            der = NpInterval()
+
+            der_l = np.inf
+            der_u = -np.inf
             for x, c in extremas:
                 val = der_eq(x, c)
-                if der.lower is None or der.lower > val:
-                    der.lower = val
-                if der.upper is None or der.upper < val:
-                    der.upper = val
-            result[b][channel][at_h][at_w] += der * self[b][channel][at_h][at_w]
+                if der_l > val:
+                    der_l = val
+                if der_u  < val:
+                    der_u = val
+            result[b][channel][at_h][at_w] += \
+                NpInterval(der_l, der_u) * self[b][channel][at_h][at_w]
 
             # not_eq_case
             for i in xrange(-local_range, local_range + 1):
@@ -689,15 +692,16 @@ class NpInterval(Numlike):
                                extremas_3d_dxdy(X.lower, X.upper, Y.lower,
                                                 Y.upper, C.lower, C.upper)
 
-                    der = NpInterval()
+                    der_l = np.inf
+                    der_u = -np.inf
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)
-                        if der.lower is None or der.lower > val:
-                            der.lower = val
-                        if der.upper is None or der.upper < val:
-                            der.upper = val
+                        if der_l > val:
+                            der_l = val
+                        if der_u < val:
+                            der_u = val
                     result[b][channel + i][at_h][at_w] += \
-                        der * self[b][channel][at_h][at_w]
+                        NpInterval(der_l, der_u) * self[b][channel][at_h][at_w]
                     C += X2
 
         return result
