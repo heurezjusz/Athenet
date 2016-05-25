@@ -19,7 +19,7 @@ class NpInterval(Interval):
         :param numpy.ndarray upper: upper bound of Interval to be set
 
         """
-        assert (lower <= upper).all()
+        assert (lower - 0.0001 <= upper).all()
         super(NpInterval, self).__init__(lower, upper)
 
     @staticmethod
@@ -500,6 +500,7 @@ class NpInterval(Interval):
             for i in xrange(-local_range, local_range + 1):
                 if channels > i + channel >= 0 != i:
                     C += activation_sqares[b][channel + i][at_h][at_w] * alpha
+                    C._antiadd(activation_sqares[b][channel + i][at_h][at_w] * alpha)
 
             Y = activation[b][channel][at_h][at_w]
 

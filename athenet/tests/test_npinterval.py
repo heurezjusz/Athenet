@@ -439,13 +439,14 @@ class TestAntiadd(TestCase):
     def test_correct(self):
         for _ in xrange(100):
             l = [randrange(-10, 10) for j in xrange(4)]
+
+            if l[0] > l[1]:
+                l[0], l[1] = l[1], l[0]
+            if l[2] > l[3]:
+                l[2], l[3] = l[3], l[2]
+
             A = NpInterval(np.asarray([l[0]]), np.asarray([l[1]]))
             B = NpInterval(np.asarray([l[2]]), np.asarray([l[3]]))
-
-            if A.lower[0] > A.upper[0]:
-                A.lower, A.upper = A.upper, A.lower
-            if B.lower[0] > B.upper[0]:
-                B.lower, B.upper = B.upper, B.lower
 
             R = (A + B)._antiadd(B)
             self.assertTrue((A.lower == R.lower).all())
