@@ -490,6 +490,7 @@ class TestDNorm(TestCase):
         return res
 
     def test_case0(self):
+        # checks also if self._count_norm gives correct answer
         a = 1.
         b = 0.75
         k = 1.
