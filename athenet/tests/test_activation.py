@@ -561,29 +561,30 @@ class NormActivationTest(ActivationTest):
 
     def test_case4_interval(self):
         shp = (100, 1, 1)
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = norm(iinp, shp)
         inp = np.zeros(shp, dtype=theano.config.floatX)
-        d = {tinpl: inp, tinpu: inp}
         inp[47, 0, 0] = inp[53, 0, 0] = 65536.0
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 10.0
-        l, u = out.eval(d)
-        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
-        assert_almost_equal(l[50, 0, 0], 9.9256, places=2)
+
+        for l, u in self._get_all_intervals_results(inp, inp, norm, shp):
+            assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+            assert_almost_equal(l[50, 0, 0], 9.9256, places=2)
+
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 100.0
-        l, u = out.eval(d)
-        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
-        assert_almost_equal(l[50, 0, 0], 59.4603, places=2)
+
+        for l, u in self._get_all_intervals_results(inp, inp, norm, shp):
+            assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+            assert_almost_equal(l[50, 0, 0], 59.4603, places=2)
+
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 1000.0
-        l, u = out.eval(d)
-        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
-        assert_almost_equal(l[50, 0, 0], 31.3876, places=2)
-        assert_almost_equal(l[49, 0, 0], 0.1991, places=2)
-        assert_almost_equal(l[51, 0, 0], 0.1991, places=2)
+
+        for l, u in self._get_all_intervals_results(inp, inp, norm, shp):
+            assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+            assert_almost_equal(l[50, 0, 0], 31.3876, places=2)
+            assert_almost_equal(l[49, 0, 0], 0.1991, places=2)
+            assert_almost_equal(l[51, 0, 0], 0.1991, places=2)
 
     def test_bitonicity_and_extremas_interval(self):
         shp = (5, 1, 1)
@@ -661,6 +662,7 @@ class ReluActivationTest(ActivationTest):
                   [[2, 3, 4], [-2, -3, -4], [-4, 0, 4]]])
         inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
                   [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
+
         for rl, ru in self._get_all_intervals_results(inpl, inpu, relu):
             array_almost_equal(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
                                       [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
