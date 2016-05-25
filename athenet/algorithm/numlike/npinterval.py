@@ -310,7 +310,7 @@ class NpInterval(Interval):
         c = s * alpha + k
 
         def norm((arg_x, arg_c)):
-            return arg_x / np.power(arg_c + alpha * np.sqr(arg_x), beta)
+            return arg_x / np.power(arg_c + alpha * np.square(arg_x), beta)
 
         def in_range((range_), val):
             return np.logical_and(np.less(range_.lower, val),
@@ -322,13 +322,15 @@ class NpInterval(Interval):
         def x_extr_from_c(arg_c):
             return np.sqrt(arg_c / ((2 * beta - 1) * alpha))
 
-        res = NpInterval.from_shape(input_shape, lower_val=np.inf,
-                                    upper_val=-np.inf)
+        corner_lower = np.full(input_shape, np.inf)
+        corner_upper = np.full(input_shape, -np.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
         for corner in corners:
-            res.lower = np.minimum(res.lower, norm(corner))
-            res.upper = np.maximum(res.upper, norm(corner))
+            corner_lower = np.minimum(corner_lower, norm(corner))
+            corner_upper = np.maximum(corner_upper, norm(corner))
+        res = NpInterval(corner_lower, corner_upper)
+
         maybe_extrema = [
             (0, c.lower), (0, c.upper),
             (x_extr_from_c(c.lower), c.lower),
