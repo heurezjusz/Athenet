@@ -147,19 +147,19 @@ def d_pool(output, activation, input_shape, poolsize, stride=(1, 1),
 def d_softmax(output):
     """Returns estimated impact of input of softmax layer on output of network.
 
-    .. warning: Current implementation only consider softmax as the last layer.
-
-    :param Numlike output: estimated impact of output of layer on output
-                           of network in shape (batch_size, number of channels,
-                           height, width)
-    :returns: Estimated impact of input on output of network
-    :rtype: Numlike
+    .. warning:: Current implementation only consider softmax as the last layer.
 
     .. note::
 
     This function does not change the value of input. It is reasonable in view
     of use of this function in Derest, because input of softmax is more
     important in Derest than output. This is not obvious behaviour!
+
+    :param Numlike output: estimated impact of output of layer on output
+                           of network in shape (batch_size, number of channels,
+                           height, width)
+    :returns: Estimated impact of input on output of network
+    :rtype: Numlike
     """
     assert_numlike(output)
     return output
