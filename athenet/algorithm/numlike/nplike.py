@@ -111,8 +111,8 @@ class Nplike(Numlike):
     def T(self):
         return Nplike(self.value.T)
 
-    @staticmethod
-    def from_shape(shp, neutral=True):
+    @classmethod
+    def from_shape(cls, shp, neutral=True):
         if neutral:
             return Nplike(numpy.zeros(shp))
         else:
