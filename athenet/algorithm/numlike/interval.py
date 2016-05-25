@@ -691,10 +691,10 @@ class Interval(Numlike):
         result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
             # at_out_h - height of output corresponding to pool at position at
-            # h
+            # at_h
             at_out_h = at_h / stride_h
             for at_w in xrange(0, w - fw + 1, stride_w):
-                # at_out_w - height of output corresponding to pool at
+                # at_out_w - width of output corresponding to pool at
                 # position at_w
                 at_out_w = at_w / stride_w
                 # any input on any filter frame
@@ -718,10 +718,9 @@ class Interval(Numlike):
                         # must have impact on output
                         low_gt_neigh_max_upp = \
                             T.gt(act_slice.lower, neigh_max_itv.upper)
-                        # cannot have impact on output
+                        # might have impact on output
                         upp_gt_neigh_max_low = \
                             T.gt(act_slice.upper, neigh_max_itv.lower)
-                        # might have impact on output
                         output_slice = output[:, :, at_out_h, at_out_w]
                         mixed_low = T.minimum(output_slice.lower, 0.0)
                         mixed_upp = T.maximum(output_slice.upper, 0.0)
@@ -769,9 +768,6 @@ class Interval(Numlike):
         """
         n_batches, n_in, h, w = input_shape
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(input_shape, padding,
-                                                    lower_val=-numpy.inf,
-                                                    upper_val=-numpy.inf)
         input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
@@ -783,11 +779,11 @@ class Interval(Numlike):
         output = self
         result = activation.from_shape(input_shape, neutral=True)
         for at_h in xrange(0, h - fh + 1, stride_h):
-            # at_out_h - height of output corresponding to pool at position at
-            # h
+            # at_out_h - height of output corresponding to pool at position
+            # at_h
             at_out_h = at_h / stride_h
             for at_w in xrange(0, w - fw + 1, stride_w):
-                # at_out_w - height of output corresponding to pool at
+                # at_out_w - width of output corresponding to pool at
                 # position at_w
                 at_out_w = at_w / stride_w
                 output_slice_low = output.lower[:, :, at_out_h, at_out_w]
@@ -806,7 +802,6 @@ class Interval(Numlike):
 
     def op_d_norm(self, activation, input_shape, local_range, k, alpha,
                   beta):
-        # TODO: Tests
         """Returns estimated impact of input of norm layer on output of
         network.
 
@@ -879,10 +874,6 @@ class Interval(Numlike):
                                          upper_val=-numpy.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
-        # TODO: Debug below
-        # print 's', s.eval()
-        # print 'x', x.eval()
-        # print 'c', c.eval()
         for corner in corners:
             mid_impact.lower = T.minimum(mid_impact.lower, mid_d_norm(corner))
             mid_impact.upper = T.maximum(mid_impact.upper, mid_d_norm(corner))
@@ -971,13 +962,6 @@ class Interval(Numlike):
                                                neigh_d_norm(corner))
                     y_impact.upper = T.maximum(y_impact.upper,
                                                neigh_d_norm(corner))
-                # TODO: Below
-                #print ''
-                #print 'x', x.eval()
-                #print 'y', y.eval()
-                #print 'c', c.eval()
-                #print 'neigh_d_norm', neigh_d_norm(corner).eval()
-                #print 'y_impact', y_impact.eval()
 
                 # x^2 * alpha * (2 * beta + 1) - y^2 * alpha - c = 0
 
@@ -1172,9 +1156,6 @@ class Interval(Numlike):
                         T.switch(cond, T.maximum(y_impact.upper,
                                                  neigh_d_norm(m_extr)),
                                  y_impact.upper)
-                # TODO: Below
-                #print ''
-                #print 'final y_impact', y_impact.eval()
                 y_impact = mid_impact * output
                 T.inc_subtensor(neigh_impact.lower[:, i:i + n_channels, :, :],
                                 y_impact.lower)
@@ -1184,19 +1165,17 @@ class Interval(Numlike):
             neigh_impact.lower[:, half:half + n_channels, :, :]
         neigh_impact.upper = \
             neigh_impact.upper[:, half:half + n_channels, :, :]
-        # sum impacts
+        # This code might be useful in case of future problems with numeric
+        # operation
         # mid_impact.lower = T.switch(T.isinf(mid_impact.lower),
         #                             shared(0), mid_impact.lower)
         # mid_impact.upper = T.switch(T.isinf(mid_impact.upper),
         #                             shared(0), mid_impact.upper)
-        #print 'neigh_impact', neigh_impact.eval()
         neigh_impact.lower = T.switch(T.isinf(neigh_impact.lower),
                                       shared(0), neigh_impact.lower)
         neigh_impact.upper = T.switch(T.isinf(neigh_impact.upper),
                                       shared(0), neigh_impact.upper)
         impact = mid_impact + neigh_impact
-        #print 'mid_impact', mid_impact.eval()
-        #print 'neigh_impact', neigh_impact.eval()
         return impact
 
     def op_d_conv(self, input_shape, filter_shape, weights,
@@ -1316,7 +1295,7 @@ class Interval(Numlike):
                     weights_neg_slice = \
                         weights_neg_slice.dimshuffle('x', 0, 1, 2, 3)
                     weights_neg_slice = T.addbroadcast(weights_neg_slice, 0)
-                    # shape of weights_slice: (n_batches, n_out, n_in, h, w)
+                    # shape of weights_slice: (n_batches, g_out, g_in, h, w)
                     out_slice_low = output.lower[:, at_out_from:at_out_to,
                                                  at_out_h, at_out_w]
                     out_slice_low = out_slice_low.dimshuffle(0, 1, 'x', 'x',

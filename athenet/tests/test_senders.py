@@ -5,10 +5,11 @@ from unittest import TestCase, main
 from copy import deepcopy
 
 from athenet import Network
-from athenet.layers import ConvolutionalLayer, Softmax, FullyConnectedLayer, \
+from athenet.layers import ConvolutionalLayer, FullyConnectedLayer, \
     ReLU, MaxPool
 
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
+from athenet.algorithm.simple_neuron_deleter import simple_neuron_indicators
 from athenet.algorithm.utils import list_of_percentage_rows_table, delete_row,\
     list_of_percentage_rows, list_of_percentage_columns, delete_column
 
@@ -115,7 +116,28 @@ def check_params(net, p, layer_limit):
     return all_deleted / 1. / all_neurons <= p
 
 
-class TestAlgorithms(TestCase):
+def check_indicators(indicator_list, p, layer_limit):
+    all_neurons = 0
+    all_deleted = 0
+    for indicator in indicator_list:
+        neurons = indicator.shape[0]
+        deleted = 0
+        for r in xrange(indicator.shape[0]):
+            if indicator[r][0] != -1:
+                deleted += 1
+            for c in xrange(indicator.shape[1]):
+                if c > 0 and indicator[r][c] != indicator[r][c - 1]:
+                    return False
+
+        all_neurons += neurons
+        all_deleted += deleted
+        if deleted / 1. / neurons > layer_limit:
+            return False
+
+    return all_deleted / 1. / all_neurons <= p
+
+
+class TestSenders(TestCase):
     def test_sender(self):
         params = [((0.4, 0.5), (0.4, 0.5)),
                   ((1., 0.5), (0.5, 0.5)),
@@ -125,7 +147,7 @@ class TestAlgorithms(TestCase):
 
         for config, (check_p, check_layer_limit) in params:
             net = get_prepared_network()
-            simple_neuron_deleter(net, config)
+            simple_neuron_deleter(net, *config)
             self.assertTrue(check_params(net, check_p, check_layer_limit))
             self.assertTrue(net.weighted_layers[-1].W[3][0] != 0)
 
@@ -138,9 +160,27 @@ class TestAlgorithms(TestCase):
 
         for config, (check_p, check_layer_limit) in params:
             net = get_prepared_network()
-            simple_neuron_deleter2(net, config)
+            simple_neuron_deleter2(net, *config)
             self.assertTrue(check_params(net, check_p, check_layer_limit))
             self.assertTrue(net.weighted_layers[-1].W[3][0] != 0)
+
+    def test_simple_indicators(self):
+        params = [((0.4, 0.5), (0.4, 0.5)),
+                  ((1., 0.5), (0.5, 0.5)),
+                  ((0.1, 0.2), (0.1, 0.2)),
+                  ((0.7, 0.75), (0.7, 0.75)),
+                  ((0.75, 0.6), (0.6, 0.6))]
+
+        for (p, layer_limit), (check_p, check_layer_limit) in params:
+            net = get_prepared_network()
+            fully_connected_layers = \
+                [layer for layer in net.weighted_layers
+                 if isinstance(layer, FullyConnectedLayer)]
+            indicators = simple_neuron_indicators(fully_connected_layers, p,
+                                                  layer_limit)
+
+            self.assertTrue(check_indicators(indicators, check_p,
+                                             check_layer_limit))
 
 
 if __name__ == '__main__':

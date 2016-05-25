@@ -74,7 +74,8 @@ def d_fully_connected(output, weights, input_shape):
                            height, width)
     :param weights: weights of fully connected layer in format (n_in, n_out)
     :type weights: 2D numpy.ndarray or theano.tensor
-    :param input_shape: shape of fully connected layer input in any format.
+    :param input_shape: shape of fully connected layer input in any format with
+                        number of batches at the beginning.
     :type input_shape: tuple of integers
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
@@ -99,9 +100,9 @@ def d_norm(output, activation, input_shape, local_range, k, alpha, beta):
     :type input_shape: tuple of 4 integers
     :param int local_range: Local channel range. Should be odd, otherwise it
                             will be incremented.
-    :param float k: Additive constant.
-    :param float alpha: The scaling parameter.
-    :param float beta: The exponent.
+    :param float k: Additive constant
+    :param float alpha: The scaling parameter
+    :param float beta: The exponent
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """

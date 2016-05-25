@@ -31,7 +31,7 @@ class Results(object):
         """
         Adds new test result
 
-        :param tuple of int config: parameters used to test network
+        :param float or iterable config: parameters used to test network
         :param tuple(list, float) result:
             list of number of zeros in every layers
             and error_rate in tested network
@@ -52,14 +52,18 @@ class Results(object):
             file = self.file
         if file is None:
             raise "No file to load from"
-        loaded_data = load_data_from_pickle(file)
 
-        assert loaded_data.error_rate == self.error_rate
-        assert numpy.array_equal(loaded_data.weighted_layers,
-                                 self.weighted_layers)
-        assert numpy.array_equal(loaded_data.number_of_weights,
-                                 self.number_of_weights)
-        self.tests = dict(self.tests, **loaded_data.tests)
+        try:
+            loaded_data = load_data_from_pickle(file)
+
+            assert loaded_data.error_rate == self.error_rate
+            assert numpy.array_equal(loaded_data.weighted_layers,
+                                     self.weighted_layers)
+            assert numpy.array_equal(loaded_data.number_of_weights,
+                                     self.number_of_weights)
+            self.tests = dict(self.tests, **loaded_data.tests)
+        except IOError:
+            self.save_to_file(file)
 
     def save_to_file(self, file=None):
         """
@@ -96,21 +100,22 @@ class Results(object):
         return sum(zeros), error_rate
 
     def _sum_zeros(self, layers=None):
-        return numpy.array([self._sum_zeros_in_test(test, layers)
-                            for test in self.tests.itervalues()])
+        return {config: self._sum_zeros_in_test(test, layers)
+                for config, test in self.tests.iteritems()}
 
     def get_zeros_fraction(self, layers=None):
         """
         Counts fraction of zeros on layers for every test
 
-        :param list or tuple of bools layers: which layers to consider
+        :param layers: which layers to consider
+        :type layers: list of bools or tuple of bools
         :return list of tuples(float, float):
             fractions of zeros and error rate for every test
         """
         results = self._sum_zeros(layers)
         number_of_weights = sum(self._get_number_of_weights(layers))
-        return [(float(zeros) / number_of_weights, error_rate)
-                for zeros, error_rate in results]
+        return {config: (float(zeros) / number_of_weights, error_rate)
+                for config, (zeros, error_rate) in results.iteritems()}
 
     def get_zeros_fraction_in_conv_layers(self):
         """
