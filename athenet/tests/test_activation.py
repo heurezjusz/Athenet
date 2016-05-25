@@ -388,112 +388,97 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_interval_flat(self):
         inp = A([1, 2, 3, 4, 5])
-        tinp = T.dvector('tinp')
-        itv = TheanoInterval(tinp, tinp)
-        res = softmax(itv, 5)
-        d = {tinp: inp}
-        l, u = res.eval(d)
-        array_almost_equal(l, u)
-        for i in xrange(5):
-            assert_almost_equal(l[i], u[i])
-        for i in xrange(4):
-            assert_greater(l[i + 1], l[i])
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, softmax, 5):
+            array_almost_equal(l, u)
+            for i in xrange(5):
+                assert_almost_equal(l[i], u[i])
+            for i in xrange(4):
+                assert_greater(l[i + 1], l[i])
 
     def test_uniform_input(self):
         inp = np.ones(4, dtype=theano.config.floatX) * 4
-        tinp = T.dvector('tinp')
-        itv = TheanoInterval(tinp, tinp)
-        res = softmax(itv, 4)
-        d = {tinp: inp}
-        l, u = res.eval(d)
-        array_almost_equal(l, u)
-        for i in xrange(4):
-            assert_almost_equal(l[i], u[i])
-        for i in xrange(3):
-            assert_almost_equal(l[i], l[i + 1])
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, softmax, 4):
+            array_almost_equal(l, u)
+            for i in xrange(4):
+                assert_almost_equal(l[i], u[i])
+            for i in xrange(3):
+                assert_almost_equal(l[i], l[i + 1])
 
     def test_one_big_elt(self):
         inp = -20 * np.ones(4, dtype=theano.config.floatX)
         inp[0] = 1
-        tinp = T.dvector('tinp')
-        itv = TheanoInterval(tinp, tinp)
-        res = softmax(itv, 4)
-        d = {tinp: inp}
-        l, u = res.eval(d)
-        array_almost_equal(l, u)
-        assert_almost_equal(l[0], 1)
-        assert_almost_equal(l[1], 0)
-        assert_almost_equal(l[2], 0)
-        assert_almost_equal(l[3], 0)
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, softmax, 4):
+            array_almost_equal(l, u)
+            assert_almost_equal(l[0], 1)
+            assert_almost_equal(l[1], 0)
+            assert_almost_equal(l[2], 0)
+            assert_almost_equal(l[3], 0)
 
     def test_case1(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = softmax(itv, 3)
         inp = A([1, 2, 3])
-        d = {tinpl: inp, tinpu: inp}
-        l, u = res.eval(d)
-        cres = (e - 1) / (e ** 3 - 1)
-        array_almost_equal(l, u)
-        array_almost_equal(l, A([cres, cres * e, cres * e ** 2]))
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, softmax, 3):
+            cres = (e - 1) / (e ** 3 - 1)
+            array_almost_equal(l, u)
+            array_almost_equal(l, A([cres, cres * e, cres * e ** 2]))
 
     def test_case2(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = softmax(itv, 2)
         inpl = A([1, -1])
         inpu = A([2, 3])
-        d = {tinpl: inpl, tinpu: inpu}
-        l, u = res.eval(d)
 
         def calc_cres(e1, e2):
             return (e ** e1) / (e ** e1 + e ** e2)
 
-        cresl = A([calc_cres(a, b) for (a, b) in
-                   [(1, 3), (-1, 2)]])
-        cresu = A([calc_cres(a, b) for (a, b) in
-                   [(2, -1), (3, 1)]])
-        array_almost_equal(l, cresl)
-        array_almost_equal(u, cresu)
+        for l, u in self._get_all_intervals_results(
+                inpl, inpu, softmax, 2):
+            cresl = A([calc_cres(a, b) for (a, b) in
+                       [(1, 3), (-1, 2)]])
+            cresu = A([calc_cres(a, b) for (a, b) in
+                       [(2, -1), (3, 1)]])
+            array_almost_equal(l, cresl)
+            array_almost_equal(u, cresu)
 
     def test_case3(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = softmax(itv, 3)
         inpl = A([1, -1, 2])
         inpu = A([2, 3, 4])
-        d = {tinpl: inpl, tinpu: inpu}
-        l, u = res.eval(d)
 
         def calc_cres(e1, e2, e3):
             return (e ** e1) / (e ** e1 + e ** e2 + e ** e3)
 
-        cresl = A([calc_cres(a, b, c) for (a, b, c) in
-                   [(1, 3, 4), (-1, 2, 4), (2, 2, 3)]])
-        cresu = A([calc_cres(a, b, c) for (a, b, c) in
-                   [(2, -1, 2), (3, 1, 2), (4, 1, -1)]])
-        array_almost_equal(l, cresl)
-        array_almost_equal(u, cresu)
+        for l, u in self._get_all_intervals_results(
+                inpl, inpu, softmax, 3):
+            cresl = A([calc_cres(a, b, c) for (a, b, c) in
+                       [(1, 3, 4), (-1, 2, 4), (2, 2, 3)]])
+            cresu = A([calc_cres(a, b, c) for (a, b, c) in
+                       [(2, -1, 2), (3, 1, 2), (4, 1, -1)]])
+            array_almost_equal(l, cresl)
+            array_almost_equal(u, cresu)
 
     def test_best_worst_case_for_specific_interval(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = softmax(itv, 4)
         inpl1 = np.ones(4, dtype=theano.config.floatX) + 1
         inpu1 = inpl1 + 1
-        d1 = {tinpl: inpl1, tinpu: inpu1}
-        l1, u1 = res.eval(d1)
+
         inp2 = np.ones(4, dtype=theano.config.floatX) * 2.0
         inp2[0] = 1.0
-        d2 = {tinpl: inp2, tinpu: inp2}
-        l2, u2 = res.eval(d2)
+
         inp3 = 2.0 - inp2
-        d3 = {tinpl: inp3, tinpu: inp3}
-        l3, u3 = res.eval(d3)
-        d1 = l1[0] - l2[0]
-        d2 = u1[0] - u3[0]
-        assert_greater(0.01, abs(d1))
-        assert_greater(0.01, abs(d2))
+
+        for (l1, u1), (l2, u2), (l3, u3) in zip(
+                self._get_all_intervals_results(inpl1, inpu1, softmax, 4),
+                self._get_all_intervals_results(inp2, inp2, softmax, 4),
+                self._get_all_intervals_results(inp3, inp3, softmax, 4)
+        ):
+            d1 = l1[0] - l2[0]
+            d2 = u1[0] - u3[0]
+            assert_greater(0.01, abs(d1))
+            assert_greater(0.01, abs(d2))
 
 
 class NormActivationTest(ActivationTest):
