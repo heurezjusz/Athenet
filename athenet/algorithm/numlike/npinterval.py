@@ -23,6 +23,7 @@ class NpInterval(Interval):
 
         """
         assert (lower <= upper).all()
+        self.op_conv_function = None
         super(NpInterval, self).__init__(lower, upper)
 
     @staticmethod
@@ -253,7 +254,7 @@ class NpInterval(Interval):
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
-        return self
+        return self.lower, self.upper
 
     def op_relu(self):
         """Returns result of relu operation on given NpInterval.
@@ -270,12 +271,12 @@ class NpInterval(Interval):
         :param integer input_shp: shape of 1D input
         :rtype: NpInterval
         """
-        result = NpInterval.from_shape(input_shp, neutral=True)
+        result = NpInterval.from_shape((input_shp, ), neutral=True)
         for i in xrange(input_shp):
             input_low = (self - self.upper[i]).exp()
             input_upp = (self - self.lower[i]).exp()
-            sum_low = NpInterval.from_shape(1, neutral=True)
-            sum_upp = NpInterval.from_shape(1, neutral=True)
+            sum_low = NpInterval.from_shape((1, ), neutral=True)
+            sum_upp = NpInterval.from_shape((1, ), neutral=True)
             for j in xrange(input_shp):
                 if j != i:
                     sum_low = sum_low + input_low[j]
@@ -323,7 +324,7 @@ class NpInterval(Interval):
         c = s * alpha + k
 
         def norm((arg_x, arg_c)):
-            return arg_x / np.power(arg_c + alpha * np.sqr(arg_x), beta)
+            return arg_x / np.power(arg_c + alpha * np.square(arg_x), beta)
 
         def in_range((range_), val):
             return np.logical_and(np.less(range_.lower, val),
@@ -335,13 +336,15 @@ class NpInterval(Interval):
         def x_extr_from_c(arg_c):
             return np.sqrt(arg_c / ((2 * beta - 1) * alpha))
 
-        res = NpInterval.from_shape(input_shape, lower_val=np.inf,
-                                    upper_val=-np.inf)
+        corner_lower = np.full(input_shape, np.inf)
+        corner_upper = np.full(input_shape, -np.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
         for corner in corners:
-            res.lower = np.minimum(res.lower, norm(corner))
-            res.upper = np.maximum(res.upper, norm(corner))
+            corner_lower = np.minimum(corner_lower, norm(corner))
+            corner_upper = np.maximum(corner_upper, norm(corner))
+        res = NpInterval(corner_lower, corner_upper)
+
         maybe_extrema = [
             (0, c.lower), (0, c.upper),
             (x_extr_from_c(c.lower), c.lower),
@@ -396,16 +399,16 @@ class NpInterval(Interval):
         :type stride: pair of integers
         :type padding: pair of integers
         :type n_groups: integer
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        if True:
-            l, u = T.tensor3(), T.tensor3()
-            l2, u2 = self._theano_op_conv(l, u, weights, image_shape, filter_shape,
-                                      biases, stride, padding, n_groups)
-            self.op_conv_function = function(
-                [l, u],
-                [l2, u2]
+        if self.op_conv_function is None:
+            t_lower, t_upper = T.tensor3(), T.tensor3()
+            result_lower, result_upper = self._theano_op_conv(
+                t_lower, t_upper, weights, image_shape, filter_shape,
+                biases, stride, padding, n_groups
             )
+            self.op_conv_function = function([t_lower, t_upper],
+                                             [result_lower, result_upper])
 
         lower, upper = self.op_conv_function(self.lower, self.upper)
 

@@ -17,7 +17,7 @@ from athenet.algorithm.derest.layers.norm import a_norm
 from athenet.algorithm.derest.layers.relu import a_relu
 from athenet.algorithm.derest.layers.softmax import a_softmax
 
-from athenet.algorithm.numlike import TheanoInterval, Nplike
+from athenet.algorithm.numlike import TheanoInterval, NpInterval, Nplike
 
 theano.config.exception_verbosity = 'high'
 
@@ -57,6 +57,34 @@ class ActivationTest(unittest.TestCase):
         for i in range(sz):
             a[i] = self.s()
         return a.reshape(shp)
+
+    def _get_theano_interval_result(self, lower, upper, function,
+                                    *args, **kwargs):
+        dim = len(lower.shape)
+        if dim == 1:
+            t_lower, t_upper = T.dvectors('inpl', 'inpu')
+        elif dim == 3:
+            t_lower, t_upper = T.tensor3s('inpl', 'inpu')
+        else:
+            raise NotImplementedError
+
+        iinp = TheanoInterval(t_lower, t_upper)
+        res = function(iinp, *args, **kwargs)
+        d = {t_lower: lower, t_upper: upper}
+        return res.eval(d)
+
+    def _get_np_interval_result(self, lower, upper, function, *args, **kwargs):
+        inp = NpInterval(lower, upper)
+        return function(inp, *args, **kwargs).eval()
+
+    def _get_all_intervals_results(self, lower, upper, function,
+                                   *args, **kwargs):
+        get_interval_results = [
+            self._get_theano_interval_result,
+            self._get_np_interval_result
+        ]
+        return [f(lower, upper, function, *args, **kwargs)
+                for f in get_interval_results]
 
 
 class FullyConnectedActivationTest(ActivationTest):
@@ -107,14 +135,11 @@ class FullyConnectedActivationTest(ActivationTest):
                  v[0] * v[5] + v[1] * v[7] + 3])
         cru = A([v[2] * v[4] + v[3] * v[6] + 1,
                  v[2] * v[5] + v[3] * v[7] + 3])
-        tinpl, tinpu = T.dvectors('inpl', 'inpu')
 
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = a_fully_connected(iinp, w, b)
-        d = {tinpl: inpl, tinpu: inpu}
-        (rl, ru) = res.eval(d)
-        array_almost_equal(rl, crl)
-        array_almost_equal(ru, cru)
+        for rl, ru in self._get_all_intervals_results(inpl, inpu,
+                                                      a_fully_connected, w, b):
+            array_almost_equal(rl, crl)
+            array_almost_equal(ru, cru)
 
     def test_3D_negative_weights_using_intervals(self):
         s, v, m = self.prepare()
@@ -128,13 +153,11 @@ class FullyConnectedActivationTest(ActivationTest):
         cru = A([v[2] * v[4] + v[3] * v[7] + 1,
                  v[0] * -v[5] + v[3] * v[8] + 3,
                  v[2] * v[6] + v[3] * v[9] + 5])
-        tinpl, tinpu = T.tensor3s('inpl', 'inpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = a_fully_connected(iinp, w, b)
-        d = {tinpl: inpl, tinpu: inpu}
-        (rl, ru) = res.eval(d)
-        array_almost_equal(rl, crl)
-        array_almost_equal(ru, cru)
+
+        for rl, ru in self._get_all_intervals_results(inpl, inpu,
+                                                      a_fully_connected, w, b):
+            array_almost_equal(rl, crl)
+            array_almost_equal(ru, cru)
 
     def test_negative(self):
         inp = nplike([1, -1])
@@ -241,8 +264,6 @@ class ConvolutionalActivationTest(ActivationTest):
     def test_interval_simple(self):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -250,17 +271,15 @@ class ConvolutionalActivationTest(ActivationTest):
         tb = theano.shared(b, borrow=True)
         inp_shape = (1, 2, 2)
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        res = a_conv(iinp, inp_shape, tw, f_shp, tb)
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[18]]]))
-        array_almost_equal(ru, A([[[32]]]))
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, a_conv, inp_shape, tw, f_shp, tb):
+            array_almost_equal(rl, A([[[18]]]))
+            array_almost_equal(ru, A([[[32]]]))
 
     def test_interval_3x3(self):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -268,11 +287,13 @@ class ConvolutionalActivationTest(ActivationTest):
         tb = theano.shared(b, borrow=True).dimshuffle(0, 'x', 'x')
         inp_shape = (1, 2, 2)
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        res = a_conv(iinp, inp_shape, tw, f_shp, tb, padding=(1, 1))
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
-        array_almost_equal(ru, A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, a_conv, inp_shape, tw, f_shp, tb, padding=(1, 1)):
+            array_almost_equal(rl,
+                               A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
+            array_almost_equal(ru,
+                               A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
 
     def test_group_1_in_2_out(self):
         inp = nplike([[[2, 3], [5, 7]], [[2, 3], [5, 7]]])
@@ -342,18 +363,17 @@ class PoolActivationTest(ActivationTest):
                   [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
         inpu = A([[[1, 3, 4], [7, 5, 6], [7, 9, 9]],
                   [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        resmax = a_pool(iinp, (2, 3, 3), (2, 2), mode="max")
-        resavg = a_pool(iinp, (2, 3, 3), (2, 2), mode="avg")
-        d = {tinpl: inpl, tinpu: inpu}
-        rlmax, rumax = resmax.eval(d)
-        rlavg, ruavg = resavg.eval(d)
-        array_almost_equal(rlmax, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]]))
-        array_almost_equal(rumax, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]]))
-        array_almost_equal(rlavg, A([[[10, 16], [13, 8]],
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, a_pool, (2, 3, 3), (2, 2), mode="max"):
+            array_almost_equal(rl, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]]))
+            array_almost_equal(ru, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]]))
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, a_pool, (2, 3, 3), (2, 2), mode="avg"):
+            array_almost_equal(rl, A([[[10, 16], [13, 8]],
                                      [[16, 20], [28, 23]]]) / 4.0)
-        array_almost_equal(ruavg, A([[[16, 18], [28, 29]],
+            array_almost_equal(ru, A([[[16, 18], [28, 29]],
                                      [[16, 20], [28, 23]]]) / 4.0)
 
 
@@ -361,7 +381,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_simple(self):
         inp = nplike([1, 2, 3])
-        res = softmax(inp, 3)
+        res = a_softmax(inp, 3)
         s = e * (1 + e * (1 + e))
         array_almost_equal(res.eval(), A([e / s, e ** 2 / s, e ** 3 / s]))
 
@@ -375,114 +395,97 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_interval_flat(self):
         inp = A([1, 2, 3, 4, 5])
-        tinp = T.dvector('tinp')
-        itv = TheanoInterval(tinp, tinp)
-        res = a_softmax(itv, 5)
-        d = {tinp: inp}
-        l, u = res.eval(d)
-        array_almost_equal(l, u)
-        for i in xrange(5):
-            assert_almost_equal(l[i], u[i])
-        for i in xrange(4):
-            assert_greater(l[i + 1], l[i])
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, a_softmax, 5):
+            array_almost_equal(l, u)
+            for i in xrange(5):
+                assert_almost_equal(l[i], u[i])
+            for i in xrange(4):
+                assert_greater(l[i + 1], l[i])
 
     def test_uniform_input(self):
         inp = np.ones(4, dtype=theano.config.floatX) * 4
-        tinp = T.dvector('tinp')
-        itv = TheanoInterval(tinp, tinp)
-        res = a_softmax(itv, 4)
-        d = {tinp: inp}
-        l, u = res.eval(d)
-        array_almost_equal(l, u)
-        for i in xrange(4):
-            assert_almost_equal(l[i], u[i])
-        for i in xrange(3):
-            assert_almost_equal(l[i], l[i + 1])
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, a_softmax, 4):
+            array_almost_equal(l, u)
+            for i in xrange(4):
+                assert_almost_equal(l[i], u[i])
+            for i in xrange(3):
+                assert_almost_equal(l[i], l[i + 1])
 
     def test_one_big_elt(self):
         inp = -20 * np.ones(4, dtype=theano.config.floatX)
         inp[0] = 1
-        tinp = T.dvector('tinp')
-        itv = TheanoInterval(tinp, tinp)
-        res = a_softmax(itv, 4)
-        d = {tinp: inp}
-        l, u = res.eval(d)
-        array_almost_equal(l, u)
-        assert_almost_equal(l[0], 1)
-        assert_almost_equal(l[1], 0)
-        assert_almost_equal(l[2], 0)
-        assert_almost_equal(l[3], 0)
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, a_softmax, 4):
+            array_almost_equal(l, u)
+            assert_almost_equal(l[0], 1)
+            assert_almost_equal(l[1], 0)
+            assert_almost_equal(l[2], 0)
+            assert_almost_equal(l[3], 0)
 
     def test_case1(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = a_softmax(itv, 3)
         inp = A([1, 2, 3])
-        d = {tinpl: inp, tinpu: inp}
-        l, u = res.eval(d)
-        cres = (e - 1) / (e ** 3 - 1)
-        array_almost_equal(l, u)
-        array_almost_equal(l, A([cres, cres * e, cres * e ** 2]))
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, a_softmax, 3):
+            cres = (e - 1) / (e ** 3 - 1)
+            array_almost_equal(l, u)
+            array_almost_equal(l, A([cres, cres * e, cres * e ** 2]))
 
     def test_case2(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = a_softmax(itv, 2)
         inpl = A([1, -1])
         inpu = A([2, 3])
-        d = {tinpl: inpl, tinpu: inpu}
-        l, u = res.eval(d)
 
         def calc_cres(e1, e2):
             return (e ** e1) / (e ** e1 + e ** e2)
 
-        cresl = A([calc_cres(a, b) for (a, b) in
-                   [(1, 3), (-1, 2)]])
-        cresu = A([calc_cres(a, b) for (a, b) in
-                   [(2, -1), (3, 1)]])
-        array_almost_equal(l, cresl)
-        array_almost_equal(u, cresu)
+        for l, u in self._get_all_intervals_results(
+                inpl, inpu, a_softmax, 2):
+            cresl = A([calc_cres(a, b) for (a, b) in
+                       [(1, 3), (-1, 2)]])
+            cresu = A([calc_cres(a, b) for (a, b) in
+                       [(2, -1), (3, 1)]])
+            array_almost_equal(l, cresl)
+            array_almost_equal(u, cresu)
 
     def test_case3(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = a_softmax(itv, 3)
-
         inpl = A([1, -1, 2])
         inpu = A([2, 3, 4])
-        d = {tinpl: inpl, tinpu: inpu}
-        l, u = res.eval(d)
 
         def calc_cres(e1, e2, e3):
             return (e ** e1) / (e ** e1 + e ** e2 + e ** e3)
 
-        cresl = A([calc_cres(a, b, c) for (a, b, c) in
-                   [(1, 3, 4), (-1, 2, 4), (2, 2, 3)]])
-        cresu = A([calc_cres(a, b, c) for (a, b, c) in
-                   [(2, -1, 2), (3, 1, 2), (4, 1, -1)]])
-        array_almost_equal(l, cresl)
-        array_almost_equal(u, cresu)
+        for l, u in self._get_all_intervals_results(
+                inpl, inpu, a_softmax, 3):
+            cresl = A([calc_cres(a, b, c) for (a, b, c) in
+                       [(1, 3, 4), (-1, 2, 4), (2, 2, 3)]])
+            cresu = A([calc_cres(a, b, c) for (a, b, c) in
+                       [(2, -1, 2), (3, 1, 2), (4, 1, -1)]])
+            array_almost_equal(l, cresl)
+            array_almost_equal(u, cresu)
 
     def test_best_worst_case_for_specific_interval(self):
-        tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = TheanoInterval(tinpl, tinpu)
-        res = a_softmax(itv, 4)
-
         inpl1 = np.ones(4, dtype=theano.config.floatX) + 1
         inpu1 = inpl1 + 1
-        d1 = {tinpl: inpl1, tinpu: inpu1}
-        l1, u1 = res.eval(d1)
+
         inp2 = np.ones(4, dtype=theano.config.floatX) * 2.0
         inp2[0] = 1.0
-        d2 = {tinpl: inp2, tinpu: inp2}
-        l2, u2 = res.eval(d2)
+
         inp3 = 2.0 - inp2
-        d3 = {tinpl: inp3, tinpu: inp3}
-        l3, u3 = res.eval(d3)
-        d1 = l1[0] - l2[0]
-        d2 = u1[0] - u3[0]
-        assert_greater(0.01, abs(d1))
-        assert_greater(0.01, abs(d2))
+
+        for (l1, u1), (l2, u2), (l3, u3) in zip(
+                self._get_all_intervals_results(inpl1, inpu1, a_softmax, 4),
+                self._get_all_intervals_results(inp2, inp2, a_softmax, 4),
+                self._get_all_intervals_results(inp3, inp3, a_softmax, 4)
+        ):
+            d1 = l1[0] - l2[0]
+            d2 = u1[0] - u3[0]
+            assert_greater(0.01, abs(d1))
+            assert_greater(0.01, abs(d2))
 
 
 class NormActivationTest(ActivationTest):
@@ -496,15 +499,12 @@ class NormActivationTest(ActivationTest):
 
     def test_case1_interval(self):
         inp = A([[[1, 10], [100, 1000]]])
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = a_norm(iinp, (1, 2, 2))
 
-        d = {tinpl: inp, tinpu: inp}
-        l, u = out.eval(d)
-        array_almost_equal(l, u)
-        array_almost_equal(l, A([[[0.9999850, 9.9850262],
-                                  [87.2195949, 101.9378639]]]))
+        for l, u in self._get_all_intervals_results(
+                inp, inp, a_norm, (1, 2, 2)):
+            array_almost_equal(l, u)
+            array_almost_equal(l, A([[[0.9999850, 9.9850262],
+                                      [87.2195949, 101.9378639]]]))
 
     def test_case2(self):
         inp1 = nplike([[[1]]])
@@ -526,30 +526,14 @@ class NormActivationTest(ActivationTest):
         array_almost_equal(res4, A([[[101.9378639]]]))
 
     def test_case2_interval(self):
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = a_norm(iinp, (1, 1, 1))
-
-        inp1 = A([[[1]]])
-        inp2 = A([[[10]]])
-        inp3 = A([[[100]]])
-        inp4 = A([[[1000]]])
-        d1 = {tinpl: inp1, tinpu: inp1}
-        d2 = {tinpl: inp2, tinpu: inp2}
-        d3 = {tinpl: inp3, tinpu: inp3}
-        d4 = {tinpl: inp4, tinpu: inp4}
-        l1, u1 = out.eval(d1)
-        l2, u2 = out.eval(d2)
-        l3, u3 = out.eval(d3)
-        l4, u4 = out.eval(d4)
-        array_almost_equal(l1, u1)
-        array_almost_equal(l2, u2)
-        array_almost_equal(l3, u3)
-        array_almost_equal(l4, u4)
-        array_almost_equal(l1, A([[[0.9999850]]]))
-        array_almost_equal(l2, A([[[9.9850262]]]))
-        array_almost_equal(l3, A([[[87.2195949]]]))
-        array_almost_equal(l4, A([[[101.9378639]]]))
+        inps = [A([[[1]]]), A([[[10]]]), A([[[100]]]), A([[[1000]]])]
+        results = [A([[[0.9999850]]]), A([[[9.9850262]]]), A([[[87.2195949]]]),
+                   A([[[101.9378639]]])]
+        for inp, result in zip(inps, results):
+            for l, u in self._get_all_intervals_results(
+                    inp, inp, a_norm, (1, 1, 1)):
+                array_almost_equal(l, u)
+                array_almost_equal(l, result)
 
     def test_case3(self):
         inp1 = nplike([[[1]], [[1]]])
@@ -575,61 +559,42 @@ class NormActivationTest(ActivationTest):
         array_almost_equal(res4, A([[[v4]], [[v4]]]))
 
     def test_case3_interval(self):
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = a_norm(iinp, (2, 1, 1))
+        inps = [A([[[1]], [[1]]]), A([[[10]], [[10]]]), A([[[100]], [[100]]]),
+                A([[[1000]], [[1000]]])]
+        vs = [0.99997, 9.9701046, 77.6969504, 61.7180374]
 
-        inp1 = A([[[1]], [[1]]])
-        inp2 = A([[[10]], [[10]]])
-        inp3 = A([[[100]], [[100]]])
-        inp4 = A([[[1000]], [[1000]]])
-        d1 = {tinpl: inp1, tinpu: inp1}
-        d2 = {tinpl: inp2, tinpu: inp2}
-        d3 = {tinpl: inp3, tinpu: inp3}
-        d4 = {tinpl: inp4, tinpu: inp4}
-        l1, u1 = out.eval(d1)
-        l2, u2 = out.eval(d2)
-        l3, u3 = out.eval(d3)
-        l4, u4 = out.eval(d4)
-        array_almost_equal(l1, u1)
-        array_almost_equal(l2, u2)
-        array_almost_equal(l3, u3)
-        array_almost_equal(l4, u4)
-        v1 = 0.99997
-        v2 = 9.9701046
-        v3 = 77.6969504
-        v4 = 61.7180374
-        array_almost_equal(l1, A([[[v1]], [[v1]]]))
-        array_almost_equal(l2, A([[[v2]], [[v2]]]))
-        array_almost_equal(l3, A([[[v3]], [[v3]]]))
-        array_almost_equal(l4, A([[[v4]], [[v4]]]))
+        for inp, v in zip(inps, vs):
+            for l, u in self._get_all_intervals_results(
+                    inp, inp, a_norm, (2, 1, 1)):
+                array_almost_equal(l, u)
+                array_almost_equal(l, A([[[v]], [[v]]]))
 
     def test_case4_interval(self):
         shp = (100, 1, 1)
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = a_norm(iinp, shp)
-
         inp = np.zeros(shp, dtype=theano.config.floatX)
-        d = {tinpl: inp, tinpu: inp}
         inp[47, 0, 0] = inp[53, 0, 0] = 65536.0
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 10.0
-        l, u = out.eval(d)
-        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
-        assert_almost_equal(l[50, 0, 0], 9.9256, places=2)
+
+        for l, u in self._get_all_intervals_results(inp, inp, a_norm, shp):
+            assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+            assert_almost_equal(l[50, 0, 0], 9.9256, places=2)
+
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 100.0
-        l, u = out.eval(d)
-        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
-        assert_almost_equal(l[50, 0, 0], 59.4603, places=2)
+
+        for l, u in self._get_all_intervals_results(inp, inp, a_norm, shp):
+            assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+            assert_almost_equal(l[50, 0, 0], 59.4603, places=2)
+
         inp[48, 0, 0] = inp[49, 0, 0] = inp[50, 0, 0] = inp[51, 0, 0] = \
             inp[52, 0, 0] = 1000.0
-        l, u = out.eval(d)
-        assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
-        assert_almost_equal(l[50, 0, 0], 31.3876, places=2)
-        assert_almost_equal(l[49, 0, 0], 0.1991, places=2)
-        assert_almost_equal(l[51, 0, 0], 0.1991, places=2)
+
+        for l, u in self._get_all_intervals_results(inp, inp, a_norm, shp):
+            assert_almost_equal(l[50, 0, 0], u[50, 0, 0])
+            assert_almost_equal(l[50, 0, 0], 31.3876, places=2)
+            assert_almost_equal(l[49, 0, 0], 0.1991, places=2)
+            assert_almost_equal(l[51, 0, 0], 0.1991, places=2)
 
     def test_bitonicity_and_extremas_interval(self):
         shp = (5, 1, 1)
@@ -683,14 +648,10 @@ class DropoutActivationTest(ActivationTest):
         s, v, m = self.prepare()
         l = A([[[s(), s()], [s(), s()]]])
         u = A([[[s(), s()], [s(), s()]]])
-        tl, tu = T.dtensor3s('l', 'u')
-        i = TheanoInterval(tl, tu)
-        drp = a_dropout(i, 0.8)
 
-        d = {tl: l, tu: u}
-        (rl, ru) = drp.eval(d)
-        array_almost_equal(rl, 0.2 * l)
-        array_almost_equal(ru, 0.2 * u)
+        for rl, ru in self._get_all_intervals_results(l, u, a_dropout, 0.8):
+            array_almost_equal(rl, 0.2 * l)
+            array_almost_equal(ru, 0.2 * u)
 
 
 class ReluActivationTest(ActivationTest):
@@ -703,30 +664,22 @@ class ReluActivationTest(ActivationTest):
     def test_interval_simple(self):
         inpl = A([[[-3, -1, 1]]])
         inpu = A([[[-2, 3, 2]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = a_relu(iinp)
 
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[0, 0, 1]]]))
-        array_almost_equal(ru, A([[[0, 3, 2]]]))
+        for rl, ru in self._get_all_intervals_results(inpl, inpu, a_relu):
+            array_almost_equal(rl, A([[[0, 0, 1]]]))
+            array_almost_equal(ru, A([[[0, 3, 2]]]))
 
     def test_interval_3D(self):
         inpl = A([[[-1, 2, -1], [0, 3, 5], [1, 2, 3]],
                   [[2, 3, 4], [-2, -3, -4], [-4, 0, 4]]])
         inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
                   [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = a_relu(iinp)
 
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
-                                  [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
-        array_almost_equal(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
-                                  [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
+        for rl, ru in self._get_all_intervals_results(inpl, inpu, a_relu):
+            array_almost_equal(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
+                                      [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
+            array_almost_equal(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
+                                      [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)

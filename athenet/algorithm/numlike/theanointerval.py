@@ -449,12 +449,10 @@ class TheanoInterval(Interval):
         :type n_groups: integer
         :rtype: TheanoInterval
         """
-
         lower, upper = self._theano_op_conv(self.lower, self.upper,
                                             weights, image_shape, filter_shape,
                                             biases, stride, padding, n_groups)
         return TheanoInterval(lower, upper)
-
 
     def op_d_relu(self, activation):
         """Returns estimated impact of input of relu layer on output of
