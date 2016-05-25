@@ -491,14 +491,12 @@ class NormActivationTest(ActivationTest):
 
     def test_case1_interval(self):
         inp = A([[[1, 10], [100, 1000]]])
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = norm(iinp, (1, 2, 2))
-        d = {tinpl: inp, tinpu: inp}
-        l, u = out.eval(d)
-        array_almost_equal(l, u)
-        array_almost_equal(l, A([[[0.9999850, 9.9850262],
-                                  [87.2195949, 101.9378639]]]))
+
+        for l, u in self._get_all_intervals_results(
+                inp, inp, norm, (1, 2, 2)):
+            array_almost_equal(l, u)
+            array_almost_equal(l, A([[[0.9999850, 9.9850262],
+                                      [87.2195949, 101.9378639]]]))
 
     def test_case2(self):
         inp1 = nplike([[[1]]])
@@ -519,29 +517,14 @@ class NormActivationTest(ActivationTest):
         array_almost_equal(res4, A([[[101.9378639]]]))
 
     def test_case2_interval(self):
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = norm(iinp, (1, 1, 1))
-        inp1 = A([[[1]]])
-        inp2 = A([[[10]]])
-        inp3 = A([[[100]]])
-        inp4 = A([[[1000]]])
-        d1 = {tinpl: inp1, tinpu: inp1}
-        d2 = {tinpl: inp2, tinpu: inp2}
-        d3 = {tinpl: inp3, tinpu: inp3}
-        d4 = {tinpl: inp4, tinpu: inp4}
-        l1, u1 = out.eval(d1)
-        l2, u2 = out.eval(d2)
-        l3, u3 = out.eval(d3)
-        l4, u4 = out.eval(d4)
-        array_almost_equal(l1, u1)
-        array_almost_equal(l2, u2)
-        array_almost_equal(l3, u3)
-        array_almost_equal(l4, u4)
-        array_almost_equal(l1, A([[[0.9999850]]]))
-        array_almost_equal(l2, A([[[9.9850262]]]))
-        array_almost_equal(l3, A([[[87.2195949]]]))
-        array_almost_equal(l4, A([[[101.9378639]]]))
+        inps = [A([[[1]]]), A([[[10]]]), A([[[100]]]), A([[[1000]]])]
+        results = [A([[[0.9999850]]]), A([[[9.9850262]]]), A([[[87.2195949]]]),
+                   A([[[101.9378639]]])]
+        for inp, result in zip(inps, results):
+            for l, u in self._get_all_intervals_results(
+                    inp, inp, norm, (1, 1, 1)):
+                array_almost_equal(l, u)
+                array_almost_equal(l, result)
 
     def test_case3(self):
         inp1 = nplike([[[1]], [[1]]])
@@ -566,33 +549,15 @@ class NormActivationTest(ActivationTest):
         array_almost_equal(res4, A([[[v4]], [[v4]]]))
 
     def test_case3_interval(self):
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        out = norm(iinp, (2, 1, 1))
-        inp1 = A([[[1]], [[1]]])
-        inp2 = A([[[10]], [[10]]])
-        inp3 = A([[[100]], [[100]]])
-        inp4 = A([[[1000]], [[1000]]])
-        d1 = {tinpl: inp1, tinpu: inp1}
-        d2 = {tinpl: inp2, tinpu: inp2}
-        d3 = {tinpl: inp3, tinpu: inp3}
-        d4 = {tinpl: inp4, tinpu: inp4}
-        l1, u1 = out.eval(d1)
-        l2, u2 = out.eval(d2)
-        l3, u3 = out.eval(d3)
-        l4, u4 = out.eval(d4)
-        array_almost_equal(l1, u1)
-        array_almost_equal(l2, u2)
-        array_almost_equal(l3, u3)
-        array_almost_equal(l4, u4)
-        v1 = 0.99997
-        v2 = 9.9701046
-        v3 = 77.6969504
-        v4 = 61.7180374
-        array_almost_equal(l1, A([[[v1]], [[v1]]]))
-        array_almost_equal(l2, A([[[v2]], [[v2]]]))
-        array_almost_equal(l3, A([[[v3]], [[v3]]]))
-        array_almost_equal(l4, A([[[v4]], [[v4]]]))
+        inps = [A([[[1]], [[1]]]), A([[[10]], [[10]]]), A([[[100]], [[100]]]),
+                A([[[1000]], [[1000]]])]
+        vs = [0.99997, 9.9701046, 77.6969504, 61.7180374]
+
+        for inp, v in zip(inps, vs):
+            for l, u in self._get_all_intervals_results(
+                    inp, inp, norm, (2, 1, 1)):
+                array_almost_equal(l, u)
+                array_almost_equal(l, A([[[v]], [[v]]]))
 
     def test_case4_interval(self):
         shp = (100, 1, 1)
