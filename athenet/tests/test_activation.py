@@ -129,7 +129,8 @@ class FullyConnectedActivationTest(ActivationTest):
         cru = A([v[2] * v[4] + v[3] * v[6] + 1,
                  v[2] * v[5] + v[3] * v[7] + 3])
 
-        for rl, ru in self._get_all_intervals_results(inpl, inpu, fully_connected, w, b):
+        for rl, ru in self._get_all_intervals_results(inpl, inpu,
+                                                      fully_connected, w, b):
             array_almost_equal(rl, crl)
             array_almost_equal(ru, cru)
 
@@ -146,7 +147,8 @@ class FullyConnectedActivationTest(ActivationTest):
                  v[0] * -v[5] + v[3] * v[8] + 3,
                  v[2] * v[6] + v[3] * v[9] + 5])
 
-        for rl, ru in self._get_all_intervals_results(inpl, inpu, fully_connected, w, b):
+        for rl, ru in self._get_all_intervals_results(inpl, inpu,
+                                                      fully_connected, w, b):
             array_almost_equal(rl, crl)
             array_almost_equal(ru, cru)
 
