@@ -9,7 +9,7 @@ from math import e
 from nose.tools import assert_almost_equal, assert_greater
 from numpy.testing import assert_array_almost_equal
 
-from athenet.algorithm.numlike import TheanoInterval, Nplike
+from athenet.algorithm.numlike import TheanoInterval, NpInterval, Nplike
 from athenet.algorithm.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
@@ -50,6 +50,32 @@ class ActivationTest(unittest.TestCase):
         for i in range(sz):
             a[i] = self.s()
         return a.reshape(shp)
+
+    def _get_theano_interval_result(self, lower, upper, function, *args):
+        dim = len(lower.shape)
+        if dim == 1:
+            t_lower, t_upper = T.dvectors('inpl', 'inpu')
+        elif dim == 3:
+            t_lower, t_upper = T.tensor3s('inpl', 'inpu')
+        else:
+            raise NotImplementedError
+
+        iinp = TheanoInterval(t_lower, t_upper)
+        res = function(iinp, *args)
+        d = {t_lower: lower, t_upper: upper}
+        return res.eval(d)
+
+    def _get_np_interval_result(self, lower, upper, function, *args):
+        inp = NpInterval(lower, upper)
+        return function(inp, *args).eval()
+
+    def _get_all_intervals_results(self, lower, upper, function, *args):
+        get_interval_results = [
+            self._get_theano_interval_result,
+            self._get_np_interval_result
+        ]
+        return [f(lower, upper, function, *args)
+                for f in get_interval_results]
 
 
 class FullyConnectedActivationTest(ActivationTest):
@@ -100,13 +126,10 @@ class FullyConnectedActivationTest(ActivationTest):
                  v[0] * v[5] + v[1] * v[7] + 3])
         cru = A([v[2] * v[4] + v[3] * v[6] + 1,
                  v[2] * v[5] + v[3] * v[7] + 3])
-        tinpl, tinpu = T.dvectors('inpl', 'inpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = fully_connected(iinp, w, b)
-        d = {tinpl: inpl, tinpu: inpu}
-        (rl, ru) = res.eval(d)
-        array_almost_equal(rl, crl)
-        array_almost_equal(ru, cru)
+
+        for rl, ru in self._get_all_intervals_results(inpl, inpu, fully_connected, w, b):
+            array_almost_equal(rl, crl)
+            array_almost_equal(ru, cru)
 
     def test_3D_negative_weights_using_intervals(self):
         s, v, m = self.prepare()
@@ -120,13 +143,10 @@ class FullyConnectedActivationTest(ActivationTest):
         cru = A([v[2] * v[4] + v[3] * v[7] + 1,
                  v[0] * -v[5] + v[3] * v[8] + 3,
                  v[2] * v[6] + v[3] * v[9] + 5])
-        tinpl, tinpu = T.tensor3s('inpl', 'inpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = fully_connected(iinp, w, b)
-        d = {tinpl: inpl, tinpu: inpu}
-        (rl, ru) = res.eval(d)
-        array_almost_equal(rl, crl)
-        array_almost_equal(ru, cru)
+
+        for rl, ru in self._get_all_intervals_results(inpl, inpu, fully_connected, w, b):
+            array_almost_equal(rl, crl)
+            array_almost_equal(ru, cru)
 
     def test_negative(self):
         inp = nplike([1, -1])
