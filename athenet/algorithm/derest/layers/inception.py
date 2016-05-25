@@ -72,7 +72,7 @@ class DerestInceptionLayer(DerestLayer):
         last = 0
         for layer in self.layer.top_layers:
             channels = layer.output_shape[2]
-            output_list.append(output[:, last : (last + channels), ::])
+            output_list.append(output[:, last:(last + channels), ::])
             last += channels
 
         batches = input_shape[0]

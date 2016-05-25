@@ -42,7 +42,8 @@ def a_softmax(layer_input, input_shp):
 def d_softmax(output):
     """Returns estimated impact of input of softmax layer on output of network.
 
-    .. warning:: Current implementation only consider softmax as the last layer.
+    .. warning:: Current implementation only consider softmax
+        as the last layer.
 
     .. note::
 
