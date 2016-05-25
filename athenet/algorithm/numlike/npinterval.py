@@ -256,12 +256,12 @@ class NpInterval(Interval):
         :param integer input_shp: shape of 1D input
         :rtype: NpInterval
         """
-        result = NpInterval.from_shape(input_shp, neutral=True)
+        result = NpInterval.from_shape((input_shp, ), neutral=True)
         for i in xrange(input_shp):
             input_low = (self - self.upper[i]).exp()
             input_upp = (self - self.lower[i]).exp()
-            sum_low = NpInterval.from_shape(1, neutral=True)
-            sum_upp = NpInterval.from_shape(1, neutral=True)
+            sum_low = NpInterval.from_shape((1, ), neutral=True)
+            sum_upp = NpInterval.from_shape((1, ), neutral=True)
             for j in xrange(input_shp):
                 if j != i:
                     sum_low = sum_low + input_low[j]
