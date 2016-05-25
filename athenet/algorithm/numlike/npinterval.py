@@ -245,6 +245,12 @@ class NpInterval(Interval):
         extra_pixels[:, :, pad_h:(pad_h+h), pad_w:(pad_w+w)] = layer_input
         return extra_pixels
 
+    @staticmethod
+    def select(bool_list, interval_list):
+        lower = [a.lower if isinstance(a, NpInterval) else a for a in interval_list]
+        upper = [a.upper if isinstance(a, NpInterval) else a for a in interval_list]
+        return NpInterval(np.select(bool_list, lower), np.select(bool_list, upper))
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         return self
