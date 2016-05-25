@@ -482,15 +482,15 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0]**2
+            c += a * act[0][i][0][0]**2
         res = np.zeros(act.shape)
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += self.foo(x, c - x ** 2, a, b)
+                res[:, i, ::] += self.foo(x, c - a * x ** 2, a, b)
             else:
-                res[:, j, ::] += self.foo2(x, y, c - x**2 - y**2, a, b)
+                res[:, j, ::] += self.foo2(x, y, c - a * x**2 - y**2, a, b)
 
 
         res2 = self._count_norm(act, der, k, a, b, 5)
@@ -517,16 +517,16 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0] ** 2
+            c += a * act[0][i][0][0] ** 2
         res = np.zeros(act.shape)
 
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += foo(x, c - x ** 2)
+                res[:, i, ::] += foo(x, c - a * x ** 2)
             else:
-                res[:, i, ::] += foo2(x, y, c - x ** 2 - y ** 2)
+                res[:, i, ::] += foo2(x, y, c - a * x ** 2 - y ** 2)
 
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue((R.lower <= -abs(res)).all())
@@ -553,19 +553,24 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0] ** 2
+            c += a * act[0][i][0][0] ** 2
         res = np.zeros(act.shape)
 
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += self.foo(x, c - x ** 2, a, b)
+                res[:, i, ::] += self.foo(x, c - a * x ** 2, a, b)
             else:
-                res[:, j, ::] += self.foo2(x, y, c - x ** 2 - y ** 2, a, b)
+                res[:, j, ::] += self.foo2(x, y, c - a * x ** 2 - a * y ** 2, a, b)
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
+        print
+        print res
+        print res2
+        print R
+
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
@@ -590,15 +595,15 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0] ** 2
+            c += a * act[0][i][0][0] ** 2
         res = np.zeros(act.shape)
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += self.foo(x, c - x ** 2, a, b) * der[:, i, ::]
+                res[:, i, ::] += self.foo(x, c - a * x ** 2, a, b) * der[:, i, ::]
             else:
-                res[:, j, ::] += self.foo2(x, y, c - x ** 2 - y ** 2, a, b) \
+                res[:, j, ::] += self.foo2(x, y, c - a * x ** 2 - y ** 2, a, b) \
                                  * der[:, i, ::]
 
         res2 = self._count_norm(act, der, k, a, b, 5)
@@ -617,7 +622,7 @@ class TestDNorm(TestCase):
             y = act[at_b, at_ch, at_h, at_w]
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (at_ch + i) < ch:
-                    c += act[at_b, at_ch + i, at_h, at_w]**2
+                    c += alpha * act[at_b, at_ch + i, at_h, at_w]**2
 
             res[at_b, at_ch, at_h, at_w] += self.foo(y, c, alpha, beta) * \
                                             der[at_b, at_ch, at_h, at_w]
@@ -625,13 +630,11 @@ class TestDNorm(TestCase):
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= at_ch + i < ch:
                     x = act[at_b, at_ch + i, at_h, at_w]
-                    c -= x**2
-                    res[at_b, at_ch + i, at_h, at_w] += self.foo2(x, y, c,
-                                                                  alpha,
-                                                                  beta) \
-                                                        * der[at_b, at_ch,
-                                                              at_h, at_w]
-                    c += x**2
+                    c -= alpha * x**2
+                    res[at_b, at_ch + i, at_h, at_w] += \
+                        self.foo2(x, y, c, alpha, beta) \
+                        * der[at_b, at_ch, at_h, at_w]
+                    c += alpha * x**2
         return res
 
     def test_correct(self):

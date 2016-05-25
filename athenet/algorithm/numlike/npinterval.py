@@ -655,7 +655,7 @@ class NpInterval(Numlike):
             C = NpInterval(np.asarray([k]), np.asarray([k]))
             for i in xrange(-local_range, local_range + 1):
                 if channels > i + channel >= 0 != i:
-                    C += activation_sqares[b][channel + i][at_h][at_w]
+                    C += activation_sqares[b][channel + i][at_h][at_w] * alpha
 
             Y = activation[b][channel][at_h][at_w]
 
@@ -680,7 +680,7 @@ class NpInterval(Numlike):
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (i + channel) < channels:
                     X = activation[b][channel + i][at_h][at_w]
-                    X2 = activation_sqares[b][channel + i][at_h][at_w]
+                    X2 = activation_sqares[b][channel + i][at_h][at_w] * alpha
                     C = C._antiadd(X2)
 
                     extremas = extremas_3d(X.lower, X.upper, Y.lower,
