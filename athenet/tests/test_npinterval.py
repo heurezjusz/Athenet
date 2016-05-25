@@ -5,7 +5,7 @@ from itertools import product
 import numpy as np
 
 
-def _random_shape(n = None, limit = None):
+def _random_shape(n=None, limit=None):
     if n is None:
         n = randrange(1, 7)
     result = None
@@ -26,12 +26,13 @@ def _random_shape(n = None, limit = None):
     return result
 
 
-def _random_npinterval(shape = None, dim = None):
+def _random_npinterval(shape=None, dim=None):
     if shape is None:
         shape = _random_shape(dim)
     r1 = np.random.rand(*shape) * 20 - 10
     r2 = np.random.rand(*shape) * 20 - 10
     return NpInterval(np.minimum(r1, r2), np.maximum(r1, r2))
+
 
 def _rand_from_npinterval(I):
     l = I.lower
@@ -90,6 +91,7 @@ class TestNpInterval(TestCase):
     def _assert_in_interval(self, array, interval):
         self.assertTrue((interval.lower <= array).all())
         self.assertTrue((interval.upper >= array).all())
+
 
 class TestShape(TestCase):
     def _run_test(self, shape):
@@ -421,10 +423,10 @@ class TestAntiadd(TestCase):
         bu = np.asarray([[2, 2, 5], [-1, -1,   1]])
         B = NpInterval(bl, bu)
 
-        R = (A + B).antiadd(B)
+        R = (A + B)._antiadd(B)
         self.assertTrue((A.lower == R.lower).all())
         self.assertTrue((A.upper == R.upper).all())
-        R = (A + B).antiadd(A)
+        R = (A + B)._antiadd(A)
         self.assertTrue((B.lower == R.lower).all())
         self.assertTrue((B.upper == R.upper).all())
 
@@ -439,10 +441,10 @@ class TestAntiadd(TestCase):
             if B.lower[0] > B.upper[0]:
                 B.lower, B.upper = B.upper, B.lower
 
-            R = (A + B).antiadd(B)
+            R = (A + B)._antiadd(B)
             self.assertTrue((A.lower == R.lower).all())
             self.assertTrue((A.upper == R.upper).all())
-            R = (A + B).antiadd(A)
+            R = (A + B)._antiadd(A)
             self.assertTrue((B.lower == R.lower).all())
             self.assertTrue((B.upper == R.upper).all())
 
@@ -451,17 +453,44 @@ class TestAntiadd(TestCase):
             shape = _random_shape()
             A = NpInterval(np.ones(shape), 100 * np.ones(shape))
             B = NpInterval(np.ones(shape) * 2, np.ones(shape) * 3)
-            R = A.antiadd(B)
+            R = A._antiadd(B)
             self.assertEqual(R.shape, shape)
 
 
 class TestDNorm(TestCase):
     def foo(self, x, c, a, b):
         return (a * (1 - 2 * b) * x ** 2 + c) / (a * x ** 2 + c) ** (b + 1)
+
     def foo2(self, x, y, c, a, b):
         return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b-1))
 
+    def _count_norm(self, act, der, k, alpha, beta, local_range):
+        res = np.zeros_like(act)
+        b, ch, h, w = der.shape
+        local_range /= 2
+        for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
+                                               xrange(h), xrange(w)):
+            c = k
+            y = act[at_b, at_ch, at_h, at_w]
+            for i in xrange(-local_range, local_range + 1):
+                if i != 0 and 0 <= (at_ch + i) < ch:
+                    c += alpha * act[at_b, at_ch + i, at_h, at_w] ** 2
+
+            res[at_b, at_ch, at_h, at_w] += \
+                self.foo(y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
+
+            for i in xrange(-local_range, local_range + 1):
+                if i != 0 and 0 <= at_ch + i < ch:
+                    x = act[at_b, at_ch + i, at_h, at_w]
+                    c -= alpha * x ** 2
+                    res[at_b, at_ch + i, at_h, at_w] += \
+                        self.foo2(x, y, c, alpha, beta) \
+                        * der[at_b, at_ch, at_h, at_w]
+                    c += alpha * x ** 2
+        return res
+
     def test_case0(self):
+        # checks also if self._count_norm gives correct answer
         a = 1.
         b = 0.75
         k = 1.
@@ -470,7 +499,6 @@ class TestDNorm(TestCase):
         der = np.asarray([[[[1.]], [[1.]], [[1.]]]])
         activation = NpInterval(act, 1 * act)
         derivative = NpInterval(-der, der)
-
 
         res = self._count_norm(act, der, k, a, b, 1)
         R = derivative.op_d_norm(activation, act.shape, 1, k, a, b)
@@ -482,16 +510,15 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0]**2
+            c += a * act[0][i][0][0]**2
         res = np.zeros(act.shape)
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += self.foo(x, c - x ** 2, a, b)
+                res[:, i, ::] += self.foo(x, c - a * x ** 2, a, b)
             else:
-                res[:, j, ::] += self.foo2(x, y, c - x**2 - y**2, a, b)
-
+                res[:, j, ::] += self.foo2(x, y, c - a * x**2 - y**2, a, b)
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
@@ -517,22 +544,23 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0] ** 2
+            c += a * act[0][i][0][0] ** 2
         res = np.zeros(act.shape)
 
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += foo(x, c - x ** 2)
+                res[:, i, ::] += foo(x, c - a * x ** 2)
             else:
-                res[:, i, ::] += foo2(x, y, c - x ** 2 - y ** 2)
+                res[:, i, ::] += foo2(x, y, c - a * x ** 2 - y ** 2)
 
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue((R.lower <= -abs(res)).all())
         self.assertTrue((abs(res) <= R.upper).all())
 
     def test_case2(self):
+        # checks also if self._count_norm gives correct answer
         a = 4.
         b = 3
         k = 0.8
@@ -553,19 +581,21 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0] ** 2
+            c += a * act[0][i][0][0] ** 2
         res = np.zeros(act.shape)
 
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += self.foo(x, c - x ** 2, a, b)
+                res[:, i, ::] += self.foo(x, c - a * x ** 2, a, b)
             else:
-                res[:, j, ::] += self.foo2(x, y, c - x ** 2 - y ** 2, a, b)
+                res[:, j, ::] += \
+                    self.foo2(x, y, c - a * x ** 2 - a * y ** 2, a, b)
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
+
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
@@ -590,49 +620,24 @@ class TestDNorm(TestCase):
 
         c = k
         for i in xrange(3):
-            c += act[0][i][0][0] ** 2
+            c += a * act[0][i][0][0] ** 2
         res = np.zeros(act.shape)
         for i, j in product(xrange(3), xrange(3)):
             x = act[0][i][0][0]
             y = act[0][j][0][0]
             if i == j:
-                res[:, i, ::] += self.foo(x, c - x ** 2, a, b) * der[:, i, ::]
+                res[:, i, ::] += \
+                    self.foo(x, c - a * x ** 2, a, b) * der[:, i, ::]
             else:
-                res[:, j, ::] += self.foo2(x, y, c - x ** 2 - y ** 2, a, b) \
-                                 * der[:, i, ::]
+                res[:, j, ::] += \
+                    self.foo2(x, y, c - a * x ** 2 - y ** 2, a, b) \
+                    * der[:, i, ::]
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
-
-    def _count_norm(self, act, der, k, alpha, beta, local_range):
-        res = np.zeros_like(act)
-        b, ch, h, w = der.shape
-        local_range /= 2
-        for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
-                                               xrange(h), xrange(w)):
-            c = k
-            y = act[at_b, at_ch, at_h, at_w]
-            for i in xrange(-local_range, local_range + 1):
-                if i != 0 and 0 <= (at_ch + i) < ch:
-                    c += act[at_b, at_ch + i, at_h, at_w]**2
-
-            res[at_b, at_ch, at_h, at_w] += self.foo(y, c, alpha, beta) * \
-                                            der[at_b, at_ch, at_h, at_w]
-
-            for i in xrange(-local_range, local_range + 1):
-                if i != 0 and 0 <= at_ch + i < ch:
-                    x = act[at_b, at_ch + i, at_h, at_w]
-                    c -= x**2
-                    res[at_b, at_ch + i, at_h, at_w] += self.foo2(x, y, c,
-                                                                  alpha,
-                                                                  beta) \
-                                                        * der[at_b, at_ch,
-                                                              at_h, at_w]
-                    c += x**2
-        return res
 
     def test_correct(self):
         for _ in xrange(100):
