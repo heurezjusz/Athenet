@@ -186,6 +186,7 @@ class Interval(Numlike):
         if upper_val is None:
             upper_val = self.NEUTRAL_UPPER
         n_batches, n_in, h, w = shape
+
         padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
                                                n_batches, padding, lower_val)
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
@@ -194,8 +195,7 @@ class Interval(Numlike):
 
     def __repr__(self):
         """Standard repr method."""
-        return 'vvvvv\n' + repr(self.lower) + '\n=====\n' + repr(self.upper) \
-               + '\n^^^^^'
+        return str(self)
 
     def __str__(self):
         """"Standard str method."""
