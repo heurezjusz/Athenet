@@ -51,7 +51,8 @@ class ActivationTest(unittest.TestCase):
             a[i] = self.s()
         return a.reshape(shp)
 
-    def _get_theano_interval_result(self, lower, upper, function, *args):
+    def _get_theano_interval_result(self, lower, upper, function,
+                                    *args, **kwargs):
         dim = len(lower.shape)
         if dim == 1:
             t_lower, t_upper = T.dvectors('inpl', 'inpu')
@@ -61,20 +62,21 @@ class ActivationTest(unittest.TestCase):
             raise NotImplementedError
 
         iinp = TheanoInterval(t_lower, t_upper)
-        res = function(iinp, *args)
+        res = function(iinp, *args, **kwargs)
         d = {t_lower: lower, t_upper: upper}
         return res.eval(d)
 
-    def _get_np_interval_result(self, lower, upper, function, *args):
+    def _get_np_interval_result(self, lower, upper, function, *args, **kwargs):
         inp = NpInterval(lower, upper)
-        return function(inp, *args).eval()
+        return function(inp, *args, **kwargs).eval()
 
-    def _get_all_intervals_results(self, lower, upper, function, *args):
+    def _get_all_intervals_results(self, lower, upper, function,
+                                   *args, **kwargs):
         get_interval_results = [
             self._get_theano_interval_result,
             self._get_np_interval_result
         ]
-        return [f(lower, upper, function, *args)
+        return [f(lower, upper, function, *args, **kwargs)
                 for f in get_interval_results]
 
 
@@ -253,8 +255,6 @@ class ConvolutionalActivationTest(ActivationTest):
     def test_interval_simple(self):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -262,17 +262,15 @@ class ConvolutionalActivationTest(ActivationTest):
         tb = theano.shared(b, borrow=True)
         inp_shape = (1, 2, 2)
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        res = conv(iinp, inp_shape, tw, f_shp, tb)
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[18]]]))
-        array_almost_equal(ru, A([[[32]]]))
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, conv, inp_shape, tw, f_shp, tb):
+            array_almost_equal(rl, A([[[18]]]))
+            array_almost_equal(ru, A([[[32]]]))
 
     def test_interval_3x3(self):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -280,11 +278,13 @@ class ConvolutionalActivationTest(ActivationTest):
         tb = theano.shared(b, borrow=True).dimshuffle(0, 'x', 'x')
         inp_shape = (1, 2, 2)
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
-        res = conv(iinp, inp_shape, tw, f_shp, tb, padding=(1, 1))
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
-        array_almost_equal(ru, A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, conv, inp_shape, tw, f_shp, tb, padding=(1, 1)):
+            array_almost_equal(rl,
+                               A([[[-4, 6, -9], [14, 18, -24], [8, 18, 7]]]))
+            array_almost_equal(ru,
+                               A([[[8, 15, -9], [24, 32, -18], [10, 23, 9]]]))
 
     def test_group_1_in_2_out(self):
         inp = nplike([[[2, 3], [5, 7]], [[2, 3], [5, 7]]])
