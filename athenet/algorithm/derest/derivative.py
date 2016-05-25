@@ -8,8 +8,6 @@ Every entity in batches store impact on different output of network.
 
 from athenet.algorithm.numlike import Numlike, assert_numlike
 
-# TODO: All functions below will be implemented.
-
 
 def d_conv(output, input_shape, filter_shape, weights,
            stride=(1, 1), padding=(0, 0), n_groups=1):
