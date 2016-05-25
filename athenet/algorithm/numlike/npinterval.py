@@ -12,6 +12,16 @@ import math
 
 class NpInterval(Interval):
 
+    def __init__(self, lower, upper):
+        """Creates NpInterval.
+
+        :param numpy.ndarray lower: lower bound of Interval to be set
+        :param numpy.ndarray upper: upper bound of Interval to be set
+
+        """
+        assert (lower <= upper).all()
+        super(NpInterval, self).__init__(lower, upper)
+
     @staticmethod
     def construct(lower, upper):
         return NpInterval(lower, upper)
