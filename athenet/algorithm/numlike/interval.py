@@ -191,8 +191,10 @@ class Interval(Numlike):
 
     def __repr__(self):
         """Standard repr method."""
-        return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'
+        return 'vvvvv\n' + repr(self.lower) + '\n=====\n' + repr(self.upper) \
+               + '\n^^^^^'
 
     def __str__(self):
         """"Standard str method."""
-        return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
+        return 'vvvvv\n' + str(self.lower) + '\n=====\n' + str(self.upper) \
+               + '\n^^^^^'
