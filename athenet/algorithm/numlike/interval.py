@@ -6,6 +6,7 @@ This module contains Interval class and auxiliary objects.
 
 from numlike import Numlike
 
+
 class Interval(Numlike):
     """Interval matrix class
 
