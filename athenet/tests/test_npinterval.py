@@ -464,6 +464,31 @@ class TestDNorm(TestCase):
     def foo2(self, x, y, c, a, b):
         return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b-1))
 
+    def _count_norm(self, act, der, k, alpha, beta, local_range):
+        res = np.zeros_like(act)
+        b, ch, h, w = der.shape
+        local_range /= 2
+        for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
+                                               xrange(h), xrange(w)):
+            c = k
+            y = act[at_b, at_ch, at_h, at_w]
+            for i in xrange(-local_range, local_range + 1):
+                if i != 0 and 0 <= (at_ch + i) < ch:
+                    c += alpha * act[at_b, at_ch + i, at_h, at_w] ** 2
+
+            res[at_b, at_ch, at_h, at_w] += \
+                self.foo(y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
+
+            for i in xrange(-local_range, local_range + 1):
+                if i != 0 and 0 <= at_ch + i < ch:
+                    x = act[at_b, at_ch + i, at_h, at_w]
+                    c -= alpha * x ** 2
+                    res[at_b, at_ch + i, at_h, at_w] += \
+                        self.foo2(x, y, c, alpha, beta) \
+                        * der[at_b, at_ch, at_h, at_w]
+                    c += alpha * x ** 2
+        return res
+
     def test_case0(self):
         a = 1.
         b = 0.75
@@ -534,6 +559,7 @@ class TestDNorm(TestCase):
         self.assertTrue((abs(res) <= R.upper).all())
 
     def test_case2(self):
+        # checks also if self._count_norm gives correct answer
         a = 4.
         b = 3
         k = 0.8
@@ -568,10 +594,6 @@ class TestDNorm(TestCase):
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
-        print
-        print res
-        print res2
-        print R
 
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
@@ -615,31 +637,6 @@ class TestDNorm(TestCase):
         self.assertTrue(np.isclose(res, res2).all())
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
-
-    def _count_norm(self, act, der, k, alpha, beta, local_range):
-        res = np.zeros_like(act)
-        b, ch, h, w = der.shape
-        local_range /= 2
-        for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
-                                               xrange(h), xrange(w)):
-            c = k
-            y = act[at_b, at_ch, at_h, at_w]
-            for i in xrange(-local_range, local_range + 1):
-                if i != 0 and 0 <= (at_ch + i) < ch:
-                    c += alpha * act[at_b, at_ch + i, at_h, at_w]**2
-
-            res[at_b, at_ch, at_h, at_w] += \
-                self.foo(y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
-
-            for i in xrange(-local_range, local_range + 1):
-                if i != 0 and 0 <= at_ch + i < ch:
-                    x = act[at_b, at_ch + i, at_h, at_w]
-                    c -= alpha * x**2
-                    res[at_b, at_ch + i, at_h, at_w] += \
-                        self.foo2(x, y, c, alpha, beta) \
-                        * der[at_b, at_ch, at_h, at_w]
-                    c += alpha * x**2
-        return res
 
     def test_correct(self):
         for _ in xrange(100):
