@@ -12,7 +12,7 @@ import math
 
 class NpInterval(Interval):
 
-    def __init__(self, lower, upper, accuracy=1e-06):
+    def __init__(self, lower, upper, accuracy=1e-6):
         """Creates NpInterval.
 
         :param numpy.ndarray lower: lower bound of Interval to be set
