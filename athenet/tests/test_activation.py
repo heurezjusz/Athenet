@@ -9,7 +9,7 @@ from math import e
 from nose.tools import assert_almost_equal, assert_greater
 from numpy.testing import assert_array_almost_equal
 
-from athenet.algorithm.numlike import TheanoInterval as Itv, Nplike
+from athenet.algorithm.numlike import TheanoInterval, Nplike
 from athenet.algorithm.derest.activation import *
 
 theano.config.exception_verbosity = 'high'
@@ -101,7 +101,7 @@ class FullyConnectedActivationTest(ActivationTest):
         cru = A([v[2] * v[4] + v[3] * v[6] + 1,
                  v[2] * v[5] + v[3] * v[7] + 3])
         tinpl, tinpu = T.dvectors('inpl', 'inpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
@@ -121,7 +121,7 @@ class FullyConnectedActivationTest(ActivationTest):
                  v[0] * -v[5] + v[3] * v[8] + 3,
                  v[2] * v[6] + v[3] * v[9] + 5])
         tinpl, tinpu = T.tensor3s('inpl', 'inpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         res = fully_connected(iinp, w, b)
         d = {tinpl: inpl, tinpu: inpu}
         (rl, ru) = res.eval(d)
@@ -234,7 +234,7 @@ class ConvolutionalActivationTest(ActivationTest):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -252,7 +252,7 @@ class ConvolutionalActivationTest(ActivationTest):
         inpl = A([[[-1, 3], [4, 7]]])
         inpu = A([[[2, 3], [5, 9]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         w = A([[[[1, 2], [-3, 4]]]])
         w_flipped = w[:, :, ::-1, ::-1]
         tw = theano.shared(w_flipped, borrow=True)
@@ -335,7 +335,7 @@ class PoolActivationTest(ActivationTest):
         inpu = A([[[1, 3, 4], [7, 5, 6], [7, 9, 9]],
                   [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         resmax = pool(iinp, (2, 3, 3), (2, 2), mode="max")
         resavg = pool(iinp, (2, 3, 3), (2, 2), mode="avg")
         d = {tinpl: inpl, tinpu: inpu}
@@ -368,7 +368,7 @@ class SoftmaxActivationTest(ActivationTest):
     def test_interval_flat(self):
         inp = A([1, 2, 3, 4, 5])
         tinp = T.dvector('tinp')
-        itv = Interval(tinp, tinp)
+        itv = TheanoInterval(tinp, tinp)
         res = softmax(itv, 5)
         d = {tinp: inp}
         l, u = res.eval(d)
@@ -381,7 +381,7 @@ class SoftmaxActivationTest(ActivationTest):
     def test_uniform_input(self):
         inp = np.ones(4, dtype=theano.config.floatX) * 4
         tinp = T.dvector('tinp')
-        itv = Interval(tinp, tinp)
+        itv = TheanoInterval(tinp, tinp)
         res = softmax(itv, 4)
         d = {tinp: inp}
         l, u = res.eval(d)
@@ -395,7 +395,7 @@ class SoftmaxActivationTest(ActivationTest):
         inp = -20 * np.ones(4, dtype=theano.config.floatX)
         inp[0] = 1
         tinp = T.dvector('tinp')
-        itv = Interval(tinp, tinp)
+        itv = TheanoInterval(tinp, tinp)
         res = softmax(itv, 4)
         d = {tinp: inp}
         l, u = res.eval(d)
@@ -407,7 +407,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_case1(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Interval(tinpl, tinpu)
+        itv = TheanoInterval(tinpl, tinpu)
         res = softmax(itv, 3)
         inp = A([1, 2, 3])
         d = {tinpl: inp, tinpu: inp}
@@ -418,7 +418,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_case2(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Interval(tinpl, tinpu)
+        itv = TheanoInterval(tinpl, tinpu)
         res = softmax(itv, 2)
         inpl = A([1, -1])
         inpu = A([2, 3])
@@ -437,7 +437,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_case3(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Interval(tinpl, tinpu)
+        itv = TheanoInterval(tinpl, tinpu)
         res = softmax(itv, 3)
         inpl = A([1, -1, 2])
         inpu = A([2, 3, 4])
@@ -456,7 +456,7 @@ class SoftmaxActivationTest(ActivationTest):
 
     def test_best_worst_case_for_specific_interval(self):
         tinpl, tinpu = T.dvectors('tinpl', 'tinpu')
-        itv = Interval(tinpl, tinpu)
+        itv = TheanoInterval(tinpl, tinpu)
         res = softmax(itv, 4)
         inpl1 = np.ones(4, dtype=theano.config.floatX) + 1
         inpu1 = inpl1 + 1
@@ -486,7 +486,7 @@ class NormActivationTest(ActivationTest):
     def test_case1_interval(self):
         inp = A([[[1, 10], [100, 1000]]])
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         out = norm(iinp, (1, 2, 2))
         d = {tinpl: inp, tinpu: inp}
         l, u = out.eval(d)
@@ -514,7 +514,7 @@ class NormActivationTest(ActivationTest):
 
     def test_case2_interval(self):
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         out = norm(iinp, (1, 1, 1))
         inp1 = A([[[1]]])
         inp2 = A([[[10]]])
@@ -561,7 +561,7 @@ class NormActivationTest(ActivationTest):
 
     def test_case3_interval(self):
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         out = norm(iinp, (2, 1, 1))
         inp1 = A([[[1]], [[1]]])
         inp2 = A([[[10]], [[10]]])
@@ -591,7 +591,7 @@ class NormActivationTest(ActivationTest):
     def test_case4_interval(self):
         shp = (100, 1, 1)
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         out = norm(iinp, shp)
         inp = np.zeros(shp, dtype=theano.config.floatX)
         d = {tinpl: inp, tinpu: inp}
@@ -617,7 +617,7 @@ class NormActivationTest(ActivationTest):
     def test_bitonicity_and_extremas_interval(self):
         shp = (5, 1, 1)
         tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         out = norm(iinp, shp)
         b = 200.0
         a = (2.0 * (50000.0 + b * b)) ** 0.5
@@ -666,7 +666,7 @@ class DropoutActivationTest(ActivationTest):
         l = A([[[s(), s()], [s(), s()]]])
         u = A([[[s(), s()], [s(), s()]]])
         tl, tu = T.dtensor3s('l', 'u')
-        i = Interval(tl, tu)
+        i = TheanoInterval(tl, tu)
         drp = dropout(i, 0.8)
         d = {tl: l, tu: u}
         (rl, ru) = drp.eval(d)
@@ -684,7 +684,7 @@ class ReluActivationTest(ActivationTest):
         inpl = A([[[-3, -1, 1]]])
         inpu = A([[[-2, 3, 2]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         res = relu(iinp)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
@@ -697,7 +697,7 @@ class ReluActivationTest(ActivationTest):
         inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
                   [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
         tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = Interval(tinpl, tinpu)
+        iinp = TheanoInterval(tinpl, tinpu)
         res = relu(iinp)
         d = {tinpl: inpl, tinpu: inpu}
         rl, ru = res.eval(d)
