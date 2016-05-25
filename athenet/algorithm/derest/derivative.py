@@ -156,6 +156,12 @@ def d_softmax(output):
                            height, width)
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
+
+    .. note::
+
+    This function does not change the value of input. It is reasonable in view
+    of use of this function in Derest, because input of softmax is more
+    important in Derest than output. This is not obvious behaviour!
     """
     assert_numlike(output)
     return output
