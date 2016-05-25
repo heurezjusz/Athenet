@@ -1,8 +1,13 @@
 from athenet.algorithm import sparsify_smallest_on_network, sharpen_filters, \
     sparsify_smallest_on_layers
 from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
+from athenet.algorithm import get_filters_indicators, get_smallest_indicators,\
+    get_nearest_to_global_mean_indicators, \
+    get_nearest_to_layers_mean_indicators, delete_weights_by_global_fraction,\
+    delete_weights_by_layer_fractions
 from athenet.models import lenet, alexnet, googlenet
 from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader
+from athenet.layers import FullyConnectedLayer
 
 
 """
@@ -89,6 +94,39 @@ algorithms = {
     "rat2": sparsify_smallest_on_layers,
     "filters": sharpen_filters
     }
+
+
+indicators = {
+    "smallest": get_smallest_indicators,
+    "global_mean": get_nearest_to_global_mean_indicators,
+    "layers_mean": get_nearest_to_layers_mean_indicators,
+    "filters": get_filters_indicators
+}
+
+default_types_of_layers = {
+    "smallest": "all",
+    "global_mean": "all",
+    "layers_mean": "all",
+    "filters": "conv"
+}
+
+deleting = {
+    "global": delete_weights_by_global_fraction,
+    "layers": delete_weights_by_layer_fractions
+}
+
+
+def get_layers(network, type_, indicators_):
+    if type_ == "default":
+        return get_layers(network, default_types_of_layers[indicators_],
+                          indicators_)
+    if type_ == "all":
+        return network.weighted_layers
+    if type_ == "conv":
+        return network.convolutional_layers
+    if type_ == "fully-connected":
+        return [layer for layer in network.weighted_layers
+                if isinstance(layer, FullyConnectedLayer)]
 
 
 def get_network(network_type):
