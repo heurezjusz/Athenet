@@ -16,10 +16,10 @@ from datetime import datetime
 from config.algorithm import get_network, ok, indicators, deleting, get_layers
 from athenet.utils import run_algorithm, plot_2d_results
 
-parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
-                                 description="Runs chosen indicators on chosen "
-                                 "type of network, delete weights"
-                                 "and prints results.")
+parser = argparse.ArgumentParser(
+    formatter_class=RawTextHelpFormatter,
+    description="Runs chosen indicators on chosen type of network,"
+                "delete weights and prints results.")
 
 parser.add_argument("-i", "--indicators",
                     help="Chooses indicators:\n"
@@ -82,6 +82,7 @@ ok()
 print "generating indicators..."
 ind = indicators[args.indicators](layers)
 ok()
+
 
 def deleting_with_indicators(n, p):
     return deleting[args.deleting](get_layers(n, args.types, args.indicators),
