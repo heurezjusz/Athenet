@@ -15,6 +15,16 @@ from athenet.algorithm.numlike import Interval
 
 class NpInterval(Interval):
 
+    def __init__(self, lower, upper):
+        """Creates NpInterval.
+
+        :param numpy.ndarray lower: lower bound of Interval to be set
+        :param numpy.ndarray upper: upper bound of Interval to be set
+
+        """
+        assert (lower <= upper).all()
+        super(NpInterval, self).__init__(lower, upper)
+
     @staticmethod
     def construct(lower, upper):
         return NpInterval(lower, upper)
@@ -58,24 +68,13 @@ class NpInterval(Interval):
         .. warning:: Divisor should not contain zero.
         """
         if isinstance(other, NpInterval):
-            other_pos = other.lower > 0
-            other_neg = np.logical_not(other_pos)
-            self_pos = self.lower > 0
-            self_has_pos = self.upper > 0
-
-            change_other_lower = (other_pos & self_pos) \
-                | (other_neg & self_has_pos)
-            change_other_upper = (other_pos & self_has_pos) \
-                | (other_neg & self_pos)
-
-            self_lower = np.select([other_neg, True], [self.upper, self.lower])
-            self_upper = np.select([other_neg, True], [self.lower, self.upper])
-            other_lower = np.select([change_other_lower, True],
-                                    [other.upper, other.lower])
-            other_upper = np.select([change_other_upper, True],
-                                    [other.lower, other.upper])
-            return NpInterval(self_lower / other_lower,
-                              self_upper / other_upper)
+            ll = self.lower / other.lower
+            lu = self.lower / other.upper
+            ul = self.upper / other.lower
+            uu = self.upper / other.upper
+            lower = np.minimum(np.minimum(ll, lu), np.minimum(ul, uu))
+            upper = np.maximum(np.maximum(ll, lu), np.maximum(ul, uu))
+            return NpInterval(lower, upper)
         else:
             lower = self.lower / other
             upper = self.upper / other
@@ -240,7 +239,7 @@ class NpInterval(Interval):
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
-        raise self
+        return self
 
     def op_relu(self):
         """Returns result of relu operation on given NpInterval.

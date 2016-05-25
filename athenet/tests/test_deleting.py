@@ -88,3 +88,7 @@ class DeletingByFractionTest(unittest.TestCase):
                          in network_after_deleting.weighted_layers]
                     )
                     assert_true(difference <= 1. / network_size)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2, catchbreak=True)

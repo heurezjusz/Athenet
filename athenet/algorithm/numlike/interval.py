@@ -10,11 +10,14 @@ from athenet.utils.misc import convolution, reshape_for_padding as \
     misc_reshape_for_padding
 
 
+
 class Interval(Numlike):
     """Interval matrix class
 
     Represents matrix of intervals. Behaves like limited numpy.ndarray of
     intervals.
+
+    Operation combining many diffrent subclasses of Interval are not supported
 
     """
 
@@ -191,7 +194,7 @@ class Interval(Numlike):
                                                n_batches, padding, lower_val)
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
                                                n_batches, padding, upper_val)
-        return Interval(padded_low, padded_upp)
+        return self.construct(padded_low, padded_upp)
 
     @staticmethod
     def _theano_op_conv(lower, upper, weights, image_shape, filter_shape, biases, stride,
@@ -252,8 +255,10 @@ class Interval(Numlike):
 
     def __repr__(self):
         """Standard repr method."""
-        return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'
+        return 'vvvvv\n' + repr(self.lower) + '\n=====\n' + repr(self.upper) \
+               + '\n^^^^^'
 
     def __str__(self):
         """"Standard str method."""
-        return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
+        return 'vvvvv\n' + str(self.lower) + '\n=====\n' + str(self.upper) \
+               + '\n^^^^^'
