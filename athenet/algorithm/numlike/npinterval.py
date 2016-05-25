@@ -547,15 +547,14 @@ class NpInterval(Interval):
 
 
                 output_slice = output[:, :, at_out_h, at_out_w]
-                output_wtih_0 = NpInterval(np.minimum(output_slice.lower, 0.),
+                output_with_0 = NpInterval(np.minimum(output_slice.lower, 0.),
                                            np.maximum(output_slice.upper, 0.))
 
                 result[:, :, at_f_h, at_f_w] += \
                     NpInterval.select([must, cannot, True],
-                                      [output_slice, 0., output_wtih_0])
+                                      [output_slice, 0., output_with_0])
 
-#        return result[:, pad_h:h - pad_h, pad_w:w - pad_w]
-        return result # I don't know what I am doing but I need result to be the same size as activation
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_avg_pool(self, activation, input_shape, poolsize, stride,
                       padding):
@@ -762,12 +761,12 @@ class NpInterval(Interval):
                                                    [C.lower, C.upper])]
             extremas.extend(root1_2d(C.lower, C.upper, Y.lower, Y.upper))
             extremas.extend(root2_2d(C.lower, C.upper, Y.lower, Y.upper))
-            der = NpInterval()
+            der = NpInterval(np.inf, -np.inf)
             for x, c in extremas:
                 val = der_eq(x, c)
-                if der.lower is None or der.lower > val:
+                if der.lower > val:
                     der.lower = val
-                if der.upper is None or der.upper < val:
+                if der.upper < val:
                     der.upper = val
             result[b][channel][at_h][at_w] += der * self[b][channel][at_h][at_w]
 
@@ -787,12 +786,12 @@ class NpInterval(Interval):
                                extremas_3d_dxdy(X.lower, X.upper, Y.lower,
                                                 Y.upper, C.lower, C.upper)
 
-                    der = NpInterval()
+                    der = NpInterval(np.inf, -np.inf)
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)
-                        if der.lower is None or der.lower > val:
+                        if der.lower > val:
                             der.lower = val
-                        if der.upper is None or der.upper < val:
+                        if der.upper < val:
                             der.upper = val
                     result[b][channel + i][at_h][at_w] += \
                         der * self[b][channel][at_h][at_w]
@@ -855,7 +854,7 @@ class NpInterval(Interval):
         result = NpInterval.from_shape(padded_input_shape, neutral=True)
 
         # see: flipping kernel
-        # in convolution flipped kernel is used
+        # in theano.conv_2d flipped kernel is used
         weights = weights[:, :, ::-1, ::-1]
         weights_neg = np.minimum(weights, 0.0)
         weights_pos = np.maximum(weights, 0.0)
