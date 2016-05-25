@@ -173,8 +173,9 @@ class TestSenders(TestCase):
 
         for (p, layer_limit), (check_p, check_layer_limit) in params:
             net = get_prepared_network()
-            fully_connected_layers = [layer for layer in net.weighted_layers
-                                      if isinstance(layer, FullyConnectedLayer)]
+            fully_connected_layers = \
+                [layer for layer in net.weighted_layers
+                 if isinstance(layer, FullyConnectedLayer)]
             indicators = simple_neuron_indicators(fully_connected_layers, p,
                                                   layer_limit)
 
