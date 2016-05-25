@@ -636,13 +636,10 @@ class DropoutActivationTest(ActivationTest):
         s, v, m = self.prepare()
         l = A([[[s(), s()], [s(), s()]]])
         u = A([[[s(), s()], [s(), s()]]])
-        tl, tu = T.dtensor3s('l', 'u')
-        i = TheanoInterval(tl, tu)
-        drp = dropout(i, 0.8)
-        d = {tl: l, tu: u}
-        (rl, ru) = drp.eval(d)
-        array_almost_equal(rl, 0.2 * l)
-        array_almost_equal(ru, 0.2 * u)
+
+        for rl, ru in self._get_all_intervals_results(l, u, dropout, 0.8):
+            array_almost_equal(rl, 0.2 * l)
+            array_almost_equal(ru, 0.2 * u)
 
 
 class ReluActivationTest(ActivationTest):
