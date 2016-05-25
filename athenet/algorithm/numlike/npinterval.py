@@ -4,37 +4,27 @@ sparsifying.
 This module contains NpInterval class and auxiliary objects.
 """
 
-from athenet.algorithm.numlike import Numlike
+from athenet.algorithm.numlike import Interval
 from itertools import product
 import numpy as np
 import math
 
-NEUTRAL_INTERVAL_LOWER = 0.0
-NEUTRAL_INTERVAL_UPPER = 0.0
-NEUTRAL_INTERVAL_VALUES = (NEUTRAL_INTERVAL_LOWER, NEUTRAL_INTERVAL_UPPER)
 
-DEFAULT_INTERVAL_LOWER = 0.0
-DEFAULT_INTERVAL_UPPER = 255.0
-DEFAULT_INTERVAL_VALUES = (DEFAULT_INTERVAL_LOWER, DEFAULT_INTERVAL_UPPER)
+class NpInterval(Interval):
 
+    def __init__(self, lower, upper):
+        """Creates NpInterval.
 
-class NpInterval(Numlike):
-    def __init__(self, lower=None, upper=None):
+        :param numpy.ndarray lower: lower bound of Interval to be set
+        :param numpy.ndarray upper: upper bound of Interval to be set
+
         """
-        :param numpy.ndarray lower:
-        :param numpy.ndarray upper:
-        :return:
-        """
-        self.lower = lower
-        self.upper = upper
+        assert (lower <= upper).all()
+        super(NpInterval, self).__init__(lower, upper)
 
-    def __getitem__(self, at):
-        """Returns specified slice of NpInterval.
-
-        :at: Coordinates / slice to be taken.
-        :rtype: NpInterval
-        """
-        return NpInterval(self.lower[at], self.upper[at])
+    @staticmethod
+    def construct(lower, upper):
+        return NpInterval(lower, upper)
 
     def __setitem__(self, at, other):
         """Just like numpy __setitem__ function, but as a operator.
@@ -43,61 +33,6 @@ class NpInterval(Numlike):
         """
         self.lower[at] = other.lower
         self.upper[at] = other.upper
-
-    def __str__(self):
-        return "vvvvv\n" + self.lower.__str__() + "\n=====\n" + \
-               self.upper.__str__() + "\n^^^^^"
-
-    def __repr__(self):
-        return str(self)
-
-    @property
-    def shape(self):
-        """Returns shape of numlike.
-
-        :rtype: tuple of integers
-        """
-        return self.lower.shape
-
-    def __add__(self, other):
-        """Returns sum of two NpIntervals.
-
-        :param other: value to be added.
-        :type other: NpInterval or numpy.array or float
-        :rtype: NpInterval
-        """
-        if isinstance(other, NpInterval):
-            res_lower = self.lower + other.lower
-            res_upper = self.upper + other.upper
-        else:
-            res_lower = self.lower + other
-            res_upper = self.upper + other
-        return NpInterval(res_lower, res_upper)
-
-    def _antiadd(self, other):
-        """For given NpInterval returns NpInterval which shuold be added
-        to id to get NpInterval equal to self.
-
-        :param other: NpInterval which was added.
-        :type other: NpInterval
-        :rtype: NpInterval
-        """
-        return NpInterval(self.lower - other.lower, self.upper - other.upper)
-
-    def __sub__(self, other):
-        """Returns difference between two numlikes.
-
-        :param other: value to be subtracted.
-        :type other: NpInterval or np.ndarray or float
-        :rtype: NpInterval
-        """
-        if isinstance(other, NpInterval):
-            res_lower = self.lower - other.upper
-            res_upper = self.upper - other.lower
-        else:
-            res_lower = self.lower - other
-            res_upper = self.upper - other
-        return NpInterval(res_lower, res_upper)
 
     def __mul__(self, other):
         """Returns product of two NpIntervals
@@ -142,24 +77,6 @@ class NpInterval(Numlike):
             upper = self.upper / other
             return NpInterval(np.minimum(lower, upper),
                               np.maximum(lower, upper))
-
-    def __rdiv__(self, other):
-        """Returns quotient of other and self.
-
-        :param other: dividend
-        :type other: float
-        :rtype: Nplike
-        .. warning:: divisor (self) should not contain zero, other must be
-                     float
-        """
-        if isinstance(other, NpInterval):
-            # Should never happen. __div__ should be used instead.
-            raise NotImplementedError
-        else:
-            if other > 0:
-                return NpInterval(other / self.upper, other / self.lower)
-            else:
-                return NpInterval(other / self.lower, other / self.upper)
 
     def reciprocal(self):
         """Returns reciprocal (1/x) of the NpInterval.
@@ -269,49 +186,6 @@ class NpInterval(Numlike):
             return NpInterval(np.maximum(self.lower, other),
                               np.maximum(self.upper, other))
 
-    def amax(self, axis=None, keepdims=False):
-        """Returns maximum of a NpInterval along an axis.
-
-        :param axis: axis along which max is evaluated
-        :param Boolean keepdims: whether flattened dimensions should remain
-        :rtype: NpInterval
-        """
-        lower = self.lower.max(axis=axis, keepdims=keepdims)
-        upper = self.upper.max(axis=axis, keepdims=keepdims)
-        return NpInterval(lower, upper)
-
-    def reshape(self, shape):
-        """Reshapes NpInterval
-
-        :param tuple shape:
-        """
-        return NpInterval(self.lower.reshape(shape),
-                          self.upper.reshape(shape))
-
-    def flatten(self):
-        """Flattens NpInterval
-
-        :rtype: NpInterval
-        """
-        return NpInterval(self.lower.flatten(),
-                          self.upper.flatten())
-
-    def sum(self, axis=None, dtype=None, keepdims=False):
-        """Sum of array elements over a given axis like in numpy.ndarray.
-
-        :param axis: axis along which this function sums
-        :param numeric type or None dtype: just like dtype argument in
-                                   theano.tensor.sum
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
-        :type axis: integer, tuple of integers or None
-        :rtype: NpInterval
-
-        """
-        return NpInterval(
-            self.lower.sum(axis=axis, dtype=dtype, keepdims=keepdims),
-            self.upper.sum(axis=axis, dtype=dtype, keepdims=keepdims)
-        )
-
     def abs(self):
         """Returns absolute value of NpInterval.
 
@@ -322,16 +196,8 @@ class NpInterval(Numlike):
         upper = np.maximum(-self.lower, self.upper)
         return NpInterval(lower, upper)
 
-    @property
-    def T(self):
-        """Tensor transposition like in numpy.ndarray.
-
-        :rtype: NpInterval
-        """
-        return NpInterval(self.lower.T, self.upper.T)
-
-    @staticmethod
-    def from_shape(shp, neutral=True, lower_val=None, upper_val=None):
+    @classmethod
+    def from_shape(cls, shp, neutral=True, lower_val=None, upper_val=None):
         """Returns NpInterval of shape shp with given lower and upper values.
 
         :param tuple of integers or integer shp : shape of created NpInterval
@@ -343,11 +209,9 @@ class NpInterval(Numlike):
         :param float upper_val: value of upper bound
         """
         if lower_val is None:
-            lower_val = NEUTRAL_INTERVAL_LOWER if neutral else \
-                DEFAULT_INTERVAL_LOWER
+            lower_val = cls.NEUTRAL_LOWER if neutral else cls.DEFAULT_LOWER
         if upper_val is None:
-            upper_val = NEUTRAL_INTERVAL_UPPER if neutral else \
-                DEFAULT_INTERVAL_UPPER
+            upper_val = cls.NEUTRAL_UPPER if neutral else cls.DEFAULT_UPPER
         if lower_val > upper_val:
             if lower_val != np.inf or upper_val != -np.inf:
                 raise ValueError("lower_val > upper_val")
@@ -369,30 +233,6 @@ class NpInterval(Numlike):
         extra_pixels = np.full((batch_size, n_channels, h_in, w_in), value)
         extra_pixels[:, :, pad_h:(pad_h+h), pad_w:(pad_w+w)] = layer_input
         return extra_pixels
-
-    def reshape_for_padding(self, shape, padding, lower_val=None,
-                            upper_val=None):
-        """Returns padded Numlike.
-
-        :param tuple of 4 integers shape: shape of input in format
-                                          (batch size, number of channels,
-                                           height, width)
-        :param pair of integers padding: padding to be applied
-        :param float lower_val: value of lower bound in new fields
-        :param float upper_val: value of upper bound in new fields
-        :returns: padded layer_input
-        :rtype: NpInterval
-        """
-        if lower_val is None:
-            lower_val = NEUTRAL_INTERVAL_LOWER
-        if upper_val is None:
-            upper_val = NEUTRAL_INTERVAL_UPPER
-        n_batches, n_in, h, w = shape
-        padded_low = self._reshape_for_padding(self.lower, (h, w, n_in),
-                                               n_batches, padding, lower_val)
-        padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
-                                               n_batches, padding, upper_val)
-        return NpInterval(padded_low, padded_upp)
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
