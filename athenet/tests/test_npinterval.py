@@ -632,12 +632,8 @@ class TestDNorm(TestCase):
                     self.foo(x, c - a * x ** 2, a, b) * der[:, i, ::]
             else:
                 res[:, j, ::] += \
-<<<<<<< HEAD
-                    self.foo2(x, y, c - x ** 2 - y ** 2, a, b) * der[:, i, ::]
-=======
-                    self.foo2(x, y, c - a * x ** 2 - y ** 2, a, b) \
+                    self.foo2(x, y, c - a * x ** 2 - a * y ** 2, a, b) \
                     * der[:, i, ::]
->>>>>>> numpy_d_relu
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
@@ -645,34 +641,6 @@ class TestDNorm(TestCase):
         self.assertTrue(np.isclose(res, R.upper).all())
         self.assertTrue(np.isclose(res, R.lower).all())
 
-<<<<<<< HEAD
-    def _count_norm(self, act, der, k, alpha, beta, local_range):
-        res = np.zeros_like(act)
-        b, ch, h, w = der.shape
-        local_range /= 2
-        for at_b, at_ch, at_h, at_w in product(xrange(b), xrange(ch),
-                                               xrange(h), xrange(w)):
-            c = k
-            y = act[at_b, at_ch, at_h, at_w]
-            for i in xrange(-local_range, local_range + 1):
-                if i != 0 and 0 <= (at_ch + i) < ch:
-                    c += act[at_b, at_ch + i, at_h, at_w]**2
-
-            res[at_b, at_ch, at_h, at_w] += \
-                self.foo(y, c, alpha, beta) * der[at_b, at_ch, at_h, at_w]
-
-            for i in xrange(-local_range, local_range + 1):
-                if i != 0 and 0 <= at_ch + i < ch:
-                    x = act[at_b, at_ch + i, at_h, at_w]
-                    c -= x**2
-                    res[at_b, at_ch + i, at_h, at_w] += \
-                        self.foo2(x, y, c, alpha, beta) * der[at_b, at_ch,
-                                                              at_h, at_w]
-                    c += x**2
-        return res
-
-=======
->>>>>>> numpy_d_relu
     def test_correct(self):
         for _ in xrange(100):
             s = randrange(1, 10)
