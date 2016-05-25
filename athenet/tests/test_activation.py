@@ -651,28 +651,21 @@ class ReluActivationTest(ActivationTest):
     def test_interval_simple(self):
         inpl = A([[[-3, -1, 1]]])
         inpu = A([[[-2, 3, 2]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = relu(iinp)
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[0, 0, 1]]]))
-        array_almost_equal(ru, A([[[0, 3, 2]]]))
+
+        for rl, ru in self._get_all_intervals_results(inpl, inpu, relu):
+            array_almost_equal(rl, A([[[0, 0, 1]]]))
+            array_almost_equal(ru, A([[[0, 3, 2]]]))
 
     def test_interval_3D(self):
         inpl = A([[[-1, 2, -1], [0, 3, 5], [1, 2, 3]],
                   [[2, 3, 4], [-2, -3, -4], [-4, 0, 4]]])
         inpu = A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
                   [[2, 3, 4], [-1, 0, 1], [4, 0, 4]]])
-        tinpl, tinpu = T.dtensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        res = relu(iinp)
-        d = {tinpl: inpl, tinpu: inpu}
-        rl, ru = res.eval(d)
-        array_almost_equal(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
-                                  [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
-        array_almost_equal(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
-                                  [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
+        for rl, ru in self._get_all_intervals_results(inpl, inpu, relu):
+            array_almost_equal(rl, A([[[0, 2, 0], [0, 3, 5], [1, 2, 3]],
+                                      [[2, 3, 4], [0, 0, 0], [0, 0, 4]]]))
+            array_almost_equal(ru, A([[[2, 2, 2], [1, 3, 5], [6, 5, 4]],
+                                      [[2, 3, 4], [0, 0, 1], [4, 0, 4]]]))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2, catchbreak=True)
