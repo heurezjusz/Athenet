@@ -10,11 +10,14 @@ from athenet.utils.misc import convolution, reshape_for_padding as \
     misc_reshape_for_padding
 
 
+
 class Interval(Numlike):
     """Interval matrix class
 
     Represents matrix of intervals. Behaves like limited numpy.ndarray of
     intervals.
+
+    Operation combining many diffrent subclasses of Interval are not supported
 
     """
 
@@ -250,11 +253,11 @@ class Interval(Numlike):
         return (conv_result_lower_3d + biases.dimshuffle(0, 'x', 'x'),
                 conv_result_upper_3d + biases.dimshuffle(0, 'x', 'x'))
 
-    def __repr__(self):
-        """Standard repr method."""
-        return '[' + repr(self.lower) + ', ' + repr(self.upper) + ']'
-
     def __str__(self):
-        """"Standard str method."""
-        return '[' + str(self.lower) + ', ' + str(self.upper) + ']'
+        """Standard str method."""
+        return 'vvvvv\n' + repr(self.lower) + '\n=====\n' + repr(self.upper) \
+               + '\n^^^^^'
 
+    def __repr__(self):
+        """"Standard repr method."""
+        return str(self)

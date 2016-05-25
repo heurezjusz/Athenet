@@ -15,6 +15,16 @@ from athenet.algorithm.numlike import Interval
 
 class NpInterval(Interval):
 
+    def __init__(self, lower, upper):
+        """Creates NpInterval.
+
+        :param numpy.ndarray lower: lower bound of Interval to be set
+        :param numpy.ndarray upper: upper bound of Interval to be set
+
+        """
+        assert (lower <= upper).all()
+        super(NpInterval, self).__init__(lower, upper)
+
     @staticmethod
     def construct(lower, upper):
         return NpInterval(lower, upper)
@@ -28,36 +38,6 @@ class NpInterval(Interval):
         self.lower[at] = other.lower
         self.upper[at] = other.upper
 
-    def __str__(self):
-        return "vvvvv\n" + self.lower.__str__() + "\n=====\n" + \
-               self.upper.__str__() + "\n^^^^^"
-
-    def __repr__(self):
-        return str(self)
-
-    @property
-    def shape(self):
-        """Returns shape of numlike.
-
-        :rtype: tuple of integers
-        """
-        return self.lower.shape
-
-    def __add__(self, other):
-        """Returns sum of two NpIntervals.
-
-        :param other: value to be added.
-        :type other: NpInterval or numpy.array or float
-        :rtype: NpInterval
-        """
-        if isinstance(other, NpInterval):
-            res_lower = self.lower + other.lower
-            res_upper = self.upper + other.upper
-        else:
-            res_lower = self.lower + other
-            res_upper = self.upper + other
-        return NpInterval(res_lower, res_upper)
-
     def antiadd(self, other):
         """For given NpInterval returns NpInterval which shuold be added
         to id to get NpInterval equal to self.
@@ -67,21 +47,6 @@ class NpInterval(Interval):
         :rtype: NpInterval
         """
         return NpInterval(self.lower - other.lower, self.upper - other.upper)
-
-    def __sub__(self, other):
-        """Returns difference between two numlikes.
-
-        :param other: value to be subtracted.
-        :type other: NpInterval or np.ndarray or float
-        :rtype: NpInterval
-        """
-        if isinstance(other, NpInterval):
-            res_lower = self.lower - other.upper
-            res_upper = self.upper - other.lower
-        else:
-            res_lower = self.lower - other
-            res_upper = self.upper - other
-        return NpInterval(res_lower, res_upper)
 
     def __mul__(self, other):
         """Returns product of two NpIntervals
