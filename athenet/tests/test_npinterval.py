@@ -458,12 +458,12 @@ class TestAntiadd(TestCase):
 
 
 class TestDNorm(TestCase):
-    
+
     def der_eq(self, x, c, a, b):
         return (a * (1 - 2 * b) * x ** 2 + c) / (a * x ** 2 + c) ** (b + 1)
 
     def der_not_eq(self, x, y, c, a, b):
-        return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b-1))
+        return -2 * a * b * x * y * ((a * (x ** 2 + y ** 2) + c) ** (-b - 1))
 
     def _count_norm(self, act, der, k, alpha, beta, local_range):
         res = np.zeros_like(act)
@@ -519,7 +519,8 @@ class TestDNorm(TestCase):
             if i == j:
                 res[:, i, ::] += self.der_eq(x, c - a * x ** 2, a, b)
             else:
-                res[:, j, ::] += self.der_not_eq(x, y, c - a * x**2 - a * y**2, a, b)
+                res[:, j, ::] += \
+                    self.der_not_eq(x, y, c - a * x**2 - a * y**2, a, b)
 
         res2 = self._count_norm(act, der, k, a, b, 5)
         R = derivative.op_d_norm(activation, act.shape, 5, k, a, b)
