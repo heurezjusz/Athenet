@@ -354,18 +354,17 @@ class PoolActivationTest(ActivationTest):
                   [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
         inpu = A([[[1, 3, 4], [7, 5, 6], [7, 9, 9]],
                   [[2, 3, 4], [5, 6, 7], [8, 9, 1]]])
-        tinpl, tinpu = T.tensor3s('tinpl', 'tinpu')
-        iinp = TheanoInterval(tinpl, tinpu)
-        resmax = pool(iinp, (2, 3, 3), (2, 2), mode="max")
-        resavg = pool(iinp, (2, 3, 3), (2, 2), mode="avg")
-        d = {tinpl: inpl, tinpu: inpu}
-        rlmax, rumax = resmax.eval(d)
-        rlavg, ruavg = resavg.eval(d)
-        array_almost_equal(rlmax, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]]))
-        array_almost_equal(rumax, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]]))
-        array_almost_equal(rlavg, A([[[10, 16], [13, 8]],
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, pool, (2, 3, 3), (2, 2), mode="max"):
+            array_almost_equal(rl, A([[[5, 6], [7, 6]], [[6, 7], [9, 9]]]))
+            array_almost_equal(ru, A([[[7, 6], [9, 9]], [[6, 7], [9, 9]]]))
+
+        for rl, ru in self._get_all_intervals_results(
+                inpl, inpu, pool, (2, 3, 3), (2, 2), mode="avg"):
+            array_almost_equal(rl, A([[[10, 16], [13, 8]],
                                      [[16, 20], [28, 23]]]) / 4.0)
-        array_almost_equal(ruavg, A([[[16, 18], [28, 29]],
+            array_almost_equal(ru, A([[[16, 18], [28, 29]],
                                      [[16, 20], [28, 23]]]) / 4.0)
 
 
