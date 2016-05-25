@@ -12,14 +12,15 @@ import math
 
 class NpInterval(Interval):
 
-    def __init__(self, lower, upper):
+    def __init__(self, lower, upper, accuracy=1e-06):
         """Creates NpInterval.
 
         :param numpy.ndarray lower: lower bound of Interval to be set
         :param numpy.ndarray upper: upper bound of Interval to be set
+        :param float accuracy: acceptable error in check lower <= upper
 
         """
-        assert (lower - 0.0001 <= upper).all()
+        assert (lower - accuracy <= upper).all()
         super(NpInterval, self).__init__(lower, upper)
 
     @staticmethod
