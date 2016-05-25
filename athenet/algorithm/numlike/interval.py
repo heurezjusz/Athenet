@@ -12,6 +12,8 @@ class Interval(Numlike):
     Represents matrix of intervals. Behaves like limited numpy.ndarray of
     intervals.
 
+    Operation combining many diffrent subclasses of Interval are not supported
+
     """
 
     NEUTRAL_LOWER = 0.0
@@ -187,7 +189,7 @@ class Interval(Numlike):
                                                n_batches, padding, lower_val)
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
                                                n_batches, padding, upper_val)
-        return Interval(padded_low, padded_upp)
+        return self.construct(padded_low, padded_upp)
 
     def __repr__(self):
         """Standard repr method."""
