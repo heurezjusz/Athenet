@@ -702,6 +702,60 @@ class TestDNorm(TestCase):
             self.assertEquals(A.shape, R.shape)
 
 
+class ReluDerivativeTest(TestCase):
+
+    def test_case1(self):
+        shp = (4, 3, 2)
+        act = np.zeros(shp)
+        for n_in in range(4):
+            for h in range(3):
+                for w in range(2):
+                    act[n_in, h, w] += 100 * n_in + 10 * h + w
+        iact = NpInterval(act, 1 * act)
+        idout = NpInterval(np.ones(shp), np.ones(shp))
+        idin = idout.op_d_relu(iact)
+        l, u = idin.lower, idin.upper
+
+        self.assertAlmostEquals(l[0, 0, 0], 0.0)
+        self.assertAlmostEquals(u[0, 0, 0], 0.0)
+        self.assertAlmostEquals(l[2, 1, 1], 1.0)
+        self.assertAlmostEquals(l[2, 2, 1], 1.0)
+        self.assertAlmostEquals(l[1, 0, 1], 1.0)
+        self.assertAlmostEquals(l[2, 1, 1], 1.0)
+        self.assertAlmostEquals(l[2, 2, 0], 1.0)
+        self.assertAlmostEquals(l[1, 0, 1], 1.0)
+
+    def test_case2(self):
+        actl = np.asarray([-2, -1, -1, 0, 0, 1])
+        actu = np.asarray([-1, 1, 0, 0, 1, 2])
+        doutl = np.asarray([2, 3, 4, 7, 11, 13])
+        doutu = np.asarray([3, 5, 7, 11, 13, 17])
+        iact = NpInterval(actl, actu)
+        idout = NpInterval(doutl, doutu)
+        idin = idout.op_d_relu(iact)
+        l, u = idin.lower, idin.upper
+        rl = np.asarray([0, 0, 0, 0, 11, 13])
+        ru = np.asarray([0, 5, 0, 0, 13, 17])
+
+        self.assertTrue((l == rl).all())
+        self.assertTrue((u == ru).all())
+
+    def test_case3(self):
+        actl = np.asarray([-2, -1, -1, 0, 0, 1])
+        actu = np.asarray([-1, 1, 0, 0, 1, 2])
+        doutl = np.asarray([-3, -5, -7, -11, -13, -17])
+        doutu = np.asarray([-2, -3, -5, -7, -11, -13])
+        iact = NpInterval(actl, actu)
+        idout = NpInterval(doutl, doutu)
+        idin = idout.op_d_relu(iact)
+        l, u = idin.lower, idin.upper
+        rl = np.asarray([0, -5, 0, 0, -13, -17])
+        ru = np.asarray([0, 0, 0, 0, -11, -13])
+
+        self.assertTrue((l == rl).all())
+        self.assertTrue((u == ru).all())
+
+
 class TestDiv(TestNpInterval):
 
     def _random_npinterval_without_zeros(self, shape=None, size_limit=10**2,

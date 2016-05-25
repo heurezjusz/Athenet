@@ -314,14 +314,25 @@ class NpInterval(Interval):
         """Returns estimated impact of input of relu layer on output of
         network.
 
-        :param Numlike activation: estimated activation of input
-        :param Numlike self: estimated impact of output of layer on output
+        :param NpInterval activation: estimated activation of input
+        :param NpInterval self: estimated impact of output of layer on output
                                of network in shape (batch_size, number of
                                channels, height, width)
         :returns: Estimated impact of input on output of network
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        lower_than_zero = activation.upper <= 0.
+        contains_zero = np.logical_and(activation.lower < 0,
+                                       activation.upper > 0)
+
+        der_with_zero_l = np.minimum(self.lower, 0.)
+        der_with_zero_u = np.maximum(self.upper, 0.)
+
+        result_l = np.select([lower_than_zero, contains_zero, True],
+                             [0., der_with_zero_l, self.lower])
+        result_u = np.select([lower_than_zero, contains_zero, True],
+                             [0., der_with_zero_u, self.upper])
+        return NpInterval(result_l, result_u)
 
     def op_d_max_pool(self, activation, input_shape, poolsize, stride,
                       padding):
