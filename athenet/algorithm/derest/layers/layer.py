@@ -50,7 +50,12 @@ class DerestLayer(object):
         output_shape = add_tuples(batches,
                                   change_order(self.layer.output_shape))
         layer_output = layer_output.reshape(output_shape)
-        self.derivatives = layer_output
+
+        if self.derivatives is not None:
+            self.derivatives.concat(layer_output)
+        else:
+            self.derivatives = layer_output
+
         return self._count_derivatives(layer_output, input_shape, normalize)
 
     def count_derest(self, count_function):

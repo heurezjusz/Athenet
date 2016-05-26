@@ -21,7 +21,7 @@ def sum_max(values):
 
 
 def get_derest_indicators(network, input, count_function=sum_max,
-                          normalize_activations=False,
+                          max_batch_size=None, normalize_activations=False,
                           normalize_derivatives=True):
     """
     Returns indicators of importance using derest algorithm
@@ -29,6 +29,7 @@ def get_derest_indicators(network, input, count_function=sum_max,
     :param Network network: network to work with
     :param Numlike input: possible input for network
     :param function count_function: function to use
+    :param int or None max_batch_size: size of batch in computing derivatives
     :param bool normalize_activations: whenever to normalize activations
         between layers
     :param bool normalize_derivatives: whenever to normalize derivatives
@@ -37,8 +38,14 @@ def get_derest_indicators(network, input, count_function=sum_max,
     """
     n = DerestNetwork(network)
     n.count_activations(input, normalize_activations)
+
     output_nr = network.layers[-1].output_shape
-    n.count_derivatives(input.derest_output(output_nr), normalize_derivatives)
+    if max_batch_size is None:
+        max_batch_size = output_nr
+    output= input.derest_output(output_nr)
+    for i in xrange(0, output_nr, max_batch_size):
+        n.count_derivatives(output[i:(i+max_batch_size)],
+                            normalize_derivatives)
     results = n.count_derest(count_function)
     return to_indicators(results)
 
@@ -57,6 +64,7 @@ def derest(network, fraction, (min_value, max_value)=(0., 255.),
     input_shape = change_order(network.layers[0].input_shape)
     input = NpInterval(numpy.full(input_shape, min_value),
                        numpy.full(input_shape, max_value))
-    indicators = get_derest_indicators(network, input, sum_max, *args, **kwargs)
+    indicators = get_derest_indicators(network, input, sum_max,
+                                       *args, **kwargs)
     delete_weights_by_global_fraction(network.weighted_layers,
                                       fraction, indicators)
