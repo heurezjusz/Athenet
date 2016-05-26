@@ -83,8 +83,8 @@ datasets = {
                 [(x / 10., 1, (5, 75, 75)) for x in xrange(1, 10)],
                 [(x / 20., 1, (5, 75, 75)) for x in xrange(1, 10)]],
     "derest": [[0.5],
-               [[x / 10.] for x in xrange(1, 10)],
-               [[x / 30.] for x in xrange(1, 20)]]
+               [(x / 10.) for x in xrange(1, 10)],
+               [(x / 30.) for x in xrange(1, 20)]]
     }
 
 

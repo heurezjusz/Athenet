@@ -95,7 +95,14 @@ def deleting_with_indicators(n, p):
 
 
 print "generating results..."
-examples = [float(x) / args.examples for x in range(args.examples)]
+n = args.examples
+if n > 1:
+    examples = [x / (n - 1.) for x in range(n)]
+elif n == 1:
+    examples = [0.5]
+else:
+    examples = []
+
 file_name = args.file if args.file \
     else args.network + "_" + datetime.now().strftime("%d%b_%H:%M:%S:%f")
 results = run_algorithm(network, deleting_with_indicators,
