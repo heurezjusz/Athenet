@@ -15,7 +15,7 @@ def sum_max(values):
     Computes indicator from Numlike values
 
     :param Numlike values: values to count indicator from
-    :return: int
+    :return: float
     """
     return values.sum().upper
 

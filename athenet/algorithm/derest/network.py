@@ -12,11 +12,6 @@ class DerestNetwork(object):
         self.layers = [get_derest_layer(layer)
                        for layer in network.layers]
 
-    @staticmethod
-    def _normalize(data):
-        a = data.abs().amax().upper
-        return data / a
-
     def count_activations(self, inp, normalize=False):
         """
         Computes estimated activations for each layer
@@ -26,11 +21,6 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            if normalize:
-                inp = self._normalize(inp)
-            input_shape = change_order(make_iterable(layer.layer.input_shape))
-            inp = inp.reshape(input_shape)
-            layer.activations = inp
             inp = layer.count_activation(inp, normalize)
         return inp
 
@@ -44,17 +34,7 @@ class DerestNetwork(object):
         """
         batches = outp.shape[0]
         for layer in reversed(self.layers):
-#            print "warstwa: ", type(layer)
-#            print "output: ", outp
-            if normalize:
-                outp = self._normalize(outp)
-            input_shape = add_tuples(batches,
-                                     change_order(layer.layer.input_shape))
-            output_shape = add_tuples(batches,
-                                      change_order(layer.layer.output_shape))
-            outp = outp.reshape(output_shape)
-            layer.derivatives = outp
-            outp = layer.count_derivatives(outp, input_shape, normalize)
+            outp = layer.count_derivatives(outp, batches, normalize)
         return outp
 
     def count_derest(self, count_function):

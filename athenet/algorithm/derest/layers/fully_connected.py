@@ -7,7 +7,7 @@ from athenet.algorithm.numlike import assert_numlike
 
 class DerestFullyConnectedLayer(DerestLayer):
 
-    def count_activation(self, layer_input, normalize=False):
+    def _count_activation(self, layer_input, normalize=False):
         """
         Return estimated activations
 
@@ -16,7 +16,7 @@ class DerestFullyConnectedLayer(DerestLayer):
         """
         return a_fully_connected(layer_input, self.layer.W, self.layer.b)
 
-    def count_derivatives(self, output, input_shape, normalize=False):
+    def _count_derivatives(self, output, input_shape, normalize=False):
         """
         Returns estimated impact of input of layer on output of
         network.
