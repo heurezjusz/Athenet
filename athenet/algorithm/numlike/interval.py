@@ -199,8 +199,8 @@ class Interval(Numlike):
 
 
     @staticmethod
-    def _theano_op_conv(lower, upper, weights, image_shape, filter_shape, biases, stride,
-                padding, n_groups):
+    def _theano_op_conv(lower, upper, weights, image_shape, filter_shape,
+                        biases, stride, padding, n_groups):
         """Returns estimated activation of convolution applied to Interval.
 
         :param weights: weights tensor in format (number of output channels,
