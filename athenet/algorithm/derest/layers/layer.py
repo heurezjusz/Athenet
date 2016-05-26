@@ -1,6 +1,6 @@
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
-import numpy
+
 
 class DerestLayer(object):
 
@@ -20,7 +20,7 @@ class DerestLayer(object):
         Returns estimated activations
 
         :param Numlike layer_input:
-        :return Numlike:
+        :return Numlike: activations
         """
         layer_input = self._normalize_activation(layer_input)
         input_shape = change_order(make_iterable(self.layer.input_shape))
@@ -38,7 +38,7 @@ class DerestLayer(object):
         :param Numlike layer_output:
         :param tuple input_shape: shape of input
         :param int batches: number of batches
-        :return Numlike:
+        :return Numlike: derivatives
         """
         layer_output = self._normalize_derivatives(layer_output)
         input_shape = add_tuples(batches,
