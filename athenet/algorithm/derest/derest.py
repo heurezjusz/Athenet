@@ -15,18 +15,25 @@ def sum_max(values):
     Computes indicator from Numlike values
 
     :param Numlike values: values to count indicator from
-    :return: int
+    :return: float
     """
     return values.sum().upper
 
 
-def get_derest_indicators(network, input_=None, count_function=sum_max):
+def get_derest_indicators(network, input_=None, count_function=sum_max,
+                          max_batch_size=None, normalize_activations=False,
+                          normalize_derivatives=True):
     """
     Returns indicators of importance using derest algorithm
 
     :param Network network: network to work with
-    :param Numlike input: possible input for network
+    :param Numlike or None input: possible input for network
     :param function count_function: function to use
+    :param int or None max_batch_size: size of batch in computing derivatives
+    :param bool normalize_activations: whenever to normalize activations
+        between layers
+    :param bool normalize_derivatives: whenever to normalize derivatives
+        between layers
     :return array of integers:
     """
     if input_ is None:
@@ -36,14 +43,21 @@ def get_derest_indicators(network, input_=None, count_function=sum_max):
         )
 
     n = DerestNetwork(network)
-    n.count_activations(input_, True)
+    n.count_activations(input_, normalize_activations)
+
     output_nr = network.layers[-1].output_shape
-    n.count_derivatives(input_.derest_output(output_nr), True)
+    if max_batch_size is None:
+        max_batch_size = output_nr
+    output= input.derest_output(output_nr)
+    for i in xrange(0, output_nr, max_batch_size):
+        n.count_derivatives(output[i:(i+max_batch_size)],
+                            normalize_derivatives)
+
     results = n.count_derest(count_function)
     return to_indicators(results)
 
 
-def derest(network, fraction, input_=None):
+def derest(network, fraction, input_=None, *args, **kwargs):
     """
     Delete set percentage of weights from network,
 
@@ -54,6 +68,7 @@ def derest(network, fraction, input_=None):
     """
 
     input_shape = change_order(network.layers[0].input_shape)
-    indicators = get_derest_indicators(network, input_, sum_max)
+    indicators = get_derest_indicators(network, input_, sum_max,
+                                       *args, **kwargs)
     delete_weights_by_global_fraction(network.weighted_layers,
                                       fraction, indicators)

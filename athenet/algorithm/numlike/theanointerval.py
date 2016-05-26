@@ -1169,4 +1169,4 @@ class TheanoInterval(Interval):
     def concat(self, other, axis=0):
         lower = T.concatenate([self.lower, other.lower], axis=axis)
         upper = T.concatenate([self.upper, other.upper], axis=axis)
-        return Interval(lower, upper)
+        return TheanoInterval(lower, upper)
