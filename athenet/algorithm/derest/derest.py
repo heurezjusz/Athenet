@@ -64,8 +64,7 @@ def derest(network, fraction, input_=None, *args, **kwargs):
     :param Numlike or None input_: possible input of network
     """
 
-    input_shape = change_order(network.layers[0].input_shape)
-    indicators = get_derest_indicators(network, input_, sum_max,
+    indicators = get_derest_indicators(network, input_,
                                        *args, **kwargs)
     delete_weights_by_global_fraction(network.weighted_layers,
                                       fraction, indicators)
