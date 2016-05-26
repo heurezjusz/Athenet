@@ -1,7 +1,5 @@
 """Functions counting cost of weights in view of their activation/derivative.
 """
-import numpy
-import theano
 
 from athenet.algorithm.deleting import delete_weights_by_global_fraction
 from athenet.algorithm.derest.network import DerestNetwork
@@ -48,7 +46,7 @@ def get_derest_indicators(network, input_=None, count_function=sum_max,
     output_nr = network.layers[-1].output_shape
     if max_batch_size is None:
         max_batch_size = output_nr
-    output= input.derest_output(output_nr)
+    output= input_.derest_output(output_nr)
     for i in xrange(0, output_nr, max_batch_size):
         n.count_derivatives(output[i:(i+max_batch_size)],
                             normalize_derivatives)

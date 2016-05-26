@@ -70,8 +70,8 @@ parser.add_argument("-e", "--examples", type=int,
                          "deleting run this algorithm"
                          "(the higher the number, the more thorough the plot "
                          "will be and the more time it will work)."
-                         "Default is 1",
-                    default=1)
+                         "Default is 4",
+                    default=4)
 
 parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
