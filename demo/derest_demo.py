@@ -7,6 +7,7 @@ from athenet.layers import ConvolutionalLayer, FullyConnectedLayer,\
     Softmax, ReLU, MaxPool, InceptionLayer, LRN
 from config.algorithm import ok
 
+
 def custom_derivatives_normalization(data):
     return data / 4.
 
