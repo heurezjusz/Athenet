@@ -90,8 +90,8 @@ ok()
 
 
 def deleting_with_indicators(n, p):
-    return deleting[args.deleting](choose_layers(n, args.types, args.indicators),
-                                   p, ind)
+    return deleting[args.deleting](
+        choose_layers(n, args.types, args.indicators), p, ind)
 
 
 print "generating results..."

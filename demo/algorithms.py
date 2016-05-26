@@ -30,7 +30,8 @@ parser.add_argument("-a", "--algorithm",
                          " * rat2: sparsify_smallest_on_layers\n"
                          " * filters: sharpen_filters\n"
                          " * derest: derest",
-                    choices=["sender", "sender2", "rat", "rat2", "filters", "derest"],
+                    choices=["sender", "sender2", "rat", "rat2", "filters",
+                             "derest"],
                     default="sender")
 
 parser.add_argument("-n", "--network",
