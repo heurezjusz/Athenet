@@ -15,14 +15,15 @@ from athenet.algorithm.numlike import Interval
 
 class NpInterval(Interval):
 
-    def __init__(self, lower, upper):
+    def __init__(self, lower, upper, accuracy=1e-6):
         """Creates NpInterval.
 
         :param numpy.ndarray lower: lower bound of Interval to be set
         :param numpy.ndarray upper: upper bound of Interval to be set
+        :param float accuracy: acceptable error in check lower <= upper
 
         """
-        assert (lower <= upper).all()
+        assert (lower - accuracy <= upper).all()
         self.op_conv_function = None
         super(NpInterval, self).__init__(lower, upper)
 
@@ -39,7 +40,7 @@ class NpInterval(Interval):
         self.lower[at] = other.lower
         self.upper[at] = other.upper
 
-    def antiadd(self, other):
+    def _antiadd(self, other):
         """For given NpInterval returns NpInterval which shuold be added
         to id to get NpInterval equal to self.
 
@@ -547,9 +548,6 @@ class NpInterval(Interval):
         n_batches, n_in, h, w = input_shape
 
         pad_h, pad_w = padding
-        activation = activation.reshape_for_padding(input_shape, padding,
-                                                    lower_val=0.,
-                                                    upper_val=0.)
         input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
         h += 2 * pad_h
         w += 2 * pad_w
@@ -603,7 +601,6 @@ class NpInterval(Interval):
         activation_sqares = activation.square()
         local_range /= 2
 
-
         # some piece of math, unnecessary in any other place:
         # derivative for x placed in denominator of norm function
         def der_eq(x, c):
@@ -620,9 +617,8 @@ class NpInterval(Interval):
             return (alpha * (1 - 2 * beta) * x ** 2 + c) / \
                    (alpha * x ** 2 + c) ** (beta + 1)
 
-
         # possible extremas
-        def root1_2d(c_low, c_up, x_low, x_up):
+        def extremas_2d_dx(c_low, c_up, x_low, x_up):
             # df / dx = 0
             # returns roots of derivative of derivetive of norm function
             # x = 0
@@ -639,8 +635,7 @@ class NpInterval(Interval):
             return [(x, c) for x, c in possibilities_c0 + possibilities_c1
                     + possibilities_c2 if x_low <= x <= x_up]
 
-
-        def root2_2d(c_low, c_up, x_low, x_up):
+        def extremas_2d_dc(c_low, c_up, x_low, x_up):
             # df / dc = 0
             # returns roots of derivative of derivetive of norm function
             # x = - sqrt(c) / sqrt (alpha * (2*beta+1))
@@ -667,15 +662,13 @@ class NpInterval(Interval):
             :return: Returns value of derivative of norm function
             """
             return -2 * alpha * beta * x * y / \
-                   (c + alpha * (x ** 2 + y ** 2)) ** (beta + 1)
-
+                (c + alpha * (x ** 2 + y ** 2)) ** (beta + 1)
 
         # possible extremas of this derivative
         def extremas_3d(x_low, x_up, y_low, y_up, c_low, c_up):
             return [(x, y, c) for x, y, c in
                     product([x_low, x_up], [y_low, y_up], [c_low, c_up])
                     if x_low <= x <= x_up and y_low <= y <= y_up]
-
 
         def extremas_3d_dx(x_low, x_up, y_low, y_up, c_low, c_up):
             # ddf/dx/dx = 0
@@ -715,54 +708,62 @@ class NpInterval(Interval):
                     if x_low <= x <= x_up and y_low <= y <= y_up]
 
         batches, channels, h, w = input_shape
-        for b, channel, at_h, at_w in product(xrange(batches), xrange(channels),
-                                              xrange(h), xrange(w)):
+        for b, channel, at_h, at_w in product(xrange(batches),
+                                              xrange(channels), xrange(h),
+                                              xrange(w)):
             C = NpInterval(np.asarray([k]), np.asarray([k]))
             for i in xrange(-local_range, local_range + 1):
                 if channels > i + channel >= 0 != i:
-                    C += activation_sqares[b][channel + i][at_h][at_w]
+                    C += activation_sqares[b][channel + i][at_h][at_w] * alpha
+                    C._antiadd(activation_sqares[b][channel + i][at_h][at_w] * alpha)
 
             Y = activation[b][channel][at_h][at_w]
 
             # eq case
             extremas = [(x, c) for x, c in product([Y.lower, Y.upper],
                                                    [C.lower, C.upper])]
-            extremas.extend(root1_2d(C.lower, C.upper, Y.lower, Y.upper))
-            extremas.extend(root2_2d(C.lower, C.upper, Y.lower, Y.upper))
-            der = NpInterval(np.inf, -np.inf)
+
+            extremas.extend(extremas_2d_dx(C.lower, C.upper, Y.lower, Y.upper))
+            extremas.extend(extremas_2d_dc(C.lower, C.upper, Y.lower, Y.upper))
+
+            der_l = np.inf
+            der_u = -np.inf
             for x, c in extremas:
                 val = der_eq(x, c)
-                if der.lower > val:
-                    der.lower = val
-                if der.upper < val:
-                    der.upper = val
-            result[b][channel][at_h][at_w] += der * self[b][channel][at_h][at_w]
+                if der_l > val:
+                    der_l = val
+                if der_u < val:
+                    der_u = val
+            result[b][channel][at_h][at_w] += \
+                NpInterval(der_l, der_u) * self[b][channel][at_h][at_w]
 
             # not_eq_case
             for i in xrange(-local_range, local_range + 1):
                 if i != 0 and 0 <= (i + channel) < channels:
                     X = activation[b][channel + i][at_h][at_w]
-                    X2 = activation_sqares[b][channel + i][at_h][at_w]
-                    C = C.antiadd(X2)
+                    X2 = activation_sqares[b][channel + i][at_h][at_w] * alpha
+                    C = C._antiadd(X2)
 
-                    extremas = extremas_3d(X.lower, X.upper, Y.lower,
-                                           Y.upper, C.lower, C.upper) + \
-                               extremas_3d_dx(X.lower, X.upper, Y.lower,
-                                              Y.upper, C.lower, C.upper) + \
-                               extremas_3d_dy(X.lower, X.upper, Y.lower,
-                                              Y.upper, C.lower, C.upper) + \
-                               extremas_3d_dxdy(X.lower, X.upper, Y.lower,
-                                                Y.upper, C.lower, C.upper)
+                    extremas =\
+                        extremas_3d(X.lower, X.upper, Y.lower, Y.upper,
+                                    C.lower, C.upper) + \
+                        extremas_3d_dx(X.lower, X.upper, Y.lower, Y.upper,
+                                       C.lower, C.upper) + \
+                        extremas_3d_dy(X.lower, X.upper, Y.lower, Y.upper,
+                                       C.lower, C.upper) + \
+                        extremas_3d_dxdy(X.lower, X.upper, Y.lower, Y.upper,
+                                         C.lower, C.upper)
 
-                    der = NpInterval(np.inf, -np.inf)
+                    der_l = np.inf
+                    der_u = -np.inf
                     for x, y, c in extremas:
                         val = der_not_eq(x, y, c)
-                        if der.lower > val:
-                            der.lower = val
-                        if der.upper < val:
-                            der.upper = val
+                        if der_l > val:
+                            der_l = val
+                        if der_u < val:
+                            der_u = val
                     result[b][channel + i][at_h][at_w] += \
-                        der * self[b][channel][at_h][at_w]
+                        NpInterval(der_l, der_u) * self[b][channel][at_h][at_w]
                     C += X2
 
         return result
