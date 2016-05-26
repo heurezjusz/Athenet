@@ -56,9 +56,11 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
     # padding
     pad_h, pad_w = padding
     if padding != (0, 0):
-        layer_input = layer_input.reshape_for_padding(input_shp, padding)
+        layer_input = layer_input.reshape_for_padding((1, n_in, h, w), padding)
         h += 2 * pad_h
         w += 2 * pad_w
+    else:
+        layer_input = layer_input.reshape((1, n_in, h, w))
 
     # fh, fw - pool height, pool width
     fh, fw = poolsize
@@ -74,11 +76,11 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
             # at_out_w - height of output corresponding to pool at
             # position at_w
             at_out_w = at_w / stride_w
-            input_slice = layer_input[:, at_h:(at_h + fh), at_w:(at_w + fw)]
+            input_slice = layer_input[:, :, at_h:(at_h + fh), at_w:(at_w + fw)]
             if is_max:
-                pool_res = input_slice.amax(axis=(1, 2), keepdims=False)
+                pool_res = input_slice.amax(axis=(0, 2, 3), keepdims=False)
             else:
-                pool_res = input_slice.sum(axis=(1, 2), keepdims=False) \
+                pool_res = input_slice.sum(axis=(0, 2, 3), keepdims=False) \
                     / float(fh * fw)
             result[:, at_out_h, at_out_w] = pool_res
     return result
