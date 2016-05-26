@@ -27,7 +27,7 @@ def get_derest_indicators(network, input_=None, count_function=sum_max,
     Returns indicators of importance using derest algorithm
 
     :param Network network: network to work with
-    :param Numlike or None input: possible input for network
+    :param Numlike or None input_: possible input for network
     :param function count_function: function to use
     :param int or None max_batch_size: size of batch in computing derivatives
     :param bool normalize_activations: whenever to normalize activations
@@ -63,8 +63,7 @@ def derest(network, fraction, input_=None, *args, **kwargs):
 
     :param Network network: network to delete weights from
     :param float fraction: fraction of weights to be deleted
-    :param tuple(float, float) (min_value, max_value):
-        range of possible values on input of network
+    :param Numlike or None input_: possible input of network
     """
 
     input_shape = change_order(network.layers[0].input_shape)
