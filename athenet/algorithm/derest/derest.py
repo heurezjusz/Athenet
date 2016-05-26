@@ -63,17 +63,18 @@ def get_derest_indicators(network, input_=None, count_function=sum_length,
             neutral=False
         )
 
-    n = DerestNetwork(network, normalize_activations, normalize_derivatives)
-    n.count_activations(input_)
+    derest_network = DerestNetwork(network, normalize_activations,
+                                   normalize_derivatives)
+    derest_network.count_activations(input_)
 
     output_nr = network.layers[-1].output_shape
     if max_batch_size is None:
         max_batch_size = output_nr
     output= input_.derest_output(output_nr)
     for i in xrange(0, output_nr, max_batch_size):
-        n.count_derivatives(output[i:(i+max_batch_size)])
+        derest_network.count_derivatives(output[i:(i+max_batch_size)])
 
-    results = n.count_derest(count_function)
+    results = derest_network.count_derest(count_function)
     return to_indicators(results)
 
 
