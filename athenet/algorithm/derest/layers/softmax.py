@@ -4,7 +4,7 @@ from athenet.algorithm.numlike import assert_numlike
 
 class DerestSoftmaxLayer(DerestLayer):
 
-    def _count_activation(self, layer_input, normalize=False):
+    def _count_activation(self, layer_input):
         """
         Returns estimated activations
 
@@ -13,7 +13,7 @@ class DerestSoftmaxLayer(DerestLayer):
         """
         return a_softmax(layer_input, self.layer.input_shape)
 
-    def _count_derivatives(self, layer_output, input_shape, normalize=False):
+    def _count_derivatives(self, layer_output, input_shape):
         """
         Returns estimated impact of input of layer on output of network
 

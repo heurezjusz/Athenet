@@ -5,7 +5,7 @@ from athenet.algorithm.derest.utils import change_order
 
 class DerestPoolLayer(DerestLayer):
 
-    def _count_activation(self, layer_input, normalize=False):
+    def _count_activation(self, layer_input):
         """
         Returns estimated activations
 
@@ -16,7 +16,7 @@ class DerestPoolLayer(DerestLayer):
                       self.layer.poolsize, self.layer.stride,
                       self.layer.padding, self.layer.mode)
 
-    def _count_derivatives(self, layer_output, input_shape, normalize=False):
+    def _count_derivatives(self, layer_output, input_shape):
         """
         Returns estimated impact of input of layer on output of network
 

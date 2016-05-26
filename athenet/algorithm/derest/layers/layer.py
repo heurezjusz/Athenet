@@ -1,50 +1,46 @@
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
+import numpy
 
 class DerestLayer(object):
 
-    def __init__(self, layer):
+    def __init__(self, layer, normalize_activation=lambda x: x,
+                 normalize_derivatives=lambda x: x):
         self.layer = layer
         self.activations = None
         self.derivatives = None
+        self._normalize_activation = normalize_activation
+        self._normalize_derivatives = normalize_derivatives
 
-    @staticmethod
-    def _normalize(data):
-        a = data.abs().amax().upper
-        return data / a
-
-    def _count_activation(self, layer_input, normalize=False):
+    def _count_activation(self, layer_input):
         raise NotImplementedError
 
-    def count_activation(self, layer_input, normalize=False):
+    def count_activation(self, layer_input):
         """
         Returns estimated activations
 
         :param Numlike layer_input:
-        :param boolean normalize: whenever normalize number between layers
         :return Numlike:
         """
-        if normalize:
-            layer_input = self._normalize(layer_input)
+        layer_input = self._normalize_activation(layer_input)
         input_shape = change_order(make_iterable(self.layer.input_shape))
         layer_input = layer_input.reshape(input_shape)
         self.activations = layer_input
-        return self._count_activation(layer_input, normalize)
+        return self._count_activation(layer_input)
 
-    def _count_derivatives(self, layer_output, input_shape, normalize=False):
+    def _count_derivatives(self, layer_output, input_shape):
         raise NotImplementedError
 
-    def count_derivatives(self, layer_output, batches, normalize=False):
+    def count_derivatives(self, layer_output, batches):
         """
         Returns estimated impact of input of layer on output of network
 
         :param Numlike layer_output:
-        :param tuple input_shape:
-        :param boolean normalize: whenever normalize number between layers
+        :param tuple input_shape: shape of input
+        :param int batches: number of batches
         :return Numlike:
         """
-        if normalize:
-            layer_output = self._normalize(layer_output)
+        layer_output = self._normalize_derivatives(layer_output)
         input_shape = add_tuples(batches,
                                  change_order(self.layer.input_shape))
         output_shape = add_tuples(batches,
@@ -56,7 +52,7 @@ class DerestLayer(object):
         else:
             self.derivatives = layer_output
 
-        return self._count_derivatives(layer_output, input_shape, normalize)
+        return self._count_derivatives(layer_output, input_shape)
 
     def count_derest(self, count_function):
         """

@@ -6,7 +6,7 @@ from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
 from athenet.algorithm.derest.utils import add_tuples, change_order
 
 
-def get_derest_layer(layer):
+def get_derest_layer(layer, *args):
     """
     Return derest layer on which we can count activations, derivatives
         and derest algorithm
@@ -15,42 +15,42 @@ def get_derest_layer(layer):
     :return DerestLayer: new better derest layer
     """
     if isinstance(layer, Softmax):
-        return DerestSoftmaxLayer(layer)
+        return DerestSoftmaxLayer(layer, *args)
     if isinstance(layer, ReLU):
-        return DerestReluLayer(layer)
+        return DerestReluLayer(layer, *args)
     if isinstance(layer, PoolingLayer):
-        return DerestPoolLayer(layer)
+        return DerestPoolLayer(layer, *args)
     if isinstance(layer, LRN):
-        return DerestNormLayer(layer)
+        return DerestNormLayer(layer, *args)
     if isinstance(layer, ConvolutionalLayer):
-        return DerestConvolutionalLayer(layer)
+        return DerestConvolutionalLayer(layer, *args)
     if isinstance(layer, Dropout):
-        return DerestDropoutLayer(layer)
+        return DerestDropoutLayer(layer, *args)
     if isinstance(layer, FullyConnectedLayer):
-        return DerestFullyConnectedLayer(layer)
+        return DerestFullyConnectedLayer(layer, *args)
     if isinstance(layer, InceptionLayer):
-        return DerestInceptionLayer(layer)
+        return DerestInceptionLayer(layer, *args)
     raise NotImplementedError
 
 
 class DerestInceptionLayer(DerestLayer):
 
-    def __init__(self, layer):
+    def __init__(self, layer, *args):
         super(DerestInceptionLayer, self).__init__(layer)
         self.derest_layer_lists = []
         for layer_list in self.layer.layer_lists:
             derest_layer_list = []
             for l in layer_list:
-                derest_layer_list.append(get_derest_layer(l))
+                derest_layer_list.append(get_derest_layer(l, *args))
             self.derest_layer_lists.append(derest_layer_list)
 
-    def _count_activation(self, input, normalize=False):
+    def _count_activation(self, input):
         results = None
 
         for derest_layer_list in self.derest_layer_lists:
             inp = input
             for derest_layer in derest_layer_list:
-                inp = derest_layer.count_activation(inp, normalize)
+                inp = derest_layer.count_activation(inp)
 
             if results is None:
                 results = inp
@@ -59,7 +59,7 @@ class DerestInceptionLayer(DerestLayer):
 
         return results
 
-    def _count_derivatives(self, output, input_shape, normalize=False):
+    def _count_derivatives(self, output, input_shape):
         output_list = []
         last = 0
         for layer in self.layer.top_layers:

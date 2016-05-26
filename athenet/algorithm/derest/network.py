@@ -2,12 +2,12 @@ from athenet.algorithm.derest.layers import get_derest_layer
 
 class DerestNetwork(object):
 
-    def __init__(self, network):
+    def __init__(self, network, *args):
         self.network = network
-        self.layers = [get_derest_layer(layer)
+        self.layers = [get_derest_layer(layer, *args)
                        for layer in network.layers]
 
-    def count_activations(self, inp, normalize=False):
+    def count_activations(self, inp):
         """
         Computes estimated activations for each layer
 
@@ -16,10 +16,10 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            inp = layer.count_activation(inp, normalize)
+            inp = layer.count_activation(inp)
         return inp
 
-    def count_derivatives(self, outp, normalize=False):
+    def count_derivatives(self, outp):
         """
         Computes estimated impact of input of each layer on output of network
 
@@ -29,7 +29,7 @@ class DerestNetwork(object):
         """
         batches = outp.shape[0]
         for layer in reversed(self.layers):
-            outp = layer.count_derivatives(outp, batches, normalize)
+            outp = layer.count_derivatives(outp, batches)
         return outp
 
     def count_derest(self, count_function):

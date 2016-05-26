@@ -18,9 +18,32 @@ def sum_max(values):
     return values.sum().upper
 
 
-def get_derest_indicators(network, input_=None, count_function=sum_max,
-                          max_batch_size=None, normalize_activations=False,
-                          normalize_derivatives=True):
+def sum_length(values):
+    """
+    Computes indicator from Indicator
+
+    :param Numlike values: values to count indicator from
+    :return: float
+    """
+
+    a = values.sum()
+    return a.upper - a.lower
+
+
+def divide_by_max(data):
+    a = data.abs().amax()
+    return data / a.upper
+
+
+def divide_by_length(data):
+    a = data.sum()
+    return data / (a.upper - a.lower + 1)
+
+
+def get_derest_indicators(network, input_=None, count_function=sum_length,
+                          max_batch_size=None,
+                          normalize_activations=lambda x: x,
+                          normalize_derivatives=divide_by_length):
     """
     Returns indicators of importance using derest algorithm
 
@@ -40,16 +63,15 @@ def get_derest_indicators(network, input_=None, count_function=sum_max,
             neutral=False
         )
 
-    n = DerestNetwork(network)
-    n.count_activations(input_, normalize_activations)
+    n = DerestNetwork(network, normalize_activations, normalize_derivatives)
+    n.count_activations(input_)
 
     output_nr = network.layers[-1].output_shape
     if max_batch_size is None:
         max_batch_size = output_nr
     output= input_.derest_output(output_nr)
     for i in xrange(0, output_nr, max_batch_size):
-        n.count_derivatives(output[i:(i+max_batch_size)],
-                            normalize_derivatives)
+        n.count_derivatives(output[i:(i+max_batch_size)])
 
     results = n.count_derest(count_function)
     return to_indicators(results)
