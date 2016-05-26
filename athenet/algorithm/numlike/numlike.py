@@ -224,6 +224,14 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def broadcast(self, shape):
+        """Broadcast Numlike into given shape
+
+        :param shape: tuple of integers
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         raise NotImplementedError
