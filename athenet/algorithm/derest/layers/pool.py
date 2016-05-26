@@ -25,7 +25,8 @@ class DerestPoolLayer(DerestLayer):
         :return Numlike:
         """
         assert(self.activations is not None)
-        return d_pool(layer_output, self.activations, input_shape,
+        activations = self.activations.broadcast(input_shape)
+        return d_pool(layer_output, activations, input_shape,
                       self.layer.poolsize, self.layer.stride,
                       self.layer.padding, self.layer.mode)
 

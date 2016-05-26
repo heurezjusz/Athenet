@@ -11,7 +11,7 @@ def aggregating_example_function(values):
 n = Network([
     ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(4, 4, 2)),
     ReLU(),
-#    LRN(),
+    LRN(),
     MaxPool(poolsize=(2, 2)),
 #    InceptionLayer(n_filters=[2, 2, 2, 2, 2, 2]),
     FullyConnectedLayer(n_out=10),

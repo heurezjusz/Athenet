@@ -25,7 +25,8 @@ class DerestNormLayer(DerestLayer):
         :return Numlike:
         """
         assert(self.activations is not None)
-        return d_norm(layer_output, self.activations, input_shape,
+        activations = self.activations.broadcast(input_shape)
+        return d_norm(layer_output, activations, input_shape,
                       self.layer.local_range, self.layer.k,
                       self.layer.alpha, self.layer.beta)
 

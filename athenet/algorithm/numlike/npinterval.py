@@ -235,6 +235,15 @@ class NpInterval(Interval):
         upper = np.full(shp, upper_val)
         return NpInterval(lower, upper)
 
+    def broadcast(self, shape):
+        """Broadcast interval
+
+        :param shape: tuple of integers
+        :rtype: NpInterval
+        """
+        return NpInterval(np.broadcast_to(self.lower, shape),
+                          np.broadcast_to(self.upper, shape))
+
     @staticmethod
     def _reshape_for_padding(layer_input, image_shape, batch_size, padding,
                              value=0.0):

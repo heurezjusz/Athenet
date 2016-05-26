@@ -22,7 +22,8 @@ class DerestReluLayer(DerestLayer):
         :return Numlike:
         """
         assert self.activations is not None
-        return d_relu(layer_output, self.activations)
+        activations = self.activations.broadcast(input_shape)
+        return d_relu(layer_output, activations)
 
 
 def a_relu(layer_input):
