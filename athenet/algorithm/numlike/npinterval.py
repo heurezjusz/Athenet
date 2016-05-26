@@ -245,6 +245,12 @@ class NpInterval(Interval):
         extra_pixels[:, :, pad_h:(pad_h+h), pad_w:(pad_w+w)] = layer_input
         return extra_pixels
 
+    @staticmethod
+    def select(bool_list, interval_list):
+        lower = [a.lower if isinstance(a, NpInterval) else a for a in interval_list]
+        upper = [a.upper if isinstance(a, NpInterval) else a for a in interval_list]
+        return NpInterval(np.select(bool_list, lower), np.select(bool_list, upper))
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         return self
@@ -352,7 +358,67 @@ class NpInterval(Interval):
         :returns: Estimated impact of input on output of network
         :rtype: Numlike
         """
-        raise NotImplementedError
+        # n_batches, n_in, h, w - number of batches, number of channels,
+        # image height, image width
+        n_batches, n_in, h, w = input_shape
+
+        pad_h, pad_w = padding
+        activation = activation.reshape_for_padding(input_shape, padding,
+                                                    lower_val=-np.inf,
+                                                    upper_val=-np.inf)
+        input_shape = (n_batches, n_in, h + 2 * pad_h, w + 2 * pad_w)
+        h += 2 * pad_h
+        w += 2 * pad_w
+
+        # fh, fw - pool height, pool width
+        fh, fw = poolsize
+        stride_h, stride_w = stride
+        output = self
+        result = activation.from_shape(input_shape, neutral=True)
+
+        for at_h, at_w in product(xrange(0, h - fh + 1, stride_h),
+                                  xrange(0, w - fw + 1, stride_w)):
+            # at_out_h - height of output corresponding to pool at position
+            # at_h
+            at_out_h = at_h / stride_h
+            # at_out_w - width of output corresponding to pool at position
+            # at_w
+            at_out_w = at_w / stride_w
+
+            for at_f_h, at_f_w in product(xrange(at_h, at_h + fh),
+                                          xrange(at_w, at_w + fw)):
+                # maximum lower and upper value of neighbours
+                neigh_max_low = np.asarray([-np.inf])
+                neigh_max_upp = np.asarray([-np.inf])
+                neigh_max_itv = NpInterval(neigh_max_low, neigh_max_upp)
+                act_slice = activation[:, :, at_f_h, at_f_w]
+
+                # setting maximum lower and upper of neighbours
+                for at_f_h_neigh, at_f_w_neigh in \
+                        product(xrange(at_h, at_h + fh),
+                                xrange(at_w, at_w + fw)):
+
+                    if (at_f_h_neigh, at_f_w_neigh) != (at_f_h, at_f_w):
+                        neigh_slice = activation[:, :, at_f_h_neigh,
+                                      at_f_w_neigh]
+                        neigh_max_itv = neigh_max_itv.max(neigh_slice)
+
+                # must have impact on output
+                must = act_slice.lower > neigh_max_itv.upper
+                # cannot have impact on output
+                cannot = act_slice.upper < neigh_max_itv.lower
+                # or might have impact on output
+
+
+                output_slice = output[:, :, at_out_h, at_out_w]
+                output_with_0 = NpInterval(np.minimum(output_slice.lower, 0.),
+                                           np.maximum(output_slice.upper, 0.))
+
+                result[:, :, at_f_h, at_f_w] += \
+                    NpInterval.select([must, cannot, True],
+                                      [output_slice, 0., output_with_0])
+
+        return result[:, :, pad_h:h - pad_h, pad_w:w - pad_w]
 
     def op_d_avg_pool(self, activation, input_shape, poolsize, stride,
                       padding):
