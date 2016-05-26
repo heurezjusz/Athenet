@@ -20,7 +20,7 @@ def sum_max(values):
     return values.sum().upper
 
 
-def get_derest_indicators(network, input, count_function=sum_max):
+def get_derest_indicators(network, input_=None, count_function=sum_max):
     """
     Returns indicators of importance using derest algorithm
 
@@ -29,15 +29,21 @@ def get_derest_indicators(network, input, count_function=sum_max):
     :param function count_function: function to use
     :return array of integers:
     """
+    if input_ is None:
+        input_ = NpInterval.from_shape(
+            change_order(network.layers[0].input_shape),
+            neutral=False
+        )
+
     n = DerestNetwork(network)
-    n.count_activations(input, True)
+    n.count_activations(input_, True)
     output_nr = network.layers[-1].output_shape
-    n.count_derivatives(input.derest_output(output_nr), True)
+    n.count_derivatives(input_.derest_output(output_nr), True)
     results = n.count_derest(count_function)
     return to_indicators(results)
 
 
-def derest(network, fraction, (min_value, max_value)=(0., 255.)):
+def derest(network, fraction, input_=None):
     """
     Delete set percentage of weights from network,
 
@@ -48,8 +54,6 @@ def derest(network, fraction, (min_value, max_value)=(0., 255.)):
     """
 
     input_shape = change_order(network.layers[0].input_shape)
-    input = NpInterval(numpy.full(input_shape, min_value),
-                       numpy.full(input_shape, max_value))
-    indicators = get_derest_indicators(network, input, sum_max)
+    indicators = get_derest_indicators(network, input_, sum_max)
     delete_weights_by_global_fraction(network.weighted_layers,
                                       fraction, indicators)
