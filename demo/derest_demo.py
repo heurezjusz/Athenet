@@ -10,6 +10,7 @@ from athenet.layers import ConvolutionalLayer, FullyConnectedLayer,\
 def custom_derivatives_normalization(data):
     return data / 4.
 
+
 def custom_activations_normalization(data):
     return data / data.sum().upper
 
