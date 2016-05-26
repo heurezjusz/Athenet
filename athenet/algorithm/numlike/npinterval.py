@@ -447,9 +447,12 @@ class NpInterval(Interval):
 
     @staticmethod
     def select(bool_list, interval_list):
-        lower = [a.lower if isinstance(a, NpInterval) else a for a in interval_list]
-        upper = [a.upper if isinstance(a, NpInterval) else a for a in interval_list]
-        return NpInterval(np.select(bool_list, lower), np.select(bool_list, upper))
+        lower = [a.lower if isinstance(a, NpInterval) else a
+                 for a in interval_list]
+        upper = [a.upper if isinstance(a, NpInterval) else a
+                 for a in interval_list]
+        return NpInterval(np.select(bool_list, lower),
+                          np.select(bool_list, upper))
 
     def op_d_max_pool(self, activation, input_shape, poolsize, stride,
                       padding):
