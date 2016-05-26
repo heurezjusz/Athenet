@@ -24,7 +24,6 @@ class NpInterval(Interval):
 
         """
         assert (lower - accuracy <= upper).all()
-        self.op_conv_function = None
         super(NpInterval, self).__init__(lower, upper)
 
     @staticmethod
@@ -404,17 +403,16 @@ class NpInterval(Interval):
         :type n_groups: integer
         :rtype: NpInterval
         """
-        if self.op_conv_function is None:
-            t_lower, t_upper = T.tensor3(), T.tensor3()
-            result_lower, result_upper = self._theano_op_conv(
-                t_lower, t_upper, weights, image_shape, filter_shape,
-                biases, stride, padding, n_groups
-            )
-            self.op_conv_function = function([t_lower, t_upper],
-                                             [result_lower, result_upper])
 
-        lower, upper = self.op_conv_function(self.lower, self.upper)
+        t_lower, t_upper = T.tensor3(), T.tensor3()
+        result_lower, result_upper = self._theano_op_conv(
+            t_lower, t_upper, weights, image_shape, filter_shape,
+            biases, stride, padding, n_groups
+        )
+        op_conv_function = function([t_lower, t_upper],
+                                    [result_lower, result_upper])
 
+        lower, upper = op_conv_function(self.lower, self.upper)
         return NpInterval(lower, upper)
 
     def op_d_relu(self, activation):
