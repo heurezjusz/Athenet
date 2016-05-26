@@ -1,3 +1,7 @@
+"""
+Example usage of indicators and deleting weights
+"""
+
 import numpy
 
 from athenet.algorithm import get_derest_indicators,\
