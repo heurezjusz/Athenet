@@ -32,12 +32,12 @@ def sum_length(values):
 
 def divide_by_max(data):
     a = data.abs().amax()
-    return data / a.upper
+    return data / (a.upper + 1e-6)
 
 
 def divide_by_length(data):
     a = data.sum()
-    return data / (a.upper - a.lower + 1)
+    return data / (a.upper - a.lower + 1e-6)
 
 
 def get_derest_indicators(network, input_=None, count_function=sum_length,
