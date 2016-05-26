@@ -6,7 +6,7 @@ from athenet.layers import Softmax, ReLU, PoolingLayer, LRN, \
 from athenet.algorithm.derest.utils import add_tuples, change_order
 
 
-def get_derest_layer(layer, normalize=False):
+def get_derest_layer(layer):
     """
     Return derest layer on which we can count activations, derivatives
         and derest algorithm
@@ -99,5 +99,5 @@ class DerestInceptionLayer(DerestLayer):
         results = []
         for derest_layer_list in self.derest_layer_lists:
             for derest_layer in derest_layer_list:
-                results += derest_layer.count_derest(f)
+                results.extend(derest_layer.count_derest(f))
         return results
