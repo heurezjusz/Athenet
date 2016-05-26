@@ -4,10 +4,6 @@ from athenet.layers import ConvolutionalLayer, FullyConnectedLayer,\
     Softmax, ReLU, MaxPool, InceptionLayer, LRN
 
 
-def aggregating_example_function(values):
-    a = values.sum()
-    return a.lower + a.upper
-
 n = Network([
     ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(4, 4, 2)),
     ReLU(),
@@ -20,5 +16,4 @@ n = Network([
     Softmax(),
 ])
 
-derest(n, 0.6, count_function=aggregating_example_function, max_batch_size=None,
-       normalize_activations=True, normalize_derivatives=True)
+derest(n, 0.6, max_batch_size=None)
