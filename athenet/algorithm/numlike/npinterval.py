@@ -3,11 +3,14 @@ sparsifying.
 
 This module contains NpInterval class and auxiliary objects.
 """
+from theano import function
+from theano import tensor as T
 
-from athenet.algorithm.numlike import Interval
 from itertools import product
 import numpy as np
 import math
+
+from athenet.algorithm.numlike import Interval
 
 
 class NpInterval(Interval):
@@ -253,22 +256,45 @@ class NpInterval(Interval):
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
-        return self
+        return self.lower, self.upper
 
     def op_relu(self):
-        """Returns result of relu operation on given Numlike.
+        """Returns result of relu operation on given NpInterval.
 
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        lower = np.maximum(self.lower, 0.0)
+        upper = np.maximum(self.upper, 0.0)
+        return NpInterval(lower, upper)
 
     def op_softmax(self, input_shp):
-        """Returns result of softmax operation on given Numlike.
+        """Returns result of softmax operation on given NpInterval.
 
         :param integer input_shp: shape of 1D input
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        result = NpInterval.from_shape((input_shp, ), neutral=True)
+        for i in xrange(input_shp):
+            input_low = (self - self.upper[i]).exp()
+            input_upp = (self - self.lower[i]).exp()
+            sum_low = NpInterval.from_shape((1, ), neutral=True)
+            sum_upp = NpInterval.from_shape((1, ), neutral=True)
+            for j in xrange(input_shp):
+                if j != i:
+                    sum_low = sum_low + input_low[j]
+                    sum_upp = sum_upp + input_upp[j]
+            # Could consider evaluation below but it gives wrong answers.
+            # It might be because of arithmetic accuracy.
+            # sum_low = input_low.sum() - input_low[i]
+            # sum_upp = input_upp.sum() - input_upp[i]
+            upper_counter_low = input_low.upper[i]
+            lower_counter_upp = input_upp.lower[i]
+            upper_low = upper_counter_low / \
+                (sum_low[0].lower + upper_counter_low)
+            lower_upp = lower_counter_upp / \
+                (sum_upp[0].upper + lower_counter_upp)
+            result[i] = NpInterval(lower_upp, upper_low)
+        return result
 
     def op_norm(self, input_shape, local_range, k, alpha, beta):
         """Returns estimated activation of LRN layer.
@@ -281,9 +307,72 @@ class NpInterval(Interval):
         :param integer alpha: local range normalization alpha argument
         :param integer beta: local range normalization beta argument
         :type input_shape: tuple of 3 integers
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+        alpha /= local_range
+        half = local_range / 2
+        x = self
+        sq = self.square()
+        n_channels, h, w = input_shape
+        extra_channels = self.from_shape((n_channels + 2 * half, h, w),
+                                         neutral=True)
+        extra_channels[half:half + n_channels, :, :] = sq
+        s = self.from_shape(input_shape, neutral=True)
+
+        for i in xrange(local_range):
+            if i != half:
+                s += extra_channels[i:i + n_channels, :, :]
+
+        c = s * alpha + k
+
+        def norm((arg_x, arg_c)):
+            return arg_x / np.power(arg_c + alpha * np.square(arg_x), beta)
+
+        def in_range((range_), val):
+            return np.logical_and(np.less(range_.lower, val),
+                                  np.less(val, range_.upper))
+
+        def c_extr_from_x(arg_x):
+            return np.square(arg_x) * ((2 * beta - 1) * alpha)
+
+        def x_extr_from_c(arg_c):
+            return np.sqrt(arg_c / ((2 * beta - 1) * alpha))
+
+        corner_lower = np.full(input_shape, np.inf)
+        corner_upper = np.full(input_shape, -np.inf)
+        corners = [(x.lower, c.lower), (x.lower, c.upper),
+                   (x.upper, c.lower), (x.upper, c.upper)]
+        for corner in corners:
+            corner_lower = np.minimum(corner_lower, norm(corner))
+            corner_upper = np.maximum(corner_upper, norm(corner))
+        res = NpInterval(corner_lower, corner_upper)
+
+        maybe_extrema = [
+            (0, c.lower), (0, c.upper),
+            (x_extr_from_c(c.lower), c.lower),
+            (x_extr_from_c(c.upper), c.upper),
+            (x_extr_from_c(c.lower) * (-1), c.lower),
+            (x_extr_from_c(c.upper) * (-1), c.upper),
+            (x.lower, c_extr_from_x(x.lower)),
+            (x.upper, c_extr_from_x(x.upper))
+        ]
+        extrema_conds = [
+            in_range(x, maybe_extrema[0][0]),
+            in_range(x, maybe_extrema[1][0]),
+            in_range(x, maybe_extrema[2][0]),
+            in_range(x, maybe_extrema[3][0]),
+            in_range(x, maybe_extrema[4][0]),
+            in_range(x, maybe_extrema[5][0]),
+            in_range(c, maybe_extrema[6][1]),
+            in_range(c, maybe_extrema[7][1])
+        ]
+        for m_extr, cond in zip(maybe_extrema, extrema_conds):
+            norm_res = norm(m_extr)
+            res.lower = np.select([cond, True],
+                                  [np.minimum(res.lower, norm_res), res.lower])
+            res.upper = np.select([cond, True],
+                                  [np.maximum(res.upper, norm_res), res.upper])
+        return res
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):
@@ -312,9 +401,19 @@ class NpInterval(Interval):
         :type stride: pair of integers
         :type padding: pair of integers
         :type n_groups: integer
-        :rtype: Numlike
+        :rtype: NpInterval
         """
-        raise NotImplementedError
+
+        t_lower, t_upper = T.tensor3(), T.tensor3()
+        result_lower, result_upper = self._theano_op_conv(
+            t_lower, t_upper, weights, image_shape, filter_shape,
+            biases, stride, padding, n_groups
+        )
+        op_conv_function = function([t_lower, t_upper],
+                                    [result_lower, result_upper])
+
+        lower, upper = op_conv_function(self.lower, self.upper)
+        return NpInterval(lower, upper)
 
     def op_d_relu(self, activation):
         """Returns estimated impact of input of relu layer on output of

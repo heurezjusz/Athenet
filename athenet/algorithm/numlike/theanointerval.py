@@ -449,34 +449,10 @@ class TheanoInterval(Interval):
         :type n_groups: integer
         :rtype: TheanoInterval
         """
-
-        image_shape = (image_shape[1], image_shape[2], image_shape[0])
-        filter_shape = (filter_shape[1], filter_shape[2], filter_shape[0])
-        args = (stride, n_groups, image_shape, padding, 1, filter_shape)
-        input_lower = self.lower.dimshuffle('x', 0, 1, 2)
-        input_upper = self.upper.dimshuffle('x', 0, 1, 2)
-        input_lower_padded = misc_reshape_for_padding(input_lower, image_shape,
-                                                      1, padding)
-        input_upper_padded = misc_reshape_for_padding(input_upper, image_shape,
-                                                      1, padding)
-        weights_positive = T.maximum(weights, 0.)
-        weights_negative = T.minimum(weights, 0.)
-        conv_lower_positive = convolution(input_lower_padded, weights_positive,
-                                          *args)
-        conv_lower_negative = convolution(input_lower_padded, weights_negative,
-                                          *args)
-        conv_upper_positive = convolution(input_upper_padded, weights_positive,
-                                          *args)
-        conv_upper_negative = convolution(input_upper_padded, weights_negative,
-                                          *args)
-        conv_result_lower = conv_lower_positive + conv_upper_negative
-        conv_result_upper = conv_lower_negative + conv_upper_positive
-        _, n_in, h, w = conv_result_lower.shape
-        conv_result_lower_3d = conv_result_lower.reshape((n_in, h, w))
-        conv_result_upper_3d = conv_result_upper.reshape((n_in, h, w))
-        result_interval = TheanoInterval(conv_result_lower_3d,
-                                         conv_result_upper_3d)
-        return result_interval + biases.dimshuffle(0, 'x', 'x')
+        lower, upper = self._theano_op_conv(self.lower, self.upper,
+                                            weights, image_shape, filter_shape,
+                                            biases, stride, padding, n_groups)
+        return TheanoInterval(lower, upper)
 
     def op_d_relu(self, activation):
         """Returns estimated impact of input of relu layer on output of
