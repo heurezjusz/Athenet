@@ -9,7 +9,7 @@ Requirements are listed in requirements.txt
 
 #### Command for installing:
 ```sh
-$ pip setup.py install
+$ python setup.py install
 ```
 
 #### Command for developing:
