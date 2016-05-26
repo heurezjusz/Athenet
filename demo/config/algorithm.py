@@ -132,13 +132,16 @@ def choose_layers(network, type_, indicators_, from_=None):
             return get_layers(network, default_types_of_layers[indicators_],
                               indicators_)
         if type_ == "all":
-            return [network.weighted_layers is not None]
+            return [True for _ in network.weighted_layers]
         if type_ == "conv":
-            return [isinstance(layer, ConvolutionalLayer) for layer in network.weighted_layers]
+            return [isinstance(layer, ConvolutionalLayer)
+                    for layer in network.weighted_layers]
         if type_ == "fully-connected":
-            return [isinstance(layer, FullyConnectedLayer) for layer in network.weighted_layers]
+            return [isinstance(layer, FullyConnectedLayer)
+                    for layer in network.weighted_layers]
 
-    return [a for (a, b) in zip(from_, get_layers(network, type_, indicators_)) if b]
+    layers = get_layers(network, type_, indicators_)
+    return [a for (a, b) in zip(from_, layers) if b]
 
 
 def get_indicators(network, type_, indicators_):
@@ -148,6 +151,7 @@ def get_indicators(network, type_, indicators_):
         return choose_layers(network, type_, indicators_, ind)
     else:
         return f(choose_layers(network, type_, indicators_))
+
 
 def get_network(network_type):
     """
