@@ -15,7 +15,7 @@ from athenet.algorithm.numlike import Interval
 
 class NpInterval(Interval):
 
-    def __init__(self, lower, upper, accuracy=1e-6):
+    def __init__(self, lower, upper, accuracy=1e-2):
         """Creates NpInterval.
 
         :param numpy.ndarray lower: lower bound of Interval to be set
