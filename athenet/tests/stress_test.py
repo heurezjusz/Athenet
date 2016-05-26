@@ -6,7 +6,7 @@ import theano
 import theano.tensor as T
 import unittest
 from math import e
-from athenet.algorithm.numlike import Interval, Nplike
+from athenet.algorithm.numlike import TheanoInterval
 from athenet.algorithm.derest.derivative import *
 from athenet.algorithm.derest.activation import *
 from numpy.random import rand
@@ -24,7 +24,7 @@ def theano_var(x):
 
 def theano_interval(x):
     v = theano_var(x)
-    return Interval(v, v)
+    return TheanoInterval(v, v)
 
 
 class ActivationStressTest(unittest.TestCase):
@@ -195,7 +195,7 @@ class DerivativeStressTest(unittest.TestCase):
         self.check_time('d_max_pool', start_time, constr_time, ex_time)
 
     def test_softmax(self):
-        dout = Interval.derest_output(1000)
+        dout = TheanoInterval.derest_output(1000)
         start_time = timeit.default_timer()
         din = d_softmax(dout)
         constr_time = timeit.default_timer()
