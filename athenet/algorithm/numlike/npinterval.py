@@ -255,9 +255,17 @@ class NpInterval(Interval):
 
     @staticmethod
     def select(bool_list, interval_list):
-        lower = [a.lower if isinstance(a, NpInterval) else a for a in interval_list]
-        upper = [a.upper if isinstance(a, NpInterval) else a for a in interval_list]
-        return NpInterval(np.select(bool_list, lower), np.select(bool_list, upper))
+        lower = [a.lower if isinstance(a, NpInterval) else a
+                 for a in interval_list]
+        upper = [a.upper if isinstance(a, NpInterval) else a
+                 for a in interval_list]
+        return NpInterval(np.select(bool_list, lower),
+                          np.select(bool_list, upper))
+
+    def concat(self, other, axis=0):
+        lower = np.concatenate([self.lower, other.lower], axis=axis)
+        upper = np.concatenate([self.upper, other.upper], axis=axis)
+        return NpInterval(lower, upper)
 
     def eval(self, *args):
         """Returns some readable form of stored value."""
