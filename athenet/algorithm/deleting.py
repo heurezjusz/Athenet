@@ -6,14 +6,11 @@ def _delete_weights_in_layer_by_fraction(layer, fraction,
     if fraction == 0:
         return
 
-    try:
-        W = layer.W
-        percentile = numpy.percentile(importance_indicator,
-                                      (1 - fraction) * 100)
-        W[importance_indicator >= percentile] = 0
-        layer.W = W
-    except AttributeError:
-        pass
+    W = layer.W
+    percentile = numpy.percentile(importance_indicator,
+                                  (1 - fraction) * 100)
+    W[importance_indicator >= percentile] = 0
+    layer.W = W
 
 
 def delete_weights_by_layer_fractions(layers, fractions,
@@ -67,8 +64,7 @@ def delete_weights_by_global_fraction(layers, fraction,
 
     flattened_importance_indicators = numpy.concatenate(
         [layer_importance_indicators.flatten()
-         for layer_importance_indicators in importance_indicators
-         if layer_importance_indicators is not None])
+         for layer_importance_indicators in importance_indicators])
 
     percentile = numpy.percentile(flattened_importance_indicators,
                                   (1 - fraction) * 100)
@@ -76,9 +72,6 @@ def delete_weights_by_global_fraction(layers, fraction,
         percentile = 0
 
     for layer, indicator in zip(layers, importance_indicators):
-        try:
-            weights = layer.W
-            weights[indicator >= percentile] = 0
-            layer.W = weights
-        except AttributeError:
-            pass
+        weights = layer.W
+        weights[indicator >= percentile] = 0
+        layer.W = weights
