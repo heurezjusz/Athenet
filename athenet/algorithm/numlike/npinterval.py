@@ -112,7 +112,7 @@ class NpInterval(Interval):
         return NpInterval(np.negative(self.upper), np.negative(self.lower))
 
     def exp(self):
-        """Returns NpInterval representing the exponential of the Numlike.
+        """Returns NpInterval representing the exponential of the NpInterval.
 
         :rtype: NpInterval
         """
@@ -381,7 +381,7 @@ class NpInterval(Interval):
 
     def op_conv(self, weights, image_shape, filter_shape, biases, stride,
                 padding, n_groups):
-        """Returns estimated activation of convolution applied to Numlike.
+        """Returns estimated activation of convolution applied to NpInterval.
 
         :param weights: weights tensor in format (number of output channels,
                                                   number of input channels,
@@ -458,10 +458,10 @@ class NpInterval(Interval):
                       padding):
         """Returns estimated impact of max pool layer on output of network.
 
-        :param Numlike self: estimated impact of output of layer on output
+        :param NpInterval self: estimated impact of output of layer on output
                                of network in shape (batch_size, number of
                                channels, height, width)
-        :param Numlike activation: estimated activation of input
+        :param NpInterval activation: estimated activation of input
         :param input_shape: shape of layer input in format (batch size,
                             number of channels, height, width)
         :type input_shape: tuple of 4 integers
@@ -470,7 +470,7 @@ class NpInterval(Interval):
         :param pair of integers stride: stride of max pool
         :param pair of integers padding: padding of max pool
         :returns: Estimated impact of input on output of network
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         # n_batches, n_in, h, w - number of batches, number of channels,
         # image height, image width
@@ -540,10 +540,10 @@ class NpInterval(Interval):
                       padding):
         """Returns estimated impact of avg pool layer on output of network.
 
-        :param Numlike self: estimated impact of output of layer on output
+        :param NpInterval self: estimated impact of output of layer on output
                                of network in shape (batch_size, number of
                                channels, height, width)
-        :param Numlike activation: estimated activation of input
+        :param NpInterval activation: estimated activation of input
         :param input_shape: shape of layer input in format (batch size,
                             number of channels, height, width)
         :type input_shape: tuple of 4 integers
@@ -552,7 +552,7 @@ class NpInterval(Interval):
         :param pair of integers stride: stride of avg pool
         :param pair of integers padding: padding of avg pool
         :returns: Estimated impact of input on output of network
-        :rtype: Numlike
+        :rtype: NpInterval
         """
         # n_batches, n_in, h, w - number of batches, number of channels,
         # image height, image width
@@ -784,7 +784,7 @@ class NpInterval(Interval):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
-        :param Numlike self: estimated impact of output of layer on output
+        :param NpInterval self: estimated impact of output of layer on output
                              of network in shape (batch_size,
                              number of channels, height, width)
         :param input_shape: shape of layer input in the format
@@ -812,7 +812,7 @@ class NpInterval(Interval):
                          belong to the same group.
         :type n_groups: integer
         :returns: Estimated impact of input on output of network
-        :rtype: Numlike
+        :rtype: NpInterval
         """
 
         # n_in, h, w - number of input channels, image height, image width
