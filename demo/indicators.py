@@ -13,7 +13,8 @@ import sys
 from argparse import RawTextHelpFormatter
 from datetime import datetime
 
-from config.algorithm import get_network, ok, indicators, deleting, get_layers
+from config.algorithm import get_network, ok, deleting, choose_layers,\
+    get_indicators
 from athenet.utils import run_algorithm, plot_2d_results
 
 parser = argparse.ArgumentParser(
@@ -26,9 +27,10 @@ parser.add_argument("-i", "--indicators",
                     " * smallest: get_smallest_indicators (default)\n"
                     " * global_mean: get_nearest_to_global_mean_indicators\n"
                     " * layers_mean: get_nearest_to_layers_mean_indicators\n"
-                    " * filters: get_filters_indicators",
+                    " * filters: get_filters_indicators\n"
+                    " * derest: get_derest_indicators",
                     choices=["smallest", "global_mean", "layers_mean",
-                             "filters"],
+                             "filters", "derest"],
                     default="smallest")
 
 parser.add_argument("-d", "--deleting",
@@ -45,7 +47,7 @@ parser.add_argument("-n", "--network",
                     default="lenet")
 
 parser.add_argument("-t", "--types",
-                    help="Choose type of layers to run algorithm on: \n"
+                    help="Chooses type of layers to run algorithm on: \n"
                     " * default: default type of layers for indicators\n"
                     " * all: all layers\n"
                     " * conv: convolution layers\n"
@@ -64,12 +66,12 @@ parser.add_argument("-l", "--log",
                     action="store_true")
 
 parser.add_argument("-e", "--examples", type=int,
-                    help="Choose on how many different percentages of weight "
-                         "deleting run this algorithm"
-                         "(the higher the number, the more thorough the plot "
-                         "will be and the more time it will work)."
-                         "Default is 1",
-                    default=1)
+                    help="Chooses how many different fractions of weights "
+                         "will be deleted (the higher the number,"
+                         "the more thorough the plot "
+                         "and the more time it takes)."
+                         "Default is 4",
+                    default=4)
 
 parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
@@ -80,17 +82,16 @@ args = parser.parse_args()
 
 print "loading network..."
 network = get_network(args.network)
-layers = get_layers(network, args.types, args.indicators)
 ok()
 
 print "generating indicators..."
-ind = indicators[args.indicators](layers)
+ind = get_indicators(network, args.types, args.indicators)
 ok()
 
 
 def deleting_with_indicators(n, p):
-    return deleting[args.deleting](get_layers(n, args.types, args.indicators),
-                                   p, ind)
+    return deleting[args.deleting](
+        choose_layers(n, args.types, args.indicators), p, ind)
 
 
 print "generating results..."

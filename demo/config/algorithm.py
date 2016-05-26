@@ -1,13 +1,14 @@
+
 from athenet.algorithm import sparsify_smallest_on_network, sharpen_filters, \
-    sparsify_smallest_on_layers
-from athenet.algorithm import simple_neuron_deleter, simple_neuron_deleter2
+    sparsify_smallest_on_layers, simple_neuron_deleter,\
+    simple_neuron_deleter2, derest
 from athenet.algorithm import get_filters_indicators, get_smallest_indicators,\
     get_nearest_to_global_mean_indicators, \
-    get_nearest_to_layers_mean_indicators, delete_weights_by_global_fraction,\
-    delete_weights_by_layer_fractions
+    get_nearest_to_layers_mean_indicators, get_derest_indicators, \
+    delete_weights_by_global_fraction, delete_weights_by_layer_fractions
 from athenet.models import lenet, alexnet, googlenet
 from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader
-from athenet.layers import FullyConnectedLayer
+from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
 
 """
@@ -80,7 +81,10 @@ datasets = {
                  [x / 40. for x in xrange(24, 40)]],
     "filters": [[(0.3, 1, (5, 75, 75))],
                 [(x / 10., 1, (5, 75, 75)) for x in xrange(1, 10)],
-                [(x / 20., 1, (5, 75, 75)) for x in xrange(1, 10)]]
+                [(x / 20., 1, (5, 75, 75)) for x in xrange(1, 10)]],
+    "derest": [[0.5],
+               [[x / 10.] for x in xrange(1, 10)],
+               [[x / 30.] for x in xrange(1, 20)]]
     }
 
 
@@ -92,7 +96,8 @@ algorithms = {
     "sender2": simple_neuron_deleter2,
     "rat": sparsify_smallest_on_network,
     "rat2": sparsify_smallest_on_layers,
-    "filters": sharpen_filters
+    "filters": sharpen_filters,
+    "derest": derest
     }
 
 
@@ -100,14 +105,16 @@ indicators = {
     "smallest": get_smallest_indicators,
     "global_mean": get_nearest_to_global_mean_indicators,
     "layers_mean": get_nearest_to_layers_mean_indicators,
-    "filters": get_filters_indicators
+    "filters": get_filters_indicators,
+    "derest": get_derest_indicators
 }
 
 default_types_of_layers = {
     "smallest": "all",
     "global_mean": "all",
     "layers_mean": "all",
-    "filters": "conv"
+    "filters": "conv",
+    "derest": "all"
 }
 
 deleting = {
@@ -116,17 +123,34 @@ deleting = {
 }
 
 
-def get_layers(network, type_, indicators_):
-    if type_ == "default":
-        return get_layers(network, default_types_of_layers[indicators_],
-                          indicators_)
-    if type_ == "all":
-        return network.weighted_layers
-    if type_ == "conv":
-        return network.convolutional_layers
-    if type_ == "fully-connected":
-        return [layer for layer in network.weighted_layers
-                if isinstance(layer, FullyConnectedLayer)]
+def choose_layers(network, type_, indicators_, from_=None):
+    if from_ is None:
+        from_ = network.weighted_layers
+
+    def get_layers(network, type_, indicators_):
+        if type_ == "default":
+            return get_layers(network, default_types_of_layers[indicators_],
+                              indicators_)
+        if type_ == "all":
+            return [True for _ in network.weighted_layers]
+        if type_ == "conv":
+            return [isinstance(layer, ConvolutionalLayer)
+                    for layer in network.weighted_layers]
+        if type_ == "fully-connected":
+            return [isinstance(layer, FullyConnectedLayer)
+                    for layer in network.weighted_layers]
+
+    layers = get_layers(network, type_, indicators_)
+    return [a for (a, b) in zip(from_, layers) if b]
+
+
+def get_indicators(network, type_, indicators_):
+    f = indicators[indicators_]
+    if indicators_ == "derest":
+        ind = f(network)
+        return choose_layers(network, type_, indicators_, ind)
+    else:
+        return f(choose_layers(network, type_, indicators_))
 
 
 def get_network(network_type):

@@ -4,10 +4,20 @@
 import numpy as np
 import theano
 import unittest
+
+from athenet.algorithm.derest.layers.fully_connected import d_fully_connected
+from athenet.algorithm.derest.layers.convolutional import d_conv
+from athenet.algorithm.derest.layers.pool import d_pool
+from athenet.algorithm.derest.layers.dropout import d_dropout
+from athenet.algorithm.derest.layers.norm import d_norm
+from athenet.algorithm.derest.layers.relu import d_relu
+from athenet.algorithm.derest.layers.softmax import d_softmax
+
 from nose.tools import assert_almost_equal
 from numpy.testing import assert_array_almost_equal
+
 from athenet.algorithm.numlike import TheanoInterval
-from athenet.algorithm.derest.derivative import *
+
 
 theano.config.exception_verbosity = 'high'
 
@@ -52,6 +62,10 @@ class DerivativeTest(unittest.TestCase):
         for i in range(sz):
             a[i] = self.s()
         return a.reshape(shp)
+
+
+class DerivativeTest(unittest.TestCase):
+    pass
 
 
 class FullyConnectedDerivativeTest(DerivativeTest):

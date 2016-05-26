@@ -224,6 +224,14 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    def broadcast(self, shape):
+        """Broadcast Numlike into given shape
+
+        :param shape: tuple of integers
+        :rtype: Numlike
+        """
+        raise NotImplementedError
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         raise NotImplementedError
@@ -408,5 +416,18 @@ class Numlike(object):
         :returns: 2D square Numlike in shape (n_batches, n_outputs) with one
                   different "1" in every batch.
         :rtype: Numlike
+        """
+        raise NotImplementedError
+
+    @staticmethod
+    def concat(self, other, axis = 0):
+        """
+        :param other: Numlike variable to be concationated with
+        :type other: Numlike
+        :param axis: The axis along which the Numlikes will be joined.
+        Default is 0.
+        :type axis: int, optional
+        :return: Numlike object analogic to
+                np.concatenate([self, other], axis=1)
         """
         raise NotImplementedError
