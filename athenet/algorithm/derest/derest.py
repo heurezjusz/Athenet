@@ -43,7 +43,7 @@ def divide_by_length(data):
 def get_derest_indicators(network, input_=None, count_function=sum_length,
                           max_batch_size=None,
                           normalize_activations=lambda x: x,
-                          normalize_derivatives=divide_by_length):
+                          normalize_derivatives=divide_by_max):
     """
     Returns indicators of importance using derest algorithm
 
@@ -51,11 +51,11 @@ def get_derest_indicators(network, input_=None, count_function=sum_length,
     :param Numlike or None input_: possible input for network
     :param function count_function: function to use
     :param int or None max_batch_size: size of batch in computing derivatives
-    :param bool normalize_activations: whenever to normalize activations
+    :param function normalize_activations: function to normalize activations
         between layers
-    :param bool normalize_derivatives: whenever to normalize derivatives
+    :param function normalize_derivatives: function to normalize derivatives
         between layers
-    :return array of integers:
+    :return array of numpy.ndarrays:
     """
     if input_ is None:
         input_ = NpInterval.from_shape(
