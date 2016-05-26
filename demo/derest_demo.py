@@ -12,7 +12,7 @@ def custom_derivatives_normalization(data):
 
 
 def custom_activations_normalization(data):
-    return data / data.sum().upper
+    return data / (data.sum().upper + 0.5)
 
 
 def custom_count_function(data):
