@@ -872,6 +872,112 @@ class ConvDerivativeTest(TestCase):
                 self.assertTrue((R.upper >= r.upper).all())
 
 
+class AvgPoolDerivativeTest(TestCase):
+
+    def test_simple(self):
+        inp_l = np.asarray([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inp_u = np.asarray([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        I = NpInterval(inp_l, inp_u)
+        der_l = np.asarray([[[[-1, -2], [-3, -4]]]])
+        der_u = np.asarray([[[[5, 4], [3, 2]]]])
+        D = NpInterval(der_l, der_u)
+        shp = (1, 1, 3, 3)
+        R = D.op_d_avg_pool(I, shp, poolsize=(2, 2), stride=(1, 1),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-1, -3, -2],
+                                                   [-4, -10, -6],
+                                                   [-3, -7, -4]]]]) / 4.0)
+        assert_array_almost_equal(u, np.asarray([[[[5, 9, 4],
+                                                   [8, 14, 6],
+                                                   [3, 5, 2]]]]) / 4.0)
+
+    def test_channels_batch(self):
+        inp_l = np.asarray([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                            [[0, 0, 0], [0, 0, 0], [3, 0, 0]]],
+                           [[[0, 3, 3], [4, 5, 6], [7, 8, 4]],
+                            [[-3, -3, -3], [-3, -3, -3], [3, 3, 3]]]])
+
+        inp_u = np.asarray([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+                            [[1, 1, 1], [1, 1, 1], [4, 1, 1]]],
+                           [[[2, 4, 4], [9, 9, 9], [9, 9, 9]],
+                            [[2, 2, 2], [2, 2, 2], [5, 5, 5]]]])
+
+        I = NpInterval(inp_l, inp_u)
+
+        der_l = np.asarray([[[[-1, -2], [-3, -4]],
+                             [[1, 2], [-3, -2]]],
+                            [[[1, 2], [-3, -2]],
+                             [[-1, 1], [-1, 1]]]])
+
+        der_u = np.asarray([[[[5, 4], [3, 2]],
+                             [[4, 4], [4, 4]]],
+                            [[[4, 5], [0, 1]],
+                             [[0, 2], [0, 2]]]])
+
+        D = NpInterval(der_l, der_u)
+        shp = (2, 2, 3, 3)
+
+        R = D.op_d_avg_pool(I, shp, poolsize=(2, 2), stride=(1, 1),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+
+        assert_array_almost_equal(l, np.asarray([[[[-1, -3, -2], [-4, -10, -6],
+                                                   [-3, -7, -4]],
+                                                  [[1, 3, 2], [-2, -2, 0],
+                                                   [-3, -5, -2]]],
+                                                 [[[1, 3, 2], [-2, -2, 0],
+                                                   [-3, -5, -2]],
+                                                  [[-1, 0, 1], [-2, 0, 2],
+                                                   [-1, 0, 1]]]]) / 4.0)
+        assert_array_almost_equal(u, np.asarray([[[[5, 9, 4], [8, 14, 6],
+                                                   [3, 5, 2]],
+                                                  [[4, 8, 4], [8, 16, 8],
+                                                   [4, 8, 4]]],
+                                                 [[[4, 9, 5], [4, 10, 6],
+                                                   [0, 1, 1]],
+                                                  [[0, 2, 2], [0, 4, 4],
+                                                   [0, 2, 2]]]]) / 4.0)
+
+    def test_stride(self):
+        inp_l = np.arange(25).reshape((1, 1, 5, 5))
+        inp_u = np.arange(25).reshape((1, 1, 5, 5)) + 2
+        I = NpInterval(inp_l, inp_u)
+        derivatives = np.asarray([[[[-1, 2], [-3, 4]]]])
+        D = NpInterval(derivatives, 1 * derivatives)
+        shp = (1, 1, 5, 5)
+        R = D.op_d_avg_pool(I, shp, poolsize=(2, 2), stride=(3, 3),
+                            padding=(0, 0))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-1, -1, 0, 2, 2],
+                                                   [-1, -1, 0, 2, 2],
+                                                   [0, 0, 0, 0, 0],
+                                                   [-3, -3, 0, 4, 4],
+                                                   [-3, -3, 0, 4, 4]]]]) / 4.0)
+        assert_array_almost_equal(u, np.asarray([[[[-1, -1, 0, 2, 2],
+                                                   [-1, -1, 0, 2, 2],
+                                                   [0, 0, 0, 0, 0],
+                                                   [-3, -3, 0, 4, 4],
+                                                   [-3, -3, 0, 4, 4]]]]) / 4.0)
+
+    def test_padding(self):
+        inp_l = np.asarray([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
+        inp_u = np.asarray([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])
+        I = NpInterval(inp_l, inp_u)
+        der_l = np.asarray([[[[-1, -2], [-3, -4]]]])
+        der_u = np.asarray([[[[5, 4], [3, 2]]]])
+        D = NpInterval(der_l, der_u)
+        shp = (1, 1, 3, 3)
+
+        R = D.op_d_avg_pool(I, shp, poolsize=(2, 2), padding=(1, 1),
+                            stride=(3, 3))
+        l, u = R.lower, R.upper
+        assert_array_almost_equal(l, np.asarray([[[[-1, 0, -2], [0, 0, 0],
+                                                   [-3, 0, -4]]]]) / 4.0)
+        assert_array_almost_equal(u, np.asarray([[[[5, 0, 4], [0, 0, 0],
+                                                   [3, 0, 2]]]]) / 4.0)
+
+
 class TestDiv(TestNpInterval):
 
     def _random_npinterval_without_zeros(self, shape=None, size_limit=10**2,
