@@ -253,6 +253,12 @@ class NpInterval(Interval):
         #maybe it will need broadcast_to too
         return extra_pixels
 
+    @staticmethod
+    def select(bool_list, interval_list):
+        lower = [a.lower if isinstance(a, NpInterval) else a for a in interval_list]
+        upper = [a.upper if isinstance(a, NpInterval) else a for a in interval_list]
+        return NpInterval(np.select(bool_list, lower), np.select(bool_list, upper))
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         return self.lower, self.upper
@@ -495,6 +501,8 @@ class NpInterval(Interval):
                 # maximum lower and upper value of neighbours
                 neigh_max_low = -np.inf
                 neigh_max_upp = -np.inf
+                neigh_max_low = np.asarray([-np.inf])
+                neigh_max_upp = np.asarray([-np.inf])
                 neigh_max_itv = NpInterval(neigh_max_low, neigh_max_upp)
                 act_slice = activation[:, :, at_f_h, at_f_w]
 
