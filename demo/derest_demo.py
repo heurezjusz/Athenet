@@ -23,7 +23,7 @@ n = Network([
     ReLU(),
     LRN(),
     MaxPool(poolsize=(2, 2)),
-#    InceptionLayer(n_filters=[2, 2, 2, 2, 2, 2]),
+    InceptionLayer(n_filters=[2, 2, 2, 2, 2, 2]),
     FullyConnectedLayer(n_out=10),
     ReLU(),
     FullyConnectedLayer(n_out=3),
