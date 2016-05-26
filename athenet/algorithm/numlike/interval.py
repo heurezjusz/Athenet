@@ -197,6 +197,7 @@ class Interval(Numlike):
                                                n_batches, padding, upper_val)
         return self.construct(padded_low, padded_upp)
 
+
     @staticmethod
     def _theano_op_conv(lower, upper, weights, image_shape, filter_shape,
                         biases, stride, padding, n_groups):
@@ -254,11 +255,11 @@ class Interval(Numlike):
         return (conv_result_lower_3d + biases.dimshuffle(0, 'x', 'x'),
                 conv_result_upper_3d + biases.dimshuffle(0, 'x', 'x'))
 
+    def __str__(self):
+        """Standard str method."""
+        return 'vvvvv\n' + repr(self.lower) + '\n=====\n' + repr(self.upper) \
+               + '\n^^^^^'
+
     def __repr__(self):
         """Standard repr method."""
         return str(self)
-
-    def __str__(self):
-        """"Standard str method."""
-        return 'vvvvv\n' + str(self.lower) + '\n=====\n' + str(self.upper) \
-               + '\n^^^^^'

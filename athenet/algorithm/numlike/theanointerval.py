@@ -1165,3 +1165,8 @@ class TheanoInterval(Interval):
         :rtype: Boolean
         """
         return T.and_(T.lt(self.lower, 0.0), T.gt(self.upper, 0.0))
+
+    def concat(self, other, axis=0):
+        lower = T.concatenate([self.lower, other.lower], axis=axis)
+        upper = T.concatenate([self.upper, other.upper], axis=axis)
+        return TheanoInterval(lower, upper)

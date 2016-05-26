@@ -111,6 +111,14 @@ class Nplike(Numlike):
     def T(self):
         return Nplike(self.value.T)
 
+    def broadcast(self, shape):
+        """Broadcast nplike
+
+        :param shape: tuple of integers
+        :rtype: Nplike
+        """
+        return Nplike(numpy.broadcast_to(self.value, shape))
+
     @classmethod
     def from_shape(cls, shp, neutral=True):
         if neutral:
@@ -132,3 +140,6 @@ class Nplike(Numlike):
     def __str__(self):
         """"Standard str method."""
         return str(self.value)
+
+    def concat(self, other, axis=0):
+        return Nplike(numpy.concatenate((self.value, other.value), axis=axis))

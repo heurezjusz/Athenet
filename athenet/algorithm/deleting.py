@@ -7,7 +7,8 @@ def _delete_weights_in_layer_by_fraction(layer, fraction,
         return
 
     W = layer.W
-    percentile = numpy.percentile(importance_indicator, (1 - fraction) * 100)
+    percentile = numpy.percentile(importance_indicator,
+                                  (1 - fraction) * 100)
     W[importance_indicator >= percentile] = 0
     layer.W = W
 
