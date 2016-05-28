@@ -266,6 +266,12 @@ class TheanoInterval(Interval):
         return misc_reshape_for_padding(layer_input, image_shape,
                                         batch_size, padding, value)
 
+    @staticmethod
+    def stack(intervals, axis=0):
+        lower = T.stack([i.lower for i in intervals], axis=axis)
+        upper = T.stack([i.upper for i in intervals], axis=axis)
+        return TheanoInterval(lower, upper)
+
     def eval(self, eval_map=None):
         """Evaluates interval in terms of theano TensorType eval method.
 
