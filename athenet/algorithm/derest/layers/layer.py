@@ -48,7 +48,7 @@ class DerestLayer(object):
         layer_output = layer_output.reshape(output_shape)
 
         if self.derivatives is not None:
-            self.derivatives.concat(layer_output)
+            self.derivatives = self.derivatives.concat(layer_output)
         else:
             self.derivatives = layer_output
 
