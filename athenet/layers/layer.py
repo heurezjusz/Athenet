@@ -106,7 +106,7 @@ class Layer(object):
         """
         pass
 
-    def get_params(self, params):
+    def get_params(self):
         """Get layer's weights and biases, if it has any.
 
         :returns: Weights and biases. Exact format depends on layer type.
@@ -165,5 +165,5 @@ class WeightedLayer(Layer):
     def set_params(self, params):
         self.W, self.b = params
 
-    def get_params(self, params):
+    def get_params(self):
         return self.W, self.b
