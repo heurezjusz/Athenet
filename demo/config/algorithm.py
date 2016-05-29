@@ -7,7 +7,8 @@ from athenet.algorithm import get_filters_indicators, get_smallest_indicators,\
     get_nearest_to_layers_mean_indicators, get_derest_indicators, \
     delete_weights_by_global_fraction, delete_weights_by_layer_fractions
 from athenet.models import lenet, alexnet, googlenet
-from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader
+from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader, \
+    AlexNetImageNetDataLoader, GoogleNetImageNetDataLoader
 from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
 
@@ -144,10 +145,11 @@ def choose_layers(network, type_, indicators_, from_=None):
     return [a for (a, b) in zip(from_, layers) if b]
 
 
-def get_indicators(network, type_, indicators_):
+def get_indicators(network, type_, indicators_, batch_size):
     f = indicators[indicators_]
     if indicators_ == "derest":
-        ind = f(network)
+        max_batch_size = batch_size if batch_size > 0 else None
+        ind = f(network, max_batch_size=max_batch_size)
         return choose_layers(network, type_, indicators_, ind)
     else:
         return f(choose_layers(network, type_, indicators_))
@@ -164,11 +166,11 @@ def get_network(network_type):
         return net
     if network_type == "alexnet":
         net = alexnet()
-        net.data_loader = ImageNetDataLoader()
+        net.data_loader = AlexNetImageNetDataLoader()
         return net
     if network_type == "googlenet":
         net = googlenet()
-        net.data_loader = ImageNetDataLoader()
+        net.data_loader = GoogleNetImageNetDataLoader()
         return net
     raise NotImplementedError
 

@@ -126,6 +126,11 @@ class Nplike(Numlike):
         else:
             return Nplike(numpy.ones(shp))
 
+    @staticmethod
+    def stack(nplikes, axis=0):
+        value = numpy.stack([i.value for i in nplikes], axis=axis)
+        return Nplike(value)
+
     def eval(self):
         return self.value
 

@@ -232,6 +232,18 @@ class Numlike(object):
         """
         raise NotImplementedError
 
+    @staticmethod
+    def stack(numlikes, axis=0):
+        """ Takes a sequence of numlikes and stack them on given axis
+        to make a single numlike. The size in dimension axis of the result
+        will be equal to the number of numlikes passed.
+
+        :param array or tuple of Numlikes numlikes: numlikes of the same shape
+        :param int axis: the axis along which numlikes will be stacked
+        :return: Numlike
+        """
+        raise NotImplementedError
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         raise NotImplementedError

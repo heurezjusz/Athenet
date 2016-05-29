@@ -57,11 +57,5 @@ docs/source/athenet*
 # PyBuilder
 target/
 
-# Data files
-data/
-
-# Binary data files
-bin/
-
 # Pycharm
 .idea/
