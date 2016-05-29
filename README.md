@@ -16,3 +16,7 @@ $ python setup.py install
 ```sh
 $ python setup.py develop
 ```
+
+### Downloading auxiliary files
+Validation data and weights for AlexNet and GoogleNet are available online
+More tips in alexnet_readme.txt and googlenet_readme.txt
