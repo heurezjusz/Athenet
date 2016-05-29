@@ -11,7 +11,7 @@ Alternatively, trained=False can be used, in which case the weights will
 be set randomly.
 
 For testing accuracy there are needed:
-1. Validation images in the bin/ILSVRC<year>_img_val folder.
+1. Validation images in the bin/ILSVRC<year>_img_val_alexnet folder.
 2. Ground truth for validation images in the
    data/ILSVRC<year>_img_val.txt file.
 Example validation data for AlexNet and ground truth from ImageNet 2012 can be
