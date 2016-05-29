@@ -9,12 +9,10 @@
 
 
 import argparse
-import sys
 from argparse import RawTextHelpFormatter
-from datetime import datetime
 
 from config.algorithm import get_network, ok, deleting, choose_layers,\
-    get_indicators
+    get_indicators, get_file_name
 from athenet.utils import run_algorithm, plot_2d_results
 
 parser = argparse.ArgumentParser(
@@ -110,8 +108,8 @@ elif n == 1:
 else:
     examples = []
 
-file_name = args.file if args.file \
-    else args.network + "_" + datetime.now().strftime("%d%b_%H:%M:%S:%f")
+file_name = get_file_name(args.file, args.network)
+
 results = run_algorithm(network, deleting_with_indicators,
                         examples, verbose=True,
                         results_pkl=file_name).get_zeros_fraction()
