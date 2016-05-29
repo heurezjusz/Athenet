@@ -11,9 +11,9 @@
 import argparse
 import sys
 from argparse import RawTextHelpFormatter
-from datetime import datetime
 
-from config.algorithm import datasets, algorithms, get_network, ok
+from config.algorithm import datasets, algorithms, get_network, ok,\
+    get_file_name
 from athenet.utils import run_algorithm, plot_2d_results
 
 parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
@@ -84,8 +84,7 @@ print "loading network..."
 network = get_network(args.network)
 ok()
 
-file_name = args.file if args.file \
-    else args.network + "_" + datetime.now().strftime("%d%b_%H:%M:%S:%f")
+file_name = get_file_name(args.file, args.network)
 
 print "generating results..."
 results = run_algorithm(network, algorithm, dataset, verbose=True,

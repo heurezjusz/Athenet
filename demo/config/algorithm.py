@@ -1,3 +1,4 @@
+from datetime import datetime
 
 from athenet.algorithm import sparsify_smallest_on_network, sharpen_filters, \
     sparsify_smallest_on_layers, simple_neuron_deleter,\
@@ -173,6 +174,10 @@ def get_network(network_type):
         net.data_loader = GoogleNetImageNetDataLoader()
         return net
     raise NotImplementedError
+
+def get_file_name(proposed_file_name, network_type):
+    return proposed_file_name if proposed_file_name is not None else \
+        network_type + "_" + datetime.now().strftime("%d_%b_%H_%M_%S_%f")
 
 
 def ok():
