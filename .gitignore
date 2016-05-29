@@ -58,10 +58,10 @@ docs/source/athenet*
 target/
 
 # Data files
-data/
+data/*
 
 # Binary data files
-bin/
+bin/*
 
 # Pycharm
 .idea/
