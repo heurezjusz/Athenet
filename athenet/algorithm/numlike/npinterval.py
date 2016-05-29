@@ -275,6 +275,12 @@ class NpInterval(Interval):
         upper = np.concatenate([self.upper, other.upper], axis=axis)
         return NpInterval(lower, upper)
 
+    @staticmethod
+    def stack(intervals, axis=0):
+        lower = np.stack([i.lower for i in intervals], axis=axis)
+        upper = np.stack([i.upper for i in intervals], axis=axis)
+        return NpInterval(lower, upper)
+
     def eval(self, *args):
         """Returns some readable form of stored value."""
         return self.lower, self.upper

@@ -144,10 +144,11 @@ def choose_layers(network, type_, indicators_, from_=None):
     return [a for (a, b) in zip(from_, layers) if b]
 
 
-def get_indicators(network, type_, indicators_):
+def get_indicators(network, type_, indicators_, batch_size):
     f = indicators[indicators_]
     if indicators_ == "derest":
-        ind = f(network)
+        max_batch_size = batch_size if batch_size > 0 else None
+        ind = f(network, max_batch_size=max_batch_size)
         return choose_layers(network, type_, indicators_, ind)
     else:
         return f(choose_layers(network, type_, indicators_))

@@ -9,8 +9,11 @@ class DerestLayer(object):
         self.layer = layer
         self.activations = None
         self.derivatives = None
-        self._normalize_activation = normalize_activation
+        self.normalize_activation = normalize_activation
         self._normalize_derivatives = normalize_derivatives
+
+    def normalize_derivatives(self, data):
+        return data.stack([self._normalize_derivatives(d) for d in data])
 
     def _count_activation(self, layer_input):
         raise NotImplementedError
@@ -22,7 +25,7 @@ class DerestLayer(object):
         :param Numlike layer_input:
         :return Numlike: activations
         """
-        layer_input = self._normalize_activation(layer_input)
+        layer_input = self.normalize_activation(layer_input)
         input_shape = change_order(make_iterable(self.layer.input_shape))
         layer_input = layer_input.reshape(input_shape)
         self.activations = layer_input
@@ -40,7 +43,7 @@ class DerestLayer(object):
         :param int batches: number of batches
         :return Numlike: derivatives
         """
-        layer_output = self._normalize_derivatives(layer_output)
+        layer_output = self.normalize_derivatives(layer_output)
         input_shape = add_tuples(batches,
                                  change_order(self.layer.input_shape))
         output_shape = add_tuples(batches,
@@ -48,7 +51,7 @@ class DerestLayer(object):
         layer_output = layer_output.reshape(output_shape)
 
         if self.derivatives is not None:
-            self.derivatives.concat(layer_output)
+            self.derivatives = self.derivatives.concat(layer_output)
         else:
             self.derivatives = layer_output
 

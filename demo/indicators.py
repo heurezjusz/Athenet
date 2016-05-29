@@ -73,6 +73,13 @@ parser.add_argument("-e", "--examples", type=int,
                          "Default is 4",
                     default=4)
 
+parser.add_argument("-b", "--batch_size", type=int,
+                    help="Chooses maximum size of batches uses to compute"
+                         "derivatives in derest algoritm"
+                         "(values lower than 1 means there will be "
+                         "no maximum size)",
+                    default=0)
+
 parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
 
@@ -85,7 +92,7 @@ network = get_network(args.network)
 ok()
 
 print "generating indicators..."
-ind = get_indicators(network, args.types, args.indicators)
+ind = get_indicators(network, args.types, args.indicators, args.batch_size)
 ok()
 
 
