@@ -163,10 +163,10 @@ class AlexNetImageNetDataLoader(ImageNetDataLoader):
     def __init__(self, year=2012, image_shape=(227, 227), buffer_size=1,
                  train_data=False, val_data=True, val_size=None,
                  reverse_training=True, reverse_validation=True):
+        self.val_suffix = '_img_val_alexnet'
         super(AlexNetImageNetDataLoader, self).__init__(year, image_shape,
               buffer_size, train_data, val_data, val_size, reverse_training,
               reverse_validation)
-        self.val_suffix = '_img_val_alexnet'
 
 
 class GoogleNetImageNetDataLoader(ImageNetDataLoader):
@@ -175,7 +175,7 @@ class GoogleNetImageNetDataLoader(ImageNetDataLoader):
     def __init__(self, year=2012, image_shape=(224, 224), buffer_size=1,
                  train_data=False, val_data=True, val_size=None,
                  reverse_training=True, reverse_validation=True):
+        self.val_suffix = '_img_val_googlenet'
         super(GoogleNetImageNetDataLoader, self).__init__(year, image_shape,
               buffer_size, train_data, val_data, val_size, reverse_training,
               reverse_validation)
-        self.val_suffix = '_img_val_googlenet'
