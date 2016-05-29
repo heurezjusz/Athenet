@@ -75,7 +75,7 @@ class ImageNetDataLoader(DataLoader):
                     if not line:
                         break
                     filename, answer = line.rsplit(' ', 1)
-                    answers[filename] = int(answer)
+                    answers[filename] = np.array(int(answer), dtype="int32")
             val_files = [(filename, False) for filename in answers.keys()]
             val_answers = answers.values()
             if reverse_validation:
