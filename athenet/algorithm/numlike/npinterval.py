@@ -740,14 +740,20 @@ class NpInterval(Interval):
                     if x_low <= x <= x_up and y_low <= y <= y_up]
 
         batches, channels, h, w = input_shape
+        # variable for printing
         for b, channel, at_h, at_w in product(xrange(batches),
                                               xrange(channels), xrange(h),
                                               xrange(w)):
+            channel_nr = b * channels + channel
+            if channel_nr % 10 == 0 and at_h == 0 and at_w == 0:
+                print "Norm: (", b, ",", channel, ") / (", \
+                    batches, ",", channels, ")"
             C = NpInterval(np.asarray([k]), np.asarray([k]))
             for i in xrange(-local_range, local_range + 1):
                 if channels > i + channel >= 0 != i:
                     C += activation_sqares[b][channel + i][at_h][at_w] * alpha
-                    C._antiadd(activation_sqares[b][channel + i][at_h][at_w] * alpha)
+                    C._antiadd(activation_sqares[b][channel + i][at_h][at_w] *
+                               alpha)
 
             Y = activation[b][channel][at_h][at_w]
 
@@ -801,7 +807,7 @@ class NpInterval(Interval):
         return result
 
     def op_d_conv(self, input_shape, filter_shape, weights,
-                  stride, padding, n_groups):
+                  stride, padding, n_groups, conv_layer=None):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
@@ -832,6 +838,9 @@ class NpInterval(Interval):
                          split into, two channels are connected only if they
                          belong to the same group.
         :type n_groups: integer
+        :param conv_layer: convolutional layer in which theano graph might
+                           be saved
+        :type conv_layer: DerestConvolutionalLayer
         :returns: Estimated impact of input on output of network
         :rtype: NpInterval
         """
@@ -852,8 +861,46 @@ class NpInterval(Interval):
         h += 2 * pad_h
         w += 2 * pad_w
         padded_input_shape = (n_batches, n_in, h, w)
-        result = NpInterval.from_shape(padded_input_shape, neutral=True)
+        if stride == (1, 1):
+            # arguments for theano convolution operation
+            op_stride = stride
+            op_n_batches, op_fh, op_fw = n_batches, fh, fw
+            op_n_in = n_out
+            op_n_out = n_in
+            op_h = h - fh + 1
+            op_w = w - fw + 1
+            op_pad_h = fh - 1
+            op_pad_w = fw - 1
+            op_padding = op_pad_h, op_pad_w
+            op_image_shape = op_n_batches, op_n_in, op_h, op_w
+            op_filter_shape = op_n_out, op_fh, op_fw
+            op_n_groups = n_groups
+            op_input = output
+            op_low = op_input.lower
+            op_upp = op_input.upper
+            op_weights = np.swapaxes(weights, 0, 1)
+            op_g_n_in = op_n_in / op_n_groups
+            op_weights = [op_weights[:, i * op_g_n_in:(i + 1) * op_g_n_in,
+                                     :, :] for i in xrange(op_n_groups)]
+            op_weights = np.concatenate(op_weights, axis=0)
+            conv_op_key = (op_image_shape, op_filter_shape, op_padding,
+                           op_n_groups)
+            if conv_op_key not in conv_layer.theano_ops:
+                t_lower, t_upper = T.tensor4(), T.tensor4()
+                result_lower, result_upper = self._theano_op_conv(
+                    t_lower, t_upper, op_weights, op_image_shape,
+                    op_filter_shape, None, op_stride, op_padding, op_n_groups
+                )
+                op_conv_function = function([t_lower, t_upper],
+                                            [result_lower, result_upper])
+                conv_layer.theano_ops[conv_op_key] = op_conv_function
+            conv_op = conv_layer.theano_ops[conv_op_key]
+            lower, upper = conv_op(op_low, op_upp)
+            result = NpInterval(lower, upper)
+            result = result[:, :, pad_h:(h - pad_h), pad_w:(w - pad_w)]
+            return result
 
+        result = NpInterval.from_shape(padded_input_shape, neutral=True)
         # see: flipping kernel
         # in theano.conv_2d flipped kernel is used
         weights = weights[:, :, ::-1, ::-1]
