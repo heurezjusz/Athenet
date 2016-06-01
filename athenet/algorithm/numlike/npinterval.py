@@ -3,7 +3,7 @@ sparsifying.
 
 This module contains NpInterval class and auxiliary objects.
 """
-from theano import function
+from theano import function, config
 from theano import tensor as T
 
 from itertools import product
@@ -230,8 +230,8 @@ class NpInterval(Interval):
         if lower_val > upper_val:
             if lower_val != np.inf or upper_val != -np.inf:
                 raise ValueError("lower_val > upper_val")
-        lower = np.full(shp, lower_val)
-        upper = np.full(shp, upper_val)
+        lower = np.full(shp, lower_val, dtype=config.floatX)
+        upper = np.full(shp, upper_val, dtype=config.floatX)
         return NpInterval(lower, upper)
 
     def broadcast(self, shape):
@@ -525,8 +525,8 @@ class NpInterval(Interval):
                 # maximum lower and upper value of neighbours
                 neigh_max_low = -np.inf
                 neigh_max_upp = -np.inf
-                neigh_max_low = np.asarray([-np.inf])
-                neigh_max_upp = np.asarray([-np.inf])
+                neigh_max_low = np.asarray([-np.inf], dtype=config.floatX)
+                neigh_max_upp = np.asarray([-np.inf], dtype=config.floatX)
                 neigh_max_itv = NpInterval(neigh_max_low, neigh_max_upp)
                 act_slice = activation[:, :, at_f_h, at_f_w]
 
@@ -628,8 +628,7 @@ class NpInterval(Interval):
         :param float beta: local range normalization beta argument
         :rtype: NpInterval
         """
-        result = NpInterval(np.zeros(input_shape),
-                            np.zeros(input_shape))
+        result = NpInterval.from_shape(input_shape, lower_val=0., upper_val=0.)
         activation_sqares = activation.square()
         local_range /= 2
 
@@ -920,5 +919,5 @@ class NpInterval(Interval):
                   different "1" in every batch, like numpy.eye(n_outputs)
         :rtype: NpInterval
         """
-        np_matrix = np.eye(n_outputs)
+        np_matrix = np.eye(n_outputs, dtype=config.floatX)
         return NpInterval(np_matrix, np_matrix)
