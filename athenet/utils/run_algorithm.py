@@ -67,11 +67,12 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
     config_l = results.get_new_test_configs(config_l)
     n_of_cases = len(config_l)
     n_of_cases_passed = 0
+    weights = neural_network.get_params()
     if verbose:
         print 'Cases to run:', n_of_cases
     for config in config_l:
-        test_result = run_test(copy.deepcopy(neural_network),
-                               algorithm, config)
+        neural_network.set_params(weights)
+        test_result = run_test(neural_network, algorithm, config)
         results.add_new_test_result(config, test_result, save)
         n_of_cases_passed += 1
         if verbose:
