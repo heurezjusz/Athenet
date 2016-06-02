@@ -229,8 +229,6 @@ class Interval(Numlike):
         :type n_groups: integer
         :rtype: tuple of theno tensors
         """
-        print "len(image_shape)", len(image_shape)
-        print image_shape
         if len(image_shape) == 4:
             batch_size = image_shape[0]
             image_shape = image_shape[2], image_shape[3], image_shape[1]
