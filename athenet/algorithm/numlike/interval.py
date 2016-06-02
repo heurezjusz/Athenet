@@ -243,19 +243,6 @@ class Interval(Numlike):
         args = (stride, n_groups, image_shape, padding, batch_size,
                 filter_shape)
 
-        print "***************************"
-        print "Entering theano convolution"
-        print "***************************"
-        print "weights.shape", weights.shape
-        print "stride", stride
-        print "n_groups", n_groups
-        print "image_shape", image_shape
-        print "filter_shape", filter_shape
-        print "padding", padding
-        print "batch_size", batch_size
-        print ""
-        print ""
-
         input_lower_padded = misc_reshape_for_padding(input_lower, image_shape,
                                                       batch_size, padding)
         input_upper_padded = misc_reshape_for_padding(input_upper, image_shape,
