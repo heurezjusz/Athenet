@@ -440,7 +440,7 @@ class NpInterval(Interval):
                                     [result_lower, result_upper])
 
         lower, upper = op_conv_function(
-            self.lower
+            self.lower,
             self.upper
         )
         return NpInterval(lower, upper)
