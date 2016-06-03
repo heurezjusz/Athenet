@@ -10,7 +10,7 @@ from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader, \
     AlexNetImageNetDataLoader, GoogleNetImageNetDataLoader
 from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
-from config.derest_params import get_derest_params
+from derest_params import get_derest_params
 
 
 """
