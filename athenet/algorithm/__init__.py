@@ -9,3 +9,4 @@ from sharpen_filters import sharpen_filters, get_filters_indicators
 from derest import *
 from deleting import delete_weights_by_layer_fractions,\
     delete_weights_by_global_fraction
+from random import get_random_indicators

@@ -26,9 +26,10 @@ parser.add_argument("-i", "--indicators",
                     " * global_mean: get_nearest_to_global_mean_indicators\n"
                     " * layers_mean: get_nearest_to_layers_mean_indicators\n"
                     " * filters: get_filters_indicators\n"
-                    " * derest: get_derest_indicators",
+                    " * derest: get_derest_indicators\n"
+                    " * random: get_random_indicators",
                     choices=["smallest", "global_mean", "layers_mean",
-                             "filters", "derest"],
+                             "filters", "derest", "random"],
                     default="smallest")
 
 parser.add_argument("-d", "--deleting",

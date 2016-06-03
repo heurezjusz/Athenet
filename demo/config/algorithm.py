@@ -4,7 +4,7 @@ from athenet.algorithm import sparsify_smallest_on_network, sharpen_filters, \
     sparsify_smallest_on_layers, simple_neuron_deleter,\
     simple_neuron_deleter2, derest
 from athenet.algorithm import get_filters_indicators, get_smallest_indicators,\
-    get_nearest_to_global_mean_indicators, \
+    get_nearest_to_global_mean_indicators, get_random_indicators, \
     get_nearest_to_layers_mean_indicators, get_derest_indicators, \
     delete_weights_by_global_fraction, delete_weights_by_layer_fractions
 from athenet.models import lenet, alexnet, googlenet
@@ -108,7 +108,8 @@ indicators = {
     "global_mean": get_nearest_to_global_mean_indicators,
     "layers_mean": get_nearest_to_layers_mean_indicators,
     "filters": get_filters_indicators,
-    "derest": get_derest_indicators
+    "derest": get_derest_indicators,
+    "random": get_random_indicators
 }
 
 default_types_of_layers = {
@@ -116,7 +117,8 @@ default_types_of_layers = {
     "global_mean": "all",
     "layers_mean": "all",
     "filters": "conv",
-    "derest": "all"
+    "derest": "all",
+    "random": "all"
 }
 
 deleting = {
