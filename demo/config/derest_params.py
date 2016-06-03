@@ -19,7 +19,7 @@ def normalization_by_max_value(data, max_value=1.):
     return max_value * data / (a.upper + 1e-6)
 
 derest_normalization = {
-    "no": no_normalization,
+    "none": no_normalization,
     "length": normalization_by_length,
     "max_value": normalization_by_max_value
 }

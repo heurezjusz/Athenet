@@ -29,8 +29,8 @@ options = {
     "i" : ["derest"],
     "b" : [250],
     "c" : ["sum_max", "sum_lenght", "max_lenght"],
-    "a" : ["no", "lenght", "max_value"],
-    "r" : ["no", "lenght", "max_value"],
+    "a" : ["none", "lenght", "max_value"],
+    "r" : ["none", "lenght", "max_value"],
     "t" : ["all", "conv", "fully-connected"]
 }
 

@@ -104,10 +104,14 @@ def get_file_name(args):
     if args.file:
         return args.file
 
-    file_name = "_".join([k + "_" + str(v)
-                          for k, v in args.__dict__.iteritems()
-                          if k not in ("file", "plot", "log", "batch_size")])
-    return file_name
+    file_args = []
+    for k, v in args.__dict__.iteritems():
+        if k in ("file", "plot", "log", "batch_size", "examples"):
+            continue
+        if v in ("default", "none"):
+            continue
+        file_args.append(k + "_" + str(v))
+    return "_".join(file_args)
 
 
 def ok():

@@ -93,13 +93,13 @@ parser.add_argument("-b", "--batch_size", type=int,
 parser.add_argument("-a", "--normalize_activations",
                     help="Chooses normalization of activations"
                          " in derest algoritm",
-                    choices=["default", "no", "lenght", "max_value"],
+                    choices=["default", "none", "lenght", "max_value"],
                     default="default")
 
 parser.add_argument("-r", "--normalize_derivatives",
                     help="Chooses normalization of derivatives"
                          " in derest algoritm",
-                    choices=["default", "no", "lenght", "max_value"],
+                    choices=["default", "none", "lenght", "max_value"],
                     default="default")
 
 parser.add_argument("-c", "--derest_count_function",
