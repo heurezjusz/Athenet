@@ -90,7 +90,7 @@ print "loading network..."
 network = get_network(args.network)
 ok()
 
-file_name = get_file_name(args.file, args.network)
+file_name = get_file_name(args)
 
 print "generating results..."
 results = run_algorithm(network, algorithm, dataset, verbose=True,
@@ -103,5 +103,5 @@ for config in dataset:
     print "error rate:", results[config][1]
 
 if args.plot:
-    plot_2d_results(results, ylog=args.log,
+    plot_2d_results(results, file_name, ylog=args.log,
                     title="results of " + args.algorithm + " algorithm")

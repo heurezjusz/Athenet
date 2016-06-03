@@ -109,7 +109,7 @@ elif n == 1:
 else:
     examples = []
 
-file_name = get_file_name(args.file, args.network)
+file_name = get_file_name(args)
 
 results = run_algorithm(network, deleting_with_indicators,
                         examples, verbose=True,
@@ -117,7 +117,6 @@ results = run_algorithm(network, deleting_with_indicators,
 ok()
 
 if args.plot:
-    # TODO: Make filename
-    plot_2d_results(results, 'dummy_filename_todo', ylog=args.log,
+    plot_2d_results(results, file_name, ylog=args.log,
                     title="results of " + args.indicators + " indicators"
                     " deleted by " + args.deleting + " fraction")
