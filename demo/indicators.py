@@ -32,6 +32,17 @@ parser.add_argument("-i", "--indicators",
                              "filters", "derest", "random"],
                     default="smallest")
 
+parser.add_argument("-j", "--second_indicators",
+                    help="Chooses method of cumputing second indicators, which"
+                    "will be multiplied with first ones to get final result.\n"
+                    "The possibilities are the same as in indicators.\n"
+                    "The default is none.\n"
+                    "In case of default layers, they will be "
+                    "chosen in consideration of first indicators",
+                    choices=["none", "smallest", "global_mean", "layers_mean",
+                             "filters", "derest", "random"],
+                    default="none")
+
 parser.add_argument("-d", "--deleting",
                     help="Chooses way of deleting weights:\n"
                     " * global: delete_weights_by_global_fraction (default)\n"
@@ -92,6 +103,11 @@ ok()
 
 print "generating indicators..."
 ind = get_indicators(network, args.types, args.indicators, args.batch_size)
+if args.second_indicators != "none":
+    ind2 = get_indicators(network, args.types, args.second_indicators,
+                          args.batch_size)
+    ind = [i1 * i2 for i1, i2 in zip(ind, ind2)]
+
 ok()
 
 
