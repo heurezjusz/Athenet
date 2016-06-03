@@ -8,8 +8,6 @@ from athenet.algorithm.numlike import assert_numlike
 
 
 class DerestConvolutionalLayer(DerestLayer):
-
-
     def __init__(self, layer, normalize_activation=lambda x: x,
                  normalize_derivatives=lambda x: x):
         super(DerestConvolutionalLayer, self).__init__(layer,
@@ -47,25 +45,29 @@ class DerestConvolutionalLayer(DerestLayer):
             self.layer.stride, self.layer.padding, self.layer.n_groups, self
         )
 
-    def _get_activation_for_weight(self, activation, i0, i1, i2):
+    def _get_activation_for_weight(self, activation, i0, i1, i2, i3):
         """
         For given weight returns activations for inputs used by this weight.
 
         :param Numlike activation: activation with padded edges
         :param integer i0: weight's index
         :param interger i1: weight's index
-        :param integer i2; weight's index
+        :param integer i2: weight's index
+        :param integer i3: weight's index
         :return Numlike: activations for weight
         """
-        n1, n2, _ = self.layer.input_shape
-        m1, m2, _ = self.layer.filter_shape
-        p1, p2 = self.layer.padding
-        s1, s2 = self.layer.stride
 
-        l1 = n1 + 2 * p1 -m2 + i1 + 1
-        l2 = n2 + 2 * p2 -m2 + i2 + 1
+        n2, n3, _ = self.layer.input_shape
+        m2, m3, _ = self.layer.filter_shape
+        p2, p3 = self.layer.padding
+        s2, s3 = self.layer.stride
 
-        return activation[:, i0, i1:l1:s1, i2:l2:s2]
+        channel = i0 % self.layer.n_groups * self.layer.n_groups + i1
+
+        l2 = n2 + 2 * p2 - m2 + i2 + 1
+        l3 = n3 + 2 * p3 - m3 + i3 + 1
+
+        return activation[:, channel, i2:l2:s2, i3:l3:s3]
 
     def count_derest(self, count_function):
         """
@@ -84,13 +86,13 @@ class DerestConvolutionalLayer(DerestLayer):
         activation = self.activations.broadcast(input_shape_with_batches).\
             reshape_for_padding(input_shape_with_batches, self.layer.padding)
 
-        for j1, j2, j3, j4 in product(range(i0), range(i1),
+        for j0, j1, j2, j3 in product(range(i0), range(i1),
                                       range(i2), range(i3)):
-            act = self._get_activation_for_weight(activation, j2, j3, j4)
-            der = self.derivatives[:, j1]
+            act = self._get_activation_for_weight(activation, j0, j1, j2, j3)
+            der = self.derivatives[:, j0]
 
-            inf = der * act * self.layer.W[j1, j2, j3, j4]
-            indicators[j1, j2, j3, j4] = count_function(inf.sum((1, 2)))
+            inf = der * act * self.layer.W[j0, j1, j2, j3]
+            indicators[j0, j1, j2, j3] = count_function(inf.sum((1, 2)))
 
         return [indicators]
 
