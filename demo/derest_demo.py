@@ -27,6 +27,8 @@ print "creating network..."
 network = Network([
     ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(4, 4, 2)),
     ReLU(),
+    ConvolutionalLayer(filter_shape=(3, 3, 6), n_groups=2),
+    ReLU(),
     LRN(),
     MaxPool(poolsize=(2, 2)),
     InceptionLayer(n_filters=[2, 2, 2, 2, 2, 2]),

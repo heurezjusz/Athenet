@@ -10,6 +10,8 @@ from athenet.data_loader import MNISTDataLoader, ImageNetDataLoader, \
     AlexNetImageNetDataLoader, GoogleNetImageNetDataLoader
 from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
+from config.derest_params import get_derest_params
+
 
 """
     dictionary form algorithm shortcut to function to be called
@@ -69,11 +71,10 @@ def choose_layers(network, type_, indicators_, from_=None):
     return [a for (a, b) in zip(from_, layers) if b]
 
 
-def get_indicators(network, type_, indicators_, batch_size):
+def get_indicators(network, type_, indicators_, args):
     f = indicators[indicators_]
     if indicators_ == "derest":
-        max_batch_size = batch_size if batch_size > 0 else None
-        ind = f(network, max_batch_size=max_batch_size)
+        ind = f(network, **get_derest_params(args))
         return choose_layers(network, type_, indicators_, ind)
     else:
         return f(choose_layers(network, type_, indicators_))

@@ -90,6 +90,23 @@ parser.add_argument("-b", "--batch_size", type=int,
                          "no maximum size)",
                     default=0)
 
+parser.add_argument("-a", "--normalize_activations",
+                    help="Chooses normalization of activations"
+                         " in derest algoritm",
+                    choices=["default", "no", "lenght", "max_value"],
+                    default="default")
+
+parser.add_argument("-r", "--normalize_derivatives",
+                    help="Chooses normalization of derivatives"
+                         " in derest algoritm",
+                    choices=["default", "no", "lenght", "max_value"],
+                    default="default")
+
+parser.add_argument("-c", "--derest_count_function",
+                    help="Chooses count function used in derest algoritm",
+                    choices=["default", "sum_max", "sum_lenght", "max_lenght"],
+                    default="default")
+
 parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
 
@@ -102,10 +119,9 @@ network = get_network(args.network)
 ok()
 
 print "generating indicators..."
-ind = get_indicators(network, args.types, args.indicators, args.batch_size)
+ind = get_indicators(network, args.types, args.indicators, args)
 if args.second_indicators != "none":
-    ind2 = get_indicators(network, args.types, args.second_indicators,
-                          args.batch_size)
+    ind2 = get_indicators(network, args.types, args.second_indicators, args)
     ind = [i1 * i2 for i1, i2 in zip(ind, ind2)]
 
 ok()
