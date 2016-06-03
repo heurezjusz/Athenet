@@ -12,8 +12,9 @@ import argparse
 import sys
 from argparse import RawTextHelpFormatter
 
-from config.algorithm import datasets, algorithms, get_network, ok,\
+from config.algorithm import algorithms, get_network, ok,\
     get_file_name
+from config.datasets import datasets
 from athenet.utils import run_algorithm, plot_2d_results
 
 parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter,
@@ -56,12 +57,17 @@ parser.add_argument("-d", "--dataset", type=int,
                          "dataset. Datasets are numered from 0. "
                          "Default dataset is 0.\n"
                          "Amount of datasets depends on algorithm:\n"
-                         " * simple_neuron_deleter (sender): 3\n"
-                         " * simple_neuron_deleter2 (sender2): 5\n"
-                         " * sparsify_smallest_on_network (rat): 5\n"
-                         " * sparsify_smallest_on_layers (rat2): 4\n"
-                         " * sharpen_filters (filters): 3\n"
-                         " * derest: 3\n",
+                         " * simple_neuron_deleter (sender): "
+                         + str(len(datasets["sender"])) + "\n"
+                         " * simple_neuron_deleter2 (sender2): "
+                         + str(len(datasets["sender2"])) + "\n"
+                         " * sparsify_smallest_on_network (rat): "
+                         + str(len(datasets["rat"])) + "\n"
+                         " * sparsify_smallest_on_layers (rat2): "
+                         + str(len(datasets["rat2"])) + "\n"
+                         " * sharpen_filters (filters): "
+                         + str(len(datasets["filters"])) + "\n"
+                         " * derest: " + str(len(datasets["derest"])) + "\n",
                     default=0)
 
 parser.add_argument("-f", "--file", type=str,
