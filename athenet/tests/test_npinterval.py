@@ -1089,7 +1089,6 @@ class MaxPoolDerivativeTest(TestCase):
                                                    [0, 0, 0, 0, 0],
                                                    [0, 0, 0, 4, 4]]]]))
 
-
     def test_padding(self):
         inp_l = np.asarray([[[[0, 0, 0], [0, 0, 0], [0, 0, 0]]]])
         inp_u = np.asarray([[[[1, 1, 1], [1, 1, 1], [1, 1, 1]]]])

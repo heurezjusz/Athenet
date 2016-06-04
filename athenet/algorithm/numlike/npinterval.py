@@ -30,7 +30,6 @@ class NpInterval(Interval):
     def construct(lower, upper):
         return NpInterval(lower, upper)
 
-
     def __setitem__(self, at, other):
         """Just like numpy __setitem__ function, but as a operator.
         :at: Coordinates / slice to be set.
@@ -548,8 +547,6 @@ class NpInterval(Interval):
                 # cannot have impact on output
                 cannot = act_slice.upper < neigh_max_itv.lower
                 # or might have impact on output
-
-
                 output_slice = output[:, :, at_out_h, at_out_w]
                 output_with_0 = NpInterval(np.minimum(output_slice.lower, 0.),
                                            np.maximum(output_slice.upper, 0.))

@@ -10,7 +10,6 @@ from athenet.utils.misc import convolution, reshape_for_padding as \
     misc_reshape_for_padding
 
 
-
 class Interval(Numlike):
     """Interval matrix class
 
@@ -196,7 +195,6 @@ class Interval(Numlike):
         padded_upp = self._reshape_for_padding(self.upper, (h, w, n_in),
                                                n_batches, padding, upper_val)
         return self.construct(padded_low, padded_upp)
-
 
     @staticmethod
     def _theano_op_conv(lower, upper, weights, image_shape, filter_shape,
