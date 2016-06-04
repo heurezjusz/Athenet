@@ -18,16 +18,14 @@ def sum_max(values):
     return values.sum().upper
 
 
-def sum_length(values):
+def sum_length(value):
     """
     Computes indicator from Indicator
 
     :param Numlike values: values to count indicator from
     :return: float
     """
-
-    a = values.sum()
-    return a.upper - a.lower
+    return value.upper - value.lower
 
 
 def divide_by_max(data):

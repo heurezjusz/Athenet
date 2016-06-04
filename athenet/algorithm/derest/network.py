@@ -1,3 +1,5 @@
+import time
+
 from athenet.algorithm.derest.layers import get_derest_layer
 
 class DerestNetwork(object):
@@ -16,9 +18,9 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            print "count activation", type(layer)
+            print time.time(), "count activation", type(layer)
             inp = layer.count_activation(inp)
-            print "Done"
+            print time.time(), "Done"
         return inp
 
     def count_derivatives(self, outp):
@@ -31,9 +33,9 @@ class DerestNetwork(object):
         """
         batches = outp.shape[0]
         for layer in reversed(self.layers):
-            print "count derivative", type(layer)
+            print time.time(), "count derivative", type(layer)
             outp = layer.count_derivatives(outp, batches)
-            print "Done"
+            print time.time(), "Done"
         return outp
 
     def count_derest(self, count_function):
@@ -47,6 +49,8 @@ class DerestNetwork(object):
         ""
         result = []
         for layer in self.layers:
+            print time.time(), "count_derest", type(layer)
             indicators = layer.count_derest(count_function)
             result.extend(indicators)
+            print time.time(), "Done", type(layer)
         return result

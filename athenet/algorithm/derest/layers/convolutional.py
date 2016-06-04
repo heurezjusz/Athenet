@@ -45,13 +45,12 @@ class DerestConvolutionalLayer(DerestLayer):
             self.layer.stride, self.layer.padding, self.layer.n_groups, self
         )
 
-    def _get_activation_for_weight(self, activation, i0, i1, i2, i3):
+    def _get_activation_for_weight(self, activation, i1, i2, i3):
         """
         For given weight returns activations for inputs used by this weight.
 
         :param Numlike activation: activation with padded edges
-        :param integer i0: weight's index
-        :param interger i1: weight's index
+        :param integer i1: weight's index
         :param integer i2: weight's index
         :param integer i3: weight's index
         :return Numlike: activations for weight
@@ -62,12 +61,10 @@ class DerestConvolutionalLayer(DerestLayer):
         p2, p3 = self.layer.padding
         s2, s3 = self.layer.stride
 
-        channel = i0 % self.layer.n_groups * self.layer.n_groups + i1
-
         l2 = n2 + 2 * p2 - m2 + i2 + 1
         l3 = n3 + 2 * p3 - m3 + i3 + 1
 
-        return activation[:, channel, i2:l2:s2, i3:l3:s3]
+        return activation[:, i1, i2:l2:s2, i3:l3:s3]
 
     def count_derest(self, count_function):
         """
@@ -79,20 +76,29 @@ class DerestConvolutionalLayer(DerestLayer):
         """
         indicators = numpy.zeros_like(self.layer.W)
 
-        i0, i1, i2, i3 = self.layer.W.shape
+        W = self.layer.W
+        i2, i3 = W.shape[2:4]
+
         batches = self.derivatives.shape[0]
         input_shape_with_batches = (batches, )\
                                    + change_order(self.layer.input_shape)
         activation = self.activations.broadcast(input_shape_with_batches).\
             reshape_for_padding(input_shape_with_batches, self.layer.padding)
 
-        for j0, j1, j2, j3 in product(range(i0), range(i1),
-                                      range(i2), range(i3)):
-            act = self._get_activation_for_weight(activation, j0, j1, j2, j3)
-            der = self.derivatives[:, j0]
+        imaginary_channels = activation.shape[1]
+        n_group_size = imaginary_channels / self.layer.n_groups
+        for imaginary_channel, j2, j3 in product(range(imaginary_channels),
+                                                 range(i2), range(i3)):
+            act = self._get_activation_for_weight(
+                activation, imaginary_channel, j2, j3)
 
-            inf = der * act * self.layer.W[j0, j1, j2, j3]
-            indicators[j0, j1, j2, j3] = count_function(inf.sum((1, 2)))
+            a, c, d = act.shape
+            act = act.reshape((a, 1, c, d)).broadcast(self.derivatives.shape)
+            inf = (self.derivatives * act).sum((0, 2, 3))
+
+            real_channel = imaginary_channel % n_group_size
+            inf = inf * W[:, real_channel, j2, j3]
+            indicators[:, real_channel, j2, j3] = count_function(inf)
 
         return [indicators]
 

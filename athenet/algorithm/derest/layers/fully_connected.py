@@ -37,13 +37,14 @@ class DerestFullyConnectedLayer(DerestLayer):
         :return list of numpy arrays:
         """
         indicators = numpy.zeros_like(self.layer.W)
-        nr_of_batches = self.derivatives.shape[0]
         input_shape = self.layer.input_shape
         output_shape = self.layer.output_shape
+        W = self.layer.W
+
         for i, j in product(range(input_shape), range(output_shape)):
             act = self.activations[i]
             der = self.derivatives[:, j]
-            inf = act * der * self.layer.W[i, j]
+            inf = (act * der).sum() * W[i, j]
             indicators[i, j] = count_function(inf)
         return [indicators]
 
