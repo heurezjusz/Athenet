@@ -5,6 +5,8 @@ from athenet.algorithm.derest.utils import change_order, add_tuples,\
 
 
 class DerestLayer(object):
+    need_activation = False
+    need_derivatives = False
 
     def __init__(self, layer, layer_nr, normalize_activation=lambda x: x,
                  normalize_derivatives=lambda x: x):
@@ -53,7 +55,8 @@ class DerestLayer(object):
         layer_input = self.normalize_activation(layer_input)
         input_shape = change_order(make_iterable(self.layer.input_shape))
         layer_input = layer_input.reshape(input_shape)
-        self.save_activations(layer_input)
+        if self.need_activation:
+            self.save_activations(layer_input)
         return self._count_activation(layer_input)
 
     def _count_derivatives(self, layer_output, input_shape):
@@ -75,12 +78,13 @@ class DerestLayer(object):
                                   change_order(self.layer.output_shape))
         layer_output = layer_output.reshape(output_shape)
 
-        derivatives = self.load_derivatives()
-        if derivatives is not None:
-            derivatives = derivatives.concat(layer_output)
-        else:
-            derivatives = layer_output
-        self.save_derivatives(derivatives)
+        if self.need_derivatives:
+            derivatives = self.load_derivatives()
+            if derivatives is not None:
+                derivatives = derivatives.concat(layer_output)
+            else:
+                derivatives = layer_output
+            self.save_derivatives(derivatives)
 
         return self._count_derivatives(layer_output, input_shape)
 

@@ -3,6 +3,7 @@ from athenet.algorithm.numlike import assert_numlike
 
 
 class DerestReluLayer(DerestLayer):
+    need_activation = True
 
     def _count_activation(self, layer_input):
         """

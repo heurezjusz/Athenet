@@ -4,6 +4,7 @@ from athenet.algorithm.derest.utils import change_order
 
 
 class DerestNormLayer(DerestLayer):
+    need_activation = True
 
     def _count_activation(self, layer_input):
         """
@@ -24,8 +25,11 @@ class DerestNormLayer(DerestLayer):
         :param tuple input_shape:
         :return Numlike:
         """
-        assert(self.activations is not None)
-        activations = self.activations.broadcast(input_shape)
+
+        activations = self.load_activations()
+        assert(activations is not None)
+        activations = activations.broadcast(input_shape)
+
         return d_norm(layer_output, activations, input_shape,
                       self.layer.local_range, self.layer.k,
                       self.layer.alpha, self.layer.beta)

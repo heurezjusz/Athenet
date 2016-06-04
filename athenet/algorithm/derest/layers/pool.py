@@ -4,6 +4,7 @@ from athenet.algorithm.derest.utils import change_order
 
 
 class DerestPoolLayer(DerestLayer):
+    need_activation = True
 
     def _count_activation(self, layer_input):
         """

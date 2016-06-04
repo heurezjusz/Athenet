@@ -6,6 +6,8 @@ from athenet.algorithm.numlike import assert_numlike
 
 
 class DerestFullyConnectedLayer(DerestLayer):
+    need_activation = True
+    need_derivatives = True
 
     def _count_activation(self, layer_input):
         """

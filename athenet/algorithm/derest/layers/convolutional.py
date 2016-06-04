@@ -8,6 +8,9 @@ from athenet.algorithm.numlike import assert_numlike
 
 
 class DerestConvolutionalLayer(DerestLayer):
+    need_activation = True
+    need_derivatives = True
+
     def __init__(self, layer, i, normalize_activation=lambda x: x,
                  normalize_derivatives=lambda x: x):
         super(DerestConvolutionalLayer, self).__init__(layer, i,
