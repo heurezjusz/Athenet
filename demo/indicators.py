@@ -93,18 +93,18 @@ parser.add_argument("-b", "--batch_size", type=int,
 parser.add_argument("-a", "--normalize_activations",
                     help="Chooses normalization of activations"
                          " in derest algoritm",
-                    choices=["default", "none", "lenght", "max_value"],
+                    choices=["default", "none", "length", "max_value"],
                     default="default")
 
 parser.add_argument("-r", "--normalize_derivatives",
                     help="Chooses normalization of derivatives"
                          " in derest algoritm",
-                    choices=["default", "none", "lenght", "max_value"],
+                    choices=["default", "none", "length", "max_value"],
                     default="default")
 
 parser.add_argument("-c", "--derest_count_function",
                     help="Chooses count function used in derest algoritm",
-                    choices=["default", "sum_max", "sum_lenght", "max_lenght"],
+                    choices=["default", "max", "length"],
                     default="default")
 
 parser.add_argument("-f", "--file", type=str,

@@ -27,24 +27,17 @@ derest_normalization = {
 """ indicators coumputing functions """
 
 
-def sum_max(values):
-    return values.sum().abs().upper
+def count_max(value):
+    return value.abs().upper
 
 
-def sum_length(values):
-    a = values.sum()
-    return a.upper - a.lower
+def count_length(value):
+    return value.upper - value.lower
 
-
-def max_length(values):
-    a = values.amax().upper
-    b = - values.neg().amax().upper
-    return a - b
 
 derest_indicators = {
-    "sum_max": sum_max,
-    "sum_length": sum_length,
-    "max_length": max_length
+    "max": count_max,
+    "length": count_length
 }
 
 

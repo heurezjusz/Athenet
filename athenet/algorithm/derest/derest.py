@@ -8,17 +8,7 @@ from athenet.algorithm.numlike.npinterval import NpInterval
 from athenet.algorithm.utils import to_indicators
 
 
-def sum_max(values):
-    """
-    Computes indicator from Numlike values
-
-    :param Numlike values: values to count indicator from
-    :return: float
-    """
-    return values.sum().upper
-
-
-def sum_length(value):
+def length(value):
     """
     Computes indicator from Indicator
 
@@ -33,12 +23,7 @@ def divide_by_max(data):
     return data / (a.upper + 1e-6)
 
 
-def divide_by_length(data):
-    a = data.sum()
-    return data / (a.upper - a.lower + 1e-6)
-
-
-def get_derest_indicators(network, input_=None, count_function=sum_length,
+def get_derest_indicators(network, input_=None, count_function=length,
                           max_batch_size=None,
                           normalize_activations=lambda x: x,
                           normalize_derivatives=divide_by_max):

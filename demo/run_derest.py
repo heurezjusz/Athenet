@@ -28,9 +28,9 @@ args = parser.parse_args()
 options = {
     "i" : ["derest"],
     "b" : [250],
-    "c" : ["sum_max", "sum_lenght", "max_lenght"],
-    "a" : ["none", "lenght", "max_value"],
-    "r" : ["none", "lenght", "max_value"],
+    "c" : ["max", "length"],
+    "a" : ["none", "length", "max_value"],
+    "r" : ["none", "length", "max_value"],
     "t" : ["all", "conv", "fully-connected"]
 }
 
