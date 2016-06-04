@@ -26,12 +26,12 @@ args = parser.parse_args()
 
 
 options = {
-    "i" : ["derest"],
-    "b" : [250],
-    "c" : ["max", "length"],
-    "a" : ["none", "length", "max_value"],
-    "r" : ["none", "length", "max_value"],
-    "t" : ["all", "conv", "fully-connected"]
+    "i": ["derest"],
+    "b": [250],
+    "c": ["max", "length"],
+    "a": ["none", "length", "max_value"],
+    "r": ["none", "length", "max_value"],
+    "t": ["all", "conv", "fully-connected"]
 }
 
 for i, values in zip(xrange(MAX_ITER), product(*options.itervalues())):
@@ -42,4 +42,3 @@ for i, values in zip(xrange(MAX_ITER), product(*options.itervalues())):
     print "RUN " + str(i + 1) + " : " + a
 
     os.system("python " + os.path.dirname(__file__) + "/indicators.py" + a)
-
