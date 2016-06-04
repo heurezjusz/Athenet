@@ -80,10 +80,11 @@ class DerestLayer(object):
 
         if self.need_derivatives:
             derivatives = self.load_derivatives()
+            new_derivatives = layer_output.sum((0,))
             if derivatives is not None:
-                derivatives = derivatives.concat(layer_output)
+                derivatives = derivatives + new_derivatives
             else:
-                derivatives = layer_output
+                derivatives = new_derivatives
             self.save_derivatives(derivatives)
 
         return self._count_derivatives(layer_output, input_shape)

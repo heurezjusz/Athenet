@@ -66,19 +66,19 @@ class DerestConvolutionalLayer(DerestLayer):
         l2 = n2 + 2 * p2 - m2 + i2 + 1
         l3 = n3 + 2 * p3 - m3 + i3 + 1
 
-        return activation[:, :, i2:l2:s2, i3:l3:s3]
+        return activation[:, i2:l2:s2, i3:l3:s3]
 
     def _count_derest_for_weight(self, act, der, W, j0, j1):
         act = self._get_activation_for_weight(act, j0, j1)
 
-        a, b, c, d = act.shape
-        q, w, e, r = der.shape
-        final_shape = (a, w, b, c, d)
+        b, c, d = act.shape
+        w, e, r = der.shape
+        final_shape = (w, b, c, d)
 
-        act = act.reshape((a, 1, b, c, d)).broadcast(final_shape)
-        der = der.reshape((q, w, 1, e, r)).broadcast(final_shape)
+        act = act.reshape((1, b, c, d)).broadcast(final_shape)
+        der = der.reshape((w, 1, e, r)).broadcast(final_shape)
 
-        inf = (der * act).sum((0, 3, 4))
+        inf = (der * act).sum((2, 3))
         inf = inf.reshape((W.shape[0], W.shape[1]))
         return inf * W[:, :, j0, j1]
 
@@ -94,24 +94,24 @@ class DerestConvolutionalLayer(DerestLayer):
         W = self.layer.W
 
         derivatives = self.load_derivatives()
-        batches = derivatives.shape[0]
-        input_shape_with_batches = (batches, )\
-                                   + change_order(self.layer.input_shape)
-        activation = self.load_activations().\
-            broadcast(input_shape_with_batches).\
-            reshape_for_padding(input_shape_with_batches, self.layer.padding)
 
-        act_group_size = activation.shape[1] / self.layer.n_groups
-        der_group_size = derivatives.shape[1] / self.layer.n_groups
+        input_shape = (1, ) + change_order(self.layer.input_shape)
+        activation = self.load_activations().reshape(input_shape)
+        activation = activation.\
+            reshape_for_padding(input_shape, self.layer.padding)
+        activation = activation.reshape(activation.shape[1:])
+
+        act_group_size = activation.shape[0] / self.layer.n_groups
+        der_group_size = derivatives.shape[0] / self.layer.n_groups
         w_group_size = W.shape[0] / self.layer.n_groups
 
         for n_group in xrange(self.layer.n_groups):
             act_first = n_group * act_group_size
             act = \
-                activation[:, act_first:(act_first + act_group_size), :, :]
+                activation[act_first:(act_first + act_group_size), :, :]
             der_first = n_group * der_group_size
             der = \
-                derivatives[:, der_first:(der_first + der_group_size), :, :]
+                derivatives[der_first:(der_first + der_group_size), :, :]
             w_first = n_group * w_group_size
             weights = W[w_first:(w_first + w_group_size), :, :, :]
 

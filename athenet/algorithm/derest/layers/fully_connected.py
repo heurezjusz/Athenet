@@ -41,13 +41,10 @@ class DerestFullyConnectedLayer(DerestLayer):
         input_shape = self.layer.input_shape
         output_shape = self.layer.output_shape
 
-        derivatives = self.load_derivatives()
-        batches = derivatives.shape[0]
-        activations = self.load_activations().reshape((input_shape, 1)).\
-            broadcast((batches, input_shape, 1))
-        derivatives = derivatives.reshape((batches, 1, output_shape))
+        activations = self.load_activations().reshape((input_shape, 1))
+        derivatives = self.load_derivatives().reshape((1, output_shape))
 
-        ind = ((activations * derivatives).sum((0,)) * self.layer.W)
+        ind = ((activations * derivatives) * self.layer.W)
         return [count_function(ind)]
 
 
