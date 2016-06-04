@@ -36,19 +36,17 @@ class DerestFullyConnectedLayer(DerestLayer):
             takes Numlike and returns float
         :return list of numpy arrays:
         """
-        indicators = numpy.zeros_like(self.layer.W)
         input_shape = self.layer.input_shape
         output_shape = self.layer.output_shape
-        W = self.layer.W
 
-        activations = self.load_activations()
         derivatives = self.load_derivatives()
-        for i, j in product(range(input_shape), range(output_shape)):
-            act = activations[i]
-            der = derivatives[:, j]
-            inf = (act * der).sum() * W[i, j]
-            indicators[i, j] = count_function(inf)
-        return [indicators]
+        batches = derivatives.shape[0]
+        activations = self.load_activations().reshape((input_shape, 1)).\
+            broadcast((batches, input_shape, 1))
+        derivatives = derivatives.reshape((batches, 1, output_shape))
+
+        ind = ((activations * derivatives).sum((0,)) * self.layer.W)
+        return [count_function(ind)]
 
 
 def a_fully_connected(layer_input, weights, biases):
