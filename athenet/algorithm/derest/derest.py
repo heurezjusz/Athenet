@@ -1,11 +1,15 @@
 """Functions counting cost of weights in view of their activation/derivative.
 """
 
+from random import randint
+
 from athenet.algorithm.deleting import delete_weights_by_global_fraction
 from athenet.algorithm.derest.network import DerestNetwork
 from athenet.algorithm.derest.utils import change_order
 from athenet.algorithm.numlike.npinterval import NpInterval
 from athenet.algorithm.utils import to_indicators
+
+from athenet.utils.constants import TMP_DIR
 
 
 def length(value):
@@ -46,8 +50,10 @@ def get_derest_indicators(network, input_=None, count_function=length,
             neutral=False
         )
 
-    derest_network = DerestNetwork(network, normalize_activations,
-                                   normalize_derivatives)
+    random_id = randint(0, 10**6)
+    network_folder = TMP_DIR + str(random_id)
+    derest_network = DerestNetwork(
+        network, network_folder, normalize_activations, normalize_derivatives)
     derest_network.count_activations(input_)
 
     output_nr = network.layers[-1].output_shape
@@ -59,6 +65,7 @@ def get_derest_indicators(network, input_=None, count_function=length,
         derest_network.count_derivatives(output[i:(i+max_batch_size)])
 
     results = derest_network.count_derest(count_function)
+    derest_network.delete_folder()
     return to_indicators(results)
 
 

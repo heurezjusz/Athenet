@@ -1,4 +1,5 @@
 import pickle
+import os
 
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
@@ -8,10 +9,14 @@ class DerestLayer(object):
     need_activation = False
     need_derivatives = False
 
-    def __init__(self, layer, layer_nr, normalize_activation=lambda x: x,
+    def __init__(self, layer, layer_folder, normalize_activation=lambda x: x,
                  normalize_derivatives=lambda x: x):
         self.layer = layer
-        self.layer_nr = str(layer_nr)
+
+        self.layer_folder = layer_folder + "_" + layer.name
+        if not os.path.exists(self.layer_folder):
+            os.makedirs(self.layer_folder)
+
         self.normalize_activation = normalize_activation
         self._normalize_derivatives = normalize_derivatives
 
@@ -22,28 +27,28 @@ class DerestLayer(object):
         raise NotImplementedError
 
     def _save_to_file(self, filename, data):
-        with open("tmp/" + filename, 'wb') as f:
+        with open(self.layer_folder + "/" + filename, 'wb') as f:
             pickle.dump(data, f)
 
     def _load_from_file(self, filename):
         try:
-            with open("tmp/" + filename, 'rb') as f:
+            with open(self.layer_folder + "/" + filename, 'rb') as f:
                 data = pickle.load(f)
             return data
         except:
             return None
 
     def save_activations(self, activations):
-        self._save_to_file(self.layer_nr + "_activations", activations)
+        self._save_to_file("activations", activations)
 
     def load_activations(self):
-        return self._load_from_file(self.layer_nr + "_activations")
+        return self._load_from_file("activations")
 
     def save_derivatives(self, derivatives):
-        self._save_to_file(self.layer_nr + "_derivatives", derivatives)
+        self._save_to_file("derivatives", derivatives)
 
     def load_derivatives(self):
-        return self._load_from_file(self.layer_nr + "_derivatives")
+        return self._load_from_file("derivatives")
 
     def count_activation(self, layer_input):
         """

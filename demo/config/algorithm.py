@@ -12,7 +12,6 @@ from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
 from derest_params import get_derest_params
 
-
 """
     dictionary form algorithm shortcut to function to be called
 """
@@ -111,7 +110,7 @@ def get_file_name(args):
         if v in ("default", "none"):
             continue
         file_args.append(k + "_" + str(v))
-    return "_".join(file_args)
+    return "results/" + "_".join(file_args)
 
 
 def ok():

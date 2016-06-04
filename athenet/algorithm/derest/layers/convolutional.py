@@ -11,11 +11,8 @@ class DerestConvolutionalLayer(DerestLayer):
     need_activation = True
     need_derivatives = True
 
-    def __init__(self, layer, i, normalize_activation=lambda x: x,
-                 normalize_derivatives=lambda x: x):
-        super(DerestConvolutionalLayer, self).__init__(layer, i,
-                                                       normalize_activation,
-                                                       normalize_derivatives)
+    def __init__(self, *args):
+        super(DerestConvolutionalLayer, self).__init__(*args)
         self.theano_ops = {}
 
     def _count_activation(self, layer_input):
@@ -71,12 +68,12 @@ class DerestConvolutionalLayer(DerestLayer):
     def _count_derest_for_weight(self, act, der, W, j0, j1):
         act = self._get_activation_for_weight(act, j0, j1)
 
-        b, c, d = act.shape
-        w, e, r = der.shape
-        final_shape = (w, b, c, d)
+        a1, a2, a3 = act.shape
+        d1, d2, d3 = der.shape
+        final_shape = (d1, a1, a2, a3)
 
-        act = act.reshape((1, b, c, d)).broadcast(final_shape)
-        der = der.reshape((w, 1, e, r)).broadcast(final_shape)
+        act = act.reshape((1, a1, a2, a3)).broadcast(final_shape)
+        der = der.reshape((d1, 1, d2, d3)).broadcast(final_shape)
 
         inf = (der * act).sum((2, 3))
         inf = inf.reshape((W.shape[0], W.shape[1]))
@@ -116,8 +113,9 @@ class DerestConvolutionalLayer(DerestLayer):
             weights = W[w_first:(w_first + w_group_size), :, :, :]
 
             for j2, j3 in product(xrange(W.shape[2]), xrange(W.shape[3])):
-                indicators[w_first:(w_first + w_group_size), :, j2, j3] \
-                    = count_function(self._count_derest_for_weight(act, der, weights, j2, j3))
+                ind = count_function(self._count_derest_for_weight(
+                    act, der, weights, j2, j3))
+                indicators[w_first:(w_first + w_group_size), :, j2, j3] = ind
 
         return [indicators]
 
