@@ -45,12 +45,11 @@ class DerestConvolutionalLayer(DerestLayer):
             self.layer.stride, self.layer.padding, self.layer.n_groups, self
         )
 
-    def _get_activation_for_weight(self, activation, i1, i2, i3):
+    def _get_activation_for_weight(self, activation, i2, i3):
         """
         For given weight returns activations for inputs used by this weight.
 
         :param Numlike activation: activation with padded edges
-        :param integer i1: weight's index
         :param integer i2: weight's index
         :param integer i3: weight's index
         :return Numlike: activations for weight
@@ -64,7 +63,21 @@ class DerestConvolutionalLayer(DerestLayer):
         l2 = n2 + 2 * p2 - m2 + i2 + 1
         l3 = n3 + 2 * p3 - m3 + i3 + 1
 
-        return activation[:, i1, i2:l2:s2, i3:l3:s3]
+        return activation[:, :, i2:l2:s2, i3:l3:s3]
+
+    def _count_derest_for_weight(self, act, der, W, j0, j1):
+        act = self._get_activation_for_weight(act, j0, j1)
+
+        a, b, c, d = act.shape
+        q, w, e, r = der.shape
+        final_shape = (a, w, b, c, d)
+
+        act = act.reshape((a, 1, b, c, d)).broadcast(final_shape)
+        der = der.reshape((q, w, 1, e, r)).broadcast(final_shape)
+
+        inf = (der * act).sum((0, 3, 4))
+        inf = inf.reshape((W.shape[0], W.shape[1]))
+        return inf * W[:, :, j0, j1]
 
     def count_derest(self, count_function):
         """
@@ -75,12 +88,9 @@ class DerestConvolutionalLayer(DerestLayer):
         :return list of numpy arrays:
         """
         indicators = numpy.zeros_like(self.layer.W)
-
         W = self.layer.W
-        i2, i3 = W.shape[2:4]
 
         derivatives = self.load_derivatives()
-
         batches = derivatives.shape[0]
         input_shape_with_batches = (batches, )\
                                    + change_order(self.layer.input_shape)
@@ -88,20 +98,23 @@ class DerestConvolutionalLayer(DerestLayer):
             broadcast(input_shape_with_batches).\
             reshape_for_padding(input_shape_with_batches, self.layer.padding)
 
-        imaginary_channels = activation.shape[1]
-        n_group_size = imaginary_channels / self.layer.n_groups
-        for imaginary_channel, j2, j3 in product(range(imaginary_channels),
-                                                 range(i2), range(i3)):
-            act = self._get_activation_for_weight(
-                activation, imaginary_channel, j2, j3)
+        act_group_size = activation.shape[1] / self.layer.n_groups
+        der_group_size = derivatives.shape[1] / self.layer.n_groups
+        w_group_size = W.shape[0] / self.layer.n_groups
 
-            a, c, d = act.shape
-            act = act.reshape((a, 1, c, d)).broadcast(derivatives.shape)
-            inf = (derivatives * act).sum((0, 2, 3))
+        for n_group in xrange(self.layer.n_groups):
+            act_first = n_group * act_group_size
+            act = \
+                activation[:, act_first:(act_first + act_group_size), :, :]
+            der_first = n_group * der_group_size
+            der = \
+                derivatives[:, der_first:(der_first + der_group_size), :, :]
+            w_first = n_group * w_group_size
+            weights = W[w_first:(w_first + w_group_size), :, :, :]
 
-            real_channel = imaginary_channel % n_group_size
-            inf = inf * W[:, real_channel, j2, j3]
-            indicators[:, real_channel, j2, j3] = count_function(inf)
+            for j2, j3 in product(xrange(W.shape[2]), xrange(W.shape[3])):
+                indicators[w_first:(w_first + w_group_size), :, j2, j3] \
+                    = count_function(self._count_derest_for_weight(act, der, weights, j2, j3))
 
         return [indicators]
 

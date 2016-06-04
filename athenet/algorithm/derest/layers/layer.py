@@ -1,4 +1,3 @@
-import gzip
 import pickle
 
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
@@ -21,12 +20,12 @@ class DerestLayer(object):
         raise NotImplementedError
 
     def _save_to_file(self, filename, data):
-        with gzip.open("tmp/" + filename, 'wb') as f:
+        with open("tmp/" + filename, 'wb') as f:
             pickle.dump(data, f)
 
     def _load_from_file(self, filename):
         try:
-            with gzip.open("tmp/" + filename, 'rb') as f:
+            with open("tmp/" + filename, 'rb') as f:
                 data = pickle.load(f)
             return data
         except:
