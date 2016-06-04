@@ -41,9 +41,11 @@ class DerestFullyConnectedLayer(DerestLayer):
         output_shape = self.layer.output_shape
         W = self.layer.W
 
+        activations = self.load_activations()
+        derivatives = self.load_derivatives()
         for i, j in product(range(input_shape), range(output_shape)):
-            act = self.activations[i]
-            der = self.derivatives[:, j]
+            act = activations[i]
+            der = derivatives[:, j]
             inf = (act * der).sum() * W[i, j]
             indicators[i, j] = count_function(inf)
         return [indicators]

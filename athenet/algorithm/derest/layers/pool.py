@@ -24,8 +24,10 @@ class DerestPoolLayer(DerestLayer):
         :param tuple input_shape:
         :return Numlike:
         """
-        assert(self.activations is not None)
-        activations = self.activations.broadcast(input_shape)
+        activations = self.load_activations()
+        assert(activations is not None)
+        activations = activations.broadcast(input_shape)
+
         return d_pool(layer_output, activations, input_shape,
                       self.layer.poolsize, self.layer.stride,
                       self.layer.padding, self.layer.mode)

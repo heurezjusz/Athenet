@@ -1,14 +1,16 @@
+import gzip
+import pickle
+
 from athenet.algorithm.derest.utils import change_order, add_tuples,\
     make_iterable
 
 
 class DerestLayer(object):
 
-    def __init__(self, layer, normalize_activation=lambda x: x,
+    def __init__(self, layer, layer_nr, normalize_activation=lambda x: x,
                  normalize_derivatives=lambda x: x):
         self.layer = layer
-        self.activations = None
-        self.derivatives = None
+        self.layer_nr = str(layer_nr)
         self.normalize_activation = normalize_activation
         self._normalize_derivatives = normalize_derivatives
 
@@ -17,6 +19,30 @@ class DerestLayer(object):
 
     def _count_activation(self, layer_input):
         raise NotImplementedError
+
+    def _save_to_file(self, filename, data):
+        with gzip.open("tmp/" + filename, 'wb') as f:
+            pickle.dump(data, f)
+
+    def _load_from_file(self, filename):
+        try:
+            with gzip.open("tmp/" + filename, 'rb') as f:
+                data = pickle.load(f)
+            return data
+        except:
+            return None
+
+    def save_activations(self, activations):
+        self._save_to_file(self.layer_nr + "_activations", activations)
+
+    def load_activations(self):
+        return self._load_from_file(self.layer_nr + "_activations")
+
+    def save_derivatives(self, derivatives):
+        self._save_to_file(self.layer_nr + "_derivatives", derivatives)
+
+    def load_derivatives(self):
+        return self._load_from_file(self.layer_nr + "_derivatives")
 
     def count_activation(self, layer_input):
         """
@@ -28,7 +54,7 @@ class DerestLayer(object):
         layer_input = self.normalize_activation(layer_input)
         input_shape = change_order(make_iterable(self.layer.input_shape))
         layer_input = layer_input.reshape(input_shape)
-        self.activations = layer_input
+        self.save_activations(layer_input)
         return self._count_activation(layer_input)
 
     def _count_derivatives(self, layer_output, input_shape):
@@ -50,10 +76,12 @@ class DerestLayer(object):
                                   change_order(self.layer.output_shape))
         layer_output = layer_output.reshape(output_shape)
 
-        if self.derivatives is not None:
-            self.derivatives = self.derivatives.concat(layer_output)
+        derivatives = self.load_derivatives()
+        if derivatives is not None:
+            derivatives = derivatives.concat(layer_output)
         else:
-            self.derivatives = layer_output
+            derivatives = layer_output
+        self.save_derivatives(derivatives)
 
         return self._count_derivatives(layer_output, input_shape)
 

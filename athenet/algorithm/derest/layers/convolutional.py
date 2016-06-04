@@ -8,9 +8,9 @@ from athenet.algorithm.numlike import assert_numlike
 
 
 class DerestConvolutionalLayer(DerestLayer):
-    def __init__(self, layer, normalize_activation=lambda x: x,
+    def __init__(self, layer, i, normalize_activation=lambda x: x,
                  normalize_derivatives=lambda x: x):
-        super(DerestConvolutionalLayer, self).__init__(layer,
+        super(DerestConvolutionalLayer, self).__init__(layer, i,
                                                        normalize_activation,
                                                        normalize_derivatives)
         self.theano_ops = {}
@@ -79,10 +79,13 @@ class DerestConvolutionalLayer(DerestLayer):
         W = self.layer.W
         i2, i3 = W.shape[2:4]
 
-        batches = self.derivatives.shape[0]
+        derivatives = self.load_derivatives()
+
+        batches = derivatives.shape[0]
         input_shape_with_batches = (batches, )\
                                    + change_order(self.layer.input_shape)
-        activation = self.activations.broadcast(input_shape_with_batches).\
+        activation = self.load_activations().\
+            broadcast(input_shape_with_batches).\
             reshape_for_padding(input_shape_with_batches, self.layer.padding)
 
         imaginary_channels = activation.shape[1]
@@ -93,8 +96,8 @@ class DerestConvolutionalLayer(DerestLayer):
                 activation, imaginary_channel, j2, j3)
 
             a, c, d = act.shape
-            act = act.reshape((a, 1, c, d)).broadcast(self.derivatives.shape)
-            inf = (self.derivatives * act).sum((0, 2, 3))
+            act = act.reshape((a, 1, c, d)).broadcast(derivatives.shape)
+            inf = (derivatives * act).sum((0, 2, 3))
 
             real_channel = imaginary_channel % n_group_size
             inf = inf * W[:, real_channel, j2, j3]

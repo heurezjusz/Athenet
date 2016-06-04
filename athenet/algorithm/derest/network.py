@@ -1,4 +1,5 @@
 import time
+import os
 
 from athenet.algorithm.derest.layers import get_derest_layer
 
@@ -6,8 +7,14 @@ class DerestNetwork(object):
 
     def __init__(self, network, *args):
         self.network = network
-        self.layers = [get_derest_layer(layer, *args)
-                       for layer in network.layers]
+
+        d = os.path.dirname("tmp/")
+        if not os.path.exists(d):
+            os.makedirs(d)
+
+        self.layers = [get_derest_layer(layer, i, *args)
+                       for i, layer
+                       in zip(xrange(len(network.layers)), network.layers)]
 
     def count_activations(self, inp):
         """
