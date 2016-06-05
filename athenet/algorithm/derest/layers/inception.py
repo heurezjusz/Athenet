@@ -35,13 +35,15 @@ def get_derest_layer(layer, *args):
 
 class DerestInceptionLayer(DerestLayer):
 
-    def __init__(self, layer, *args):
-        super(DerestInceptionLayer, self).__init__(layer)
+    def __init__(self, layer, layer_folder, *args):
+        super(DerestInceptionLayer, self).__init__(layer, layer_folder, *args)
         self.derest_layer_lists = []
-        for layer_list in self.layer.layer_lists:
+        for (i, layer_list) in zip(xrange(len(self.layer.layer_lists)),
+                                   self.layer.layer_lists):
             derest_layer_list = []
-            for l in layer_list:
-                derest_layer_list.append(get_derest_layer(l, *args))
+            for (j, l) in zip(xrange(len(layer_list)), layer_list):
+                folder = self.layer_folder + "/" + str(i) + "/" + str(j)
+                derest_layer_list.append(get_derest_layer(l, folder, *args))
             self.derest_layer_lists.append(derest_layer_list)
 
     def _count_activation(self, input):
