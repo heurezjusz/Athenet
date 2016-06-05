@@ -110,12 +110,15 @@ parser.add_argument("-c", "--derest_count_function",
 parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
 
+parser.add_argument("-v", "--val_size", type=int,
+                    help="validation size for dataset", default=None)
+
 
 args = parser.parse_args()
 
 
 print "loading network..."
-network = get_network(args.network)
+network = get_network(args.network, args.val_size)
 ok()
 
 print "generating indicators..."
