@@ -1,4 +1,4 @@
-import time
+import datetime
 import os
 import shutil
 
@@ -27,9 +27,10 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            print time.time(), "count activation", type(layer)
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
+                "count activation", type(layer)
             inp = layer.count_activation(inp)
-            print time.time(), "Done"
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"), "Done"
         return inp
 
     def count_derivatives(self, outp):
@@ -42,9 +43,10 @@ class DerestNetwork(object):
         """
         batches = outp.shape[0]
         for layer in reversed(self.layers):
-            print time.time(), "count derivative", type(layer)
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
+                "count derivative", type(layer)
             outp = layer.count_derivatives(outp, batches)
-            print time.time(), "Done"
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"), "Done"
         return outp
 
     def count_derest(self, count_function):
@@ -58,10 +60,12 @@ class DerestNetwork(object):
         ""
         result = []
         for layer in self.layers:
-            print time.time(), "count_derest", type(layer)
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
+                "count_derest", type(layer)
             indicators = layer.count_derest(count_function)
             result.extend(indicators)
-            print time.time(), "Done", type(layer)
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
+                "Done", type(layer)
         return result
 
     def delete_folder(self):
