@@ -191,7 +191,7 @@ def a_conv(layer_input, image_shape, weights, filter_shape, biases,
 
 
 def d_conv(output, input_shape, filter_shape, weights,
-           stride=(1, 1), padding=(0, 0), n_groups=1, conv_layer=None):
+           stride=(1, 1), padding=(0, 0), n_groups=1, theano_ops=None):
     """Returns estimated impact of input of convolutional layer on output of
     network.
 
@@ -222,12 +222,11 @@ def d_conv(output, input_shape, filter_shape, weights,
                      into, two channels are connected only if they belong to
                      the same group.
     :type n_groups: integer
-    :param conv_layer: convolutional layer in which theano graph might
-                       be saved
-    :type conv_layer: DerestConvolutionalLayer
+    :param theano_ops: map in which theano graph might be saved
+    :type theano_ops: map of theano functions
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """
     res = output.op_d_conv(input_shape, filter_shape,
-                           weights, stride, padding, n_groups, conv_layer)
+                           weights, stride, padding, n_groups, theano_ops)
     return res

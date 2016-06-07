@@ -1004,7 +1004,7 @@ class TheanoInterval(Interval):
         return impact
 
     def op_d_conv(self, input_shape, filter_shape, weights,
-                  stride, padding, n_groups, layer=None):
+                  stride, padding, n_groups, theano_ops=None):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
@@ -1035,9 +1035,8 @@ class TheanoInterval(Interval):
                          split into, two channels are connected only if they
                          belong to the same group.
         :type n_groups: integer
-        :param conv_layer: convolutional layer in which theano graph might
-                           be saved
-        :type conv_layer: DerestConvolutionalLayer
+        :param theano_ops: map in which theano graph might be saved
+        :type theano_ops: map of theano functions
         :returns: Estimated impact of input on output of network
         :rtype: TheanoInterval
         """
