@@ -34,6 +34,10 @@ options = {
     "t": ["all", "conv", "fully-connected"]
 }
 
+path = os.path.dirname(__file__)
+if path:
+    path += "/"
+
 for i, values in zip(xrange(MAX_ITER), product(*options.itervalues())):
     a = " -n " + args.network + " -e " + str(args.examples) + " -p -l "
     for k, v in zip(options, values):
@@ -41,4 +45,5 @@ for i, values in zip(xrange(MAX_ITER), product(*options.itervalues())):
 
     print "RUN " + str(i + 1) + " : " + a
 
-    os.system("python " + os.path.dirname(__file__) + "/indicators.py" + a)
+    os.system("python " + path + "indicators.py" + a)
+
