@@ -43,10 +43,7 @@ class DerestNetwork(object):
         """
         batches = outp.shape[0]
         for layer in reversed(self.layers):
-            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
-                "count derivative", type(layer)
             outp = layer.count_derivatives(outp, batches)
-            print datetime.datetime.now().strftime("%H:%M:%S.%f"), "Done"
         return outp
 
     def count_derest(self, count_function):
@@ -60,12 +57,8 @@ class DerestNetwork(object):
         ""
         result = []
         for layer in self.layers:
-            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
-                "count_derest", type(layer)
             indicators = layer.count_derest(count_function)
             result.extend(indicators)
-            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
-                "Done", type(layer)
         return result
 
     def delete_folder(self):
