@@ -631,7 +631,7 @@ class NpInterval(Interval):
         return self
 
     def op_d_conv(self, input_shape, filter_shape, weights,
-                  stride, padding, n_groups, conv_layer=None):
+                  stride, padding, n_groups, theano_ops=None):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
@@ -662,9 +662,8 @@ class NpInterval(Interval):
                          split into, two channels are connected only if they
                          belong to the same group.
         :type n_groups: integer
-        :param conv_layer: convolutional layer in which theano graph might
-                           be saved
-        :type conv_layer: DerestConvolutionalLayer
+        :param theano_ops: map in which theano graph might be saved
+        :type theano_ops: map of theano functions
         :returns: Estimated impact of input on output of network
         :rtype: NpInterval
         """
@@ -709,7 +708,7 @@ class NpInterval(Interval):
             op_weights = np.concatenate(op_weights, axis=0)
             conv_op_key = (op_image_shape, op_filter_shape, op_padding,
                            op_n_groups)
-            if conv_op_key not in conv_layer.theano_ops:
+            if conv_op_key not in theano_ops:
                 t_lower, t_upper = T.tensor4(), T.tensor4()
                 result_lower, result_upper = self._theano_op_conv(
                     t_lower, t_upper, op_weights, op_image_shape,
@@ -717,8 +716,8 @@ class NpInterval(Interval):
                 )
                 op_conv_function = function([t_lower, t_upper],
                                             [result_lower, result_upper])
-                conv_layer.theano_ops[conv_op_key] = op_conv_function
-            conv_op = conv_layer.theano_ops[conv_op_key]
+                theano_ops[conv_op_key] = op_conv_function
+            conv_op = theano_ops[conv_op_key]
             lower, upper = conv_op(op_low, op_upp)
             result = NpInterval(lower, upper)
             result = result[:, :, pad_h:(h - pad_h), pad_w:(w - pad_w)]
