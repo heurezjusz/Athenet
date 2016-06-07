@@ -27,10 +27,7 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
-                "count activation", type(layer)
             inp = layer.count_activation(inp)
-            print datetime.datetime.now().strftime("%H:%M:%S.%f"), "Done"
         return inp
 
     def count_derivatives(self, outp):
