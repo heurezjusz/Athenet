@@ -46,7 +46,7 @@ class Results(object):
         Adds test results from file. If file is not given,
          will use default file set in init.
 
-        :param string file: file to load from
+        :param string file_: file to load from
         """
         if file_ is None:
             file_ = self.file
@@ -63,7 +63,7 @@ class Results(object):
 
             self.tests = dict(self.tests, **loaded_data.tests)
         except IOError:
-            self.save_to_file(file)
+            self.save_to_file(file_)
 
     def save_to_file(self, file=None):
         """
