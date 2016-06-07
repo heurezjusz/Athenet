@@ -35,7 +35,7 @@ options = {
 }
 
 for i, values in zip(xrange(MAX_ITER), product(*options.itervalues())):
-    a = " -n " + args.network + " -e " + str(args.examples)
+    a = " -n " + args.network + " -e " + str(args.examples) + " -p -l "
     for k, v in zip(options, values):
         a += " -" + k + " " + str(v)
 
