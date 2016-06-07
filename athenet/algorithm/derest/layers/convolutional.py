@@ -44,7 +44,8 @@ class DerestConvolutionalLayer(DerestLayer):
         return d_conv(
             layer_output, input_shape,
             change_order(self.layer.filter_shape), self.layer.W,
-            self.layer.stride, self.layer.padding, self.layer.n_groups, self
+            self.layer.stride, self.layer.padding, self.layer.n_groups,
+            self.theano_ops
         )
 
     def _get_activation_for_weight(self, activation, i0, i1, i2):
