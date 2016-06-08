@@ -6,6 +6,8 @@ from athenet.algorithm.numlike import assert_numlike
 
 
 class DerestFullyConnectedLayer(DerestLayer):
+    need_activation = True
+    need_derivatives = True
 
     def _count_activation(self, layer_input):
         """
@@ -36,16 +38,14 @@ class DerestFullyConnectedLayer(DerestLayer):
             takes Numlike and returns float
         :return list of numpy arrays:
         """
-        indicators = numpy.zeros_like(self.layer.W)
-        nr_of_batches = self.derivatives.shape[0]
         input_shape = self.layer.input_shape
         output_shape = self.layer.output_shape
-        for i, j in product(range(input_shape), range(output_shape)):
-            act = self.activations[i]
-            der = self.derivatives[:, j]
-            inf = act * der * self.layer.W[i, j]
-            indicators[i, j] = count_function(inf)
-        return [indicators]
+
+        activations = self.load_activations().reshape((input_shape, 1))
+        derivatives = self.load_derivatives().reshape((1, output_shape))
+
+        ind = ((activations * derivatives) * self.layer.W)
+        return [count_function(ind)]
 
 
 def a_fully_connected(layer_input, weights, biases):

@@ -23,8 +23,8 @@ class TheanoInterval(Interval):
     intervals.
 
     .. note:: Should be treated as interval type with bounds as Theano nodes.
-              Operations on TheanoInterval create nodes in Theano graph. In order to
-              read result of given operations, use eval method.
+              Operations on TheanoInterval create nodes in Theano graph.
+              In order to read result of given operations, use eval method.
     """
 
     @staticmethod
@@ -485,9 +485,9 @@ class TheanoInterval(Interval):
         """Returns estimated impact of input of max pool layer on output of
         network.
 
-        :param TheanoInterval self: estimated impact of output of layer on output
-                               of network in shape (batch_size, number of
-                               channels, height, width)
+        :param TheanoInterval self: estimated impact of output of layer
+                                on output of network in shape (batch_size,
+                                number of channels, height, width)
         :param TheanoInterval activation: estimated activation of input
         :param input_shape: shape of layer input in format (batch size,
                             number of channels, height, width)
@@ -528,7 +528,8 @@ class TheanoInterval(Interval):
                         # maximum lower and upper of neighbours
                         neigh_max_low = shared(-numpy.inf)
                         neigh_max_upp = shared(-numpy.inf)
-                        neigh_max_itv = TheanoInterval(neigh_max_low, neigh_max_upp)
+                        neigh_max_itv = TheanoInterval(neigh_max_low,
+                                                       neigh_max_upp)
                         act_slice = activation[:, :, at_f_h, at_f_w]
                         # setting maximum lower and upper of neighbours
                         for at_f_h_neigh in xrange(at_h, at_h + fh):
@@ -578,9 +579,9 @@ class TheanoInterval(Interval):
         """Returns estimated impact of input of avg pool layer on output of
         network.
 
-        :param TheanoInterval self: estimated impact of output of layer on output
-                               of network in shape (batch_size, number of
-                               channels, height, width)
+        :param TheanoInterval self: estimated impact of output of layer
+                               on output of network in shape (batch_size,
+                               number of channels, height, width)
         :param TheanoInterval activation: estimated activation of input
         :param input_shape: shape of layer input in format (batch size,
                             number of channels, height, width)
@@ -630,9 +631,9 @@ class TheanoInterval(Interval):
         """Returns estimated impact of input of norm layer on output of
         network.
 
-        :param TheanoInterval self: estimated impact of output of layer on output
-                               of network in shape (batch_size, number of
-                               channels, height, width)
+        :param TheanoInterval self: estimated impact of output of layer
+                               on output of network in shape (batch_size,
+                               number of channels, height, width)
         :param TheanoInterval activation: estimated activation of input
         :param input_shape: shape of layer input in format (batch size,
                             number of channels, height, width)
@@ -695,8 +696,8 @@ class TheanoInterval(Interval):
         def x_extr_from_c2(arg_c):
             return T.sqrt(arg_c / (alpha * (2 * beta + 1)))
 
-        mid_impact = TheanoInterval.from_shape(input_shape, lower_val=numpy.inf,
-                                         upper_val=-numpy.inf)
+        mid_impact = TheanoInterval.from_shape(
+            input_shape, lower_val=numpy.inf, upper_val=-numpy.inf)
         corners = [(x.lower, c.lower), (x.lower, c.upper),
                    (x.upper, c.lower), (x.upper, c.upper)]
         for corner in corners:
@@ -800,7 +801,7 @@ class TheanoInterval(Interval):
 
                 def surf_c_func1(x_arg, y_arg):
                     return (T.sqr(x_arg) * (2 * beta + 1) - T.sqr(y_arg)) * \
-                           alpha
+                        alpha
 
                 # y^2 * alpha * (2 * beta + 1) - x^2 * alpha - c = 0
                 # Note: Condition is symmetric to func1's condition
@@ -1008,8 +1009,8 @@ class TheanoInterval(Interval):
         """Returns estimated impact of input of convolutional layer on output
         of network.
 
-        :param TheanoInterval self: estimated impact of output of layer on output
-                              of network in shape (number of batches,
+        :param TheanoInterval self: estimated impact of output of layer
+                              on output of network in shape (number of batches,
                               number of channels, height, width)
         :param input_shape: shape of layer input in format
                             (number of batches,
@@ -1143,7 +1144,8 @@ class TheanoInterval(Interval):
                         (out_slice_upp * weights_neg_slice).sum(axis=1)
                     res_slice_lower = res_low_pos + res_upp_neg
                     res_slice_upper = res_upp_pos + res_low_neg
-                    res_slice = TheanoInterval(res_slice_lower, res_slice_upper)
+                    res_slice = TheanoInterval(res_slice_lower,
+                                               res_slice_upper)
                     # input slice that impacts on (at_out_h, at_out_w) in
                     # output
                     result[:, at_in_from:at_in_to, at_h:(at_h + fh),

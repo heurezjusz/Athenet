@@ -64,7 +64,7 @@ def simple_neuron_indicators(layers, p, layer_limit):
         if deleted_in_general >= p * neurons_in_general:
             break
         if 1 + deleted_for_layer[layer_id] > \
-                        layer_limit * neurons_for_layer[i]:
+                layer_limit * neurons_for_layer[i]:
             continue
         deleted_for_layer[layer_id] += 1
         results[layer_id][row] = val
@@ -96,4 +96,3 @@ def simple_neuron_deleter(network, p, layer_limit):
     indicators = simple_neuron_indicators(fully_connected_layers, p,
                                           layer_limit)
     delete_weights_by_global_fraction(fully_connected_layers, p, indicators)
-

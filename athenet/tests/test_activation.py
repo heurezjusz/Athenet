@@ -258,7 +258,7 @@ class ConvolutionalActivationTest(ActivationTest):
         f_shp = (w.shape[0], w.shape[2], w.shape[3])
         b = nplike([[[0]]])
         res = a_conv(inp, inp.shape, w_flipped, f_shp, b, padding=(1, 1),
-                   stride=(2, 2))
+                     stride=(2, 2))
         array_almost_equal(res.eval(), A([[[8, 9], [10, 7]]]))
 
     def test_interval_simple(self):
@@ -496,7 +496,6 @@ class NormActivationTest(ActivationTest):
         array_almost_equal(out.eval(), A([[[0.9999850, 9.9850262],
                                            [87.2195949, 101.9378639]]]))
 
-
     def test_case1_interval(self):
         inp = A([[[1, 10], [100, 1000]]])
 
@@ -643,7 +642,6 @@ class DropoutActivationTest(ActivationTest):
         res = a_dropout(a, 0.8)
         array_almost_equal(res.eval(), a.eval() * A([0.2]))
 
-
     def test_2x2_matrix_interval(self):
         s, v, m = self.prepare()
         l = A([[[s(), s()], [s(), s()]]])
@@ -659,7 +657,6 @@ class ReluActivationTest(ActivationTest):
     def test_simple(self):
         inp = nplike([[[-3, -1, 1]]])
         array_almost_equal(a_relu(inp).eval(), A([[[0, 0, 1]]]))
-
 
     def test_interval_simple(self):
         inpl = A([[[-3, -1, 1]]])

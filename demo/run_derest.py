@@ -26,20 +26,24 @@ args = parser.parse_args()
 
 
 options = {
-    "i" : ["derest"],
-    "b" : [250],
-    "c" : ["sum_max", "sum_lenght", "max_lenght"],
-    "a" : ["none", "lenght", "max_value"],
-    "r" : ["none", "lenght", "max_value"],
-    "t" : ["all", "conv", "fully-connected"]
+    "i": ["derest"],
+    "b": [250],
+    "c": ["max", "length"],
+    "a": ["none", "length", "max_value"],
+    "r": ["none", "length", "max_value"],
+    "t": ["all", "conv", "fully-connected"]
 }
 
+path = os.path.dirname(__file__)
+if path:
+    path += "/"
+
 for i, values in zip(xrange(MAX_ITER), product(*options.itervalues())):
-    a = " -n " + args.network + " -e " + str(args.examples)
+    a = " -n " + args.network + " -e " + str(args.examples) + " -p -l "
     for k, v in zip(options, values):
         a += " -" + k + " " + str(v)
 
     print "RUN " + str(i + 1) + " : " + a
 
-    os.system("python " + os.path.dirname(__file__) + "/indicators.py" + a)
+    os.system("python " + path + "indicators.py" + a)
 

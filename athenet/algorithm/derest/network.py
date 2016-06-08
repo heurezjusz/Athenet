@@ -1,11 +1,22 @@
+import datetime
+import os
+import shutil
+
 from athenet.algorithm.derest.layers import get_derest_layer
+
 
 class DerestNetwork(object):
 
-    def __init__(self, network, *args):
+    def __init__(self, network, folder, *args):
         self.network = network
-        self.layers = [get_derest_layer(layer, *args)
-                       for layer in network.layers]
+
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        self.folder = folder
+
+        self.layers = [get_derest_layer(layer, folder + "/" + str(i), *args)
+                       for i, layer
+                       in zip(xrange(len(network.layers)), network.layers)]
 
     def count_activations(self, inp):
         """
@@ -16,9 +27,7 @@ class DerestNetwork(object):
         :return Numlike: possible output for network
         """
         for layer in self.layers:
-            print "count activation", type(layer)
             inp = layer.count_activation(inp)
-            print "Done"
         return inp
 
     def count_derivatives(self, outp):
@@ -31,9 +40,7 @@ class DerestNetwork(object):
         """
         batches = outp.shape[0]
         for layer in reversed(self.layers):
-            print "count derivative", type(layer)
             outp = layer.count_derivatives(outp, batches)
-            print "Done"
         return outp
 
     def count_derest(self, count_function):
@@ -50,3 +57,6 @@ class DerestNetwork(object):
             indicators = layer.count_derest(count_function)
             result.extend(indicators)
         return result
+
+    def delete_folder(self):
+        shutil.rmtree(self.folder)

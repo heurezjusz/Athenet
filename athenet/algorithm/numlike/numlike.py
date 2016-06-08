@@ -433,8 +433,7 @@ class Numlike(object):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def concat(self, other, axis = 0):
+    def concat(self, other, axis=0):
         """
         :param other: Numlike variable to be concationated with
         :type other: Numlike

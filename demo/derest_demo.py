@@ -25,9 +25,9 @@ def custom_count_function(data):
 
 print "creating network..."
 network = Network([
-    ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(4, 4, 2)),
+    ConvolutionalLayer(image_shape=(28, 28, 1), filter_shape=(5, 5, 10)),
     ReLU(),
-    ConvolutionalLayer(filter_shape=(3, 3, 6), n_groups=2),
+    ConvolutionalLayer(filter_shape=(3, 3, 20), n_groups=2),
     ReLU(),
     LRN(),
     MaxPool(poolsize=(2, 2)),

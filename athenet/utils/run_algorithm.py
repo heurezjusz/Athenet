@@ -1,6 +1,6 @@
 """Function for running algorithm on network for multiple cases. """
 
-import copy
+import datetime
 
 from athenet.utils import count_zeros
 from athenet.utils.results import Results
@@ -62,21 +62,24 @@ def run_algorithm(neural_network, algorithm, config_l, results_pkl=None,
         error_rate=get_error_rate(neural_network),
         weighted_layers=[layer.__class__.__name__ for layer in layers],
         number_of_weights=[layer.W.size for layer in layers],
-        file=results_pkl
+        file_=results_pkl
     )
     config_l = results.get_new_test_configs(config_l)
     n_of_cases = len(config_l)
     n_of_cases_passed = 0
     weights = neural_network.get_params()
     if verbose:
-        print 'Cases to run:', n_of_cases
+        print datetime.datetime.now().strftime("%H:%M:%S.%f"), \
+            'Cases to run:', n_of_cases
     for config in config_l:
         neural_network.set_params(weights)
         test_result = run_test(neural_network, algorithm, config)
         results.add_new_test_result(config, test_result, save)
         n_of_cases_passed += 1
         if verbose:
-            print 'Cases passed:', n_of_cases_passed, '/', n_of_cases
+            print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
+                'Cases passed:', n_of_cases_passed, '/', n_of_cases
     if verbose:
-        print 'Algorithm run successfully'
+        print datetime.datetime.now().strftime("%H:%M:%S.%f"),\
+            'Algorithm run successfully'
     return results

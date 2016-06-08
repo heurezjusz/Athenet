@@ -12,7 +12,6 @@ from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
 from derest_params import get_derest_params
 
-
 """
     dictionary form algorithm shortcut to function to be called
 """
@@ -80,22 +79,25 @@ def get_indicators(network, type_, indicators_, args):
         return f(choose_layers(network, type_, indicators_))
 
 
-def get_network(network_type):
+def get_network(network_type, val_size=None):
     """
         Returns a athenet.network of given type.
         :network_type: is a name of the type given as a string.
+        :val_size: size of validation dataset
     """
+    if val_size <= 0:
+        val_size = None
     if network_type == "lenet":
         net = lenet()
         net.data_loader = MNISTDataLoader()
         return net
     if network_type == "alexnet":
         net = alexnet()
-        net.data_loader = AlexNetImageNetDataLoader()
+        net.data_loader = AlexNetImageNetDataLoader(val_size=val_size)
         return net
     if network_type == "googlenet":
         net = googlenet()
-        net.data_loader = GoogleNetImageNetDataLoader()
+        net.data_loader = GoogleNetImageNetDataLoader(val_size=val_size)
         return net
     raise NotImplementedError
 
@@ -111,7 +113,7 @@ def get_file_name(args):
         if v in ("default", "none"):
             continue
         file_args.append(k + "_" + str(v))
-    return "_".join(file_args)
+    return "results/" + "_".join(file_args)
 
 
 def ok():

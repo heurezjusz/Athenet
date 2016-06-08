@@ -2,7 +2,7 @@
 
 import matplotlib.pyplot as plt
 from athenet.utils import save_data_to_pickle, load_data_from_pickle
-from athenet.utils import RESULTS_DIR
+
 
 def merge_pickles(out_pkl, in_pkl1, in_pkl2):
     """ Merge pickled dictionaries.
@@ -52,6 +52,6 @@ def plot_2d_results(results, filename,
     plt.ylabel(ylabel)
     if title:
         plt.title(title)
-    os_filename = RESULTS_DIR + filename + '.png'
+    os_filename = filename + '.png'
     plt.savefig(os_filename)
     #plt.show()

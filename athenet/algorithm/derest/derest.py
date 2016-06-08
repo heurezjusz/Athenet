@@ -1,33 +1,25 @@
 """Functions counting cost of weights in view of their activation/derivative.
 """
 
+from random import randint
+
 from athenet.algorithm.deleting import delete_weights_by_global_fraction
 from athenet.algorithm.derest.network import DerestNetwork
 from athenet.algorithm.derest.utils import change_order
 from athenet.algorithm.numlike.npinterval import NpInterval
 from athenet.algorithm.utils import to_indicators
 
-
-def sum_max(values):
-    """
-    Computes indicator from Numlike values
-
-    :param Numlike values: values to count indicator from
-    :return: float
-    """
-    return values.sum().upper
+from athenet.utils.constants import TMP_DIR
 
 
-def sum_length(values):
+def length(value):
     """
     Computes indicator from Indicator
 
     :param Numlike values: values to count indicator from
     :return: float
     """
-
-    a = values.sum()
-    return a.upper - a.lower
+    return value.upper - value.lower
 
 
 def divide_by_max(data):
@@ -35,12 +27,7 @@ def divide_by_max(data):
     return data / (a.upper + 1e-6)
 
 
-def divide_by_length(data):
-    a = data.sum()
-    return data / (a.upper - a.lower + 1e-6)
-
-
-def get_derest_indicators(network, input_=None, count_function=sum_length,
+def get_derest_indicators(network, input_=None, count_function=length,
                           max_batch_size=None,
                           normalize_activations=lambda x: x,
                           normalize_derivatives=divide_by_max):
@@ -63,19 +50,22 @@ def get_derest_indicators(network, input_=None, count_function=sum_length,
             neutral=False
         )
 
-    derest_network = DerestNetwork(network, normalize_activations,
-                                   normalize_derivatives)
+    random_id = randint(0, 10**6)
+    network_folder = TMP_DIR + str(random_id)
+    derest_network = DerestNetwork(
+        network, network_folder, normalize_activations, normalize_derivatives)
     derest_network.count_activations(input_)
 
     output_nr = network.layers[-1].output_shape
     if max_batch_size is None:
         max_batch_size = output_nr
-    output= input_.derest_output(output_nr)
+    output = input_.derest_output(output_nr)
     for i in xrange(0, output_nr, max_batch_size):
         print "BATCH:", i
         derest_network.count_derivatives(output[i:(i+max_batch_size)])
 
     results = derest_network.count_derest(count_function)
+    derest_network.delete_folder()
     return to_indicators(results)
 
 

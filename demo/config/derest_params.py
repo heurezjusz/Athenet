@@ -11,12 +11,12 @@ def no_normalization(data):
 
 def normalization_by_length(data, max_length=1.):
     a = data.sum()
-    return max_length * data / (a.upper - a.lower + 1e-6)
+    return data * max_length / (a.upper - a.lower + 1e-6) 
 
 
 def normalization_by_max_value(data, max_value=1.):
     a = data.abs().amax()
-    return max_value * data / (a.upper + 1e-6)
+    return data * max_value / (a.upper + 1e-6)
 
 derest_normalization = {
     "none": no_normalization,
@@ -27,24 +27,17 @@ derest_normalization = {
 """ indicators coumputing functions """
 
 
-def sum_max(values):
-    return values.sum().abs().upper
+def count_max(value):
+    return value.abs().upper
 
 
-def sum_length(values):
-    a = values.sum()
-    return a.upper - a.lower
+def count_length(value):
+    return value.upper - value.lower
 
-
-def max_length(values):
-    a = values.amax().upper
-    b = - values.neg().amax().upper
-    return a - b
 
 derest_indicators = {
-    "sum_max": sum_max,
-    "sum_length": sum_length,
-    "max_length": max_length
+    "max": count_max,
+    "length": count_length
 }
 
 
