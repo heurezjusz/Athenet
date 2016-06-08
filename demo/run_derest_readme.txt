@@ -6,6 +6,8 @@ for more options execute:
 
 $ python demo/run_derest.py -h
 
+Automatically saves results and plots in ./results directory.
+
 If any other program like Dropbox observes files in Athenet/tmp, turn it off
 for correct behavior of run_derest. run_derest should be able to delete
 files in this directory.
