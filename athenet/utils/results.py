@@ -8,8 +8,8 @@ class Results(object):
     Test results, obtained on one network and using one algorithm
     """
 
-    def __init__(self, error_rate, weighted_layers,
-                 number_of_weights, file=None):
+    def __init__(self, error_rate=None, weighted_layers=None,
+                 number_of_weights=None, file_=None):
         """
         :param float error_rate: error rate in original network
         :param list of strings weighted_layers:
@@ -23,8 +23,8 @@ class Results(object):
         self.number_of_weights = numpy.array(number_of_weights)
         self.tests = {}
 
-        self.file = file
-        if file:
+        self.file = file_
+        if file_:
             self.load_from_file()
 
     def add_new_test_result(self, config, result, save=False):
@@ -41,29 +41,29 @@ class Results(object):
         if save:
             self.save_to_file()
 
-    def load_from_file(self, file=None):
+    def load_from_file(self, file_=None):
         """
         Adds test results from file. If file is not given,
          will use default file set in init.
 
-        :param string file: file to load from
+        :param string file_: file to load from
         """
-        if file is None:
-            file = self.file
-        if file is None:
+        if file_ is None:
+            file_ = self.file
+        if file_ is None:
             raise "No file to load from"
 
         try:
-            loaded_data = load_data_from_pickle(file)
+            loaded_data = load_data_from_pickle(file_)
 
-            assert loaded_data.error_rate == self.error_rate
-            assert numpy.array_equal(loaded_data.weighted_layers,
-                                     self.weighted_layers)
-            assert numpy.array_equal(loaded_data.number_of_weights,
-                                     self.number_of_weights)
+            if self.error_rate is None:
+                self.error_rate = loaded_data.error_rate
+                self.weighted_layers = loaded_data.weighted_layers
+                self.number_of_weights = loaded_data.number_of_weights
+
             self.tests = dict(self.tests, **loaded_data.tests)
         except IOError:
-            self.save_to_file(file)
+            self.save_to_file(file_)
 
     def save_to_file(self, file=None):
         """

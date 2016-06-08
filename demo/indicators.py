@@ -26,10 +26,22 @@ parser.add_argument("-i", "--indicators",
                     " * global_mean: get_nearest_to_global_mean_indicators\n"
                     " * layers_mean: get_nearest_to_layers_mean_indicators\n"
                     " * filters: get_filters_indicators\n"
-                    " * derest: get_derest_indicators",
+                    " * derest: get_derest_indicators\n"
+                    " * random: get_random_indicators",
                     choices=["smallest", "global_mean", "layers_mean",
-                             "filters", "derest"],
+                             "filters", "derest", "random"],
                     default="smallest")
+
+parser.add_argument("-j", "--second_indicators",
+                    help="Chooses method of cumputing second indicators, which"
+                    "will be multiplied with first ones to get final result.\n"
+                    "The possibilities are the same as in indicators.\n"
+                    "The default is none.\n"
+                    "In case of default layers, they will be "
+                    "chosen in consideration of first indicators",
+                    choices=["none", "smallest", "global_mean", "layers_mean",
+                             "filters", "derest", "random"],
+                    default="none")
 
 parser.add_argument("-d", "--deleting",
                     help="Chooses way of deleting weights:\n"
@@ -78,19 +90,43 @@ parser.add_argument("-b", "--batch_size", type=int,
                          "no maximum size)",
                     default=0)
 
+parser.add_argument("-a", "--normalize_activations",
+                    help="Chooses normalization of activations"
+                         " in derest algoritm",
+                    choices=["default", "none", "length", "max_value"],
+                    default="default")
+
+parser.add_argument("-r", "--normalize_derivatives",
+                    help="Chooses normalization of derivatives"
+                         " in derest algoritm",
+                    choices=["default", "none", "length", "max_value"],
+                    default="default")
+
+parser.add_argument("-c", "--derest_count_function",
+                    help="Chooses count function used in derest algoritm",
+                    choices=["default", "max", "length"],
+                    default="default")
+
 parser.add_argument("-f", "--file", type=str,
                     help="Name of file to save results to", default=None)
+
+parser.add_argument("-v", "--val_size", type=int,
+                    help="validation size for dataset", default=None)
 
 
 args = parser.parse_args()
 
 
 print "loading network..."
-network = get_network(args.network)
+network = get_network(args.network, args.val_size)
 ok()
 
 print "generating indicators..."
-ind = get_indicators(network, args.types, args.indicators, args.batch_size)
+ind = get_indicators(network, args.types, args.indicators, args)
+if args.second_indicators != "none":
+    ind2 = get_indicators(network, args.types, args.second_indicators, args)
+    ind = [i1 * i2 for i1, i2 in zip(ind, ind2)]
+
 ok()
 
 
@@ -108,7 +144,7 @@ elif n == 1:
 else:
     examples = []
 
-file_name = get_file_name(args.file, args.network)
+file_name = get_file_name(args)
 
 results = run_algorithm(network, deleting_with_indicators,
                         examples, verbose=True,
@@ -116,7 +152,6 @@ results = run_algorithm(network, deleting_with_indicators,
 ok()
 
 if args.plot:
-    # TODO: Make filename
-    plot_2d_results(results, 'dummy_filename_todo', ylog=args.log,
+    plot_2d_results(results, file_name, ylog=args.log,
                     title="results of " + args.indicators + " indicators"
                     " deleted by " + args.deleting + " fraction")
