@@ -1,4 +1,4 @@
-How to run AlexNet:
+How to run GoogLeNet:
 
 All required files can be downloaded from:
 https://drive.google.com/folderview?id=0Bw3yOJZsDOJMeDl3R05mYzFJOFE&usp=sharing_eid&ts=565f926e&tid=0B3GIboTT8-hNZC14QmViUUV2MEE
