@@ -90,13 +90,7 @@ class Network(object):
         self.snapshot_interval = 0
         self.verbosity = 1
         self._batch_index = T.lscalar()
-        if isinstance(layers[0], FullyConnectedLayer):
-            self._input = T.matrix()
-        elif isinstance(layers[0], ConvolutionalLayer):
-            self._input = T.tensor4()
-        else:
-            raise Exception('{} is not supported as input layer'.format(
-                type(layers[0])))
+        self._input = T.tensor4()
         self._correct_answers = T.ivector()
         self.layers = layers
 
