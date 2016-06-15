@@ -409,10 +409,11 @@ class NpInterval(Interval):
                                                   filter height,
                                                   filter width)
         :param image_shape: shape of input in the format
-                    (number of input channels, image height, image width)
+                            (number of input channels, image height,
+                            image width)
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
-                              filter width)
+                             filter width)
         :param biases: biases in convolution
         :param stride: pair representing interval at which to apply the filters
         :param padding: pair representing number of zero-valued pixels to add
@@ -636,22 +637,20 @@ class NpInterval(Interval):
         of network.
 
         :param NpInterval self: estimated impact of output of layer on output
-                             of network in shape (batch_size,
-                             number of channels, height, width)
+                                of network in shape (batch_size,
+                                number of channels, height, width)
         :param input_shape: shape of layer input in the format
-                            (number of batches,
-                             number of input channels,
-                             image height,
-                             image width)
+                            (number of batches,number of input channels,
+                            image height, image width)
         :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
-                              filter width)
+                             filter width)
         :type filter_shape: tuple of 3 integers
         :param weights: Weights tensor in format (number of output channels,
-                                                  number of input channels,
-                                                  filter height,
-                                                  filter width)
+                                                 number of input channels,
+                                                 filter height,
+                                                 filter width)
         :type weights: numpy.ndarray or theano tensor
         :param stride: pair representing interval at which to apply the filters
         :type stride: pair of integers
