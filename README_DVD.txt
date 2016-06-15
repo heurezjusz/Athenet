@@ -36,9 +36,6 @@ LeNet nie jest aż tak wymagające. Opis kroków w celu uruchomienia tych sieci 
 w plikach Athenet/alexnet_readme.txt oraz Athenet/googlenet_readme.txt. Potrzebne pliki
 będą hostowane conajmniej do października 2016.
 
-Można również używać ich dla sieci LeNet.
-Wagi potrzebne do sieci LeNet  Nie można jednak jeszcze uruchamiać
-algorytmów na sieciach AlexNet i GoogLeNet.
 
 
 Opis plików demonstracyjnych w Athenet/demo:
