@@ -217,7 +217,7 @@ class Numlike(object):
 
         :param tuple of 4 integers shape: shape of input in format
                                           (batch size, number of channels,
-                                           height, width)
+                                          height, width)
         :param pair of integers padding: padding to be applied
         :returns: padded layer_input
         :rtype: Numlike
@@ -392,19 +392,15 @@ class Numlike(object):
                              of network in shape (batch_size,
                              number of channels, height, width)
         :param input_shape: shape of layer input in the format
-                            (number of batches,
-                             number of input channels,
-                             image height,
-                             image width)
+                            (number of batches, number of input channels,
+                            image height, image width)
         :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
-                              filter width)
+                             filter width)
         :type filter_shape: tuple of 3 integers
         :param weights: Weights tensor in format (number of output channels,
-                                                  number of input channels,
-                                                  filter height,
-                                                  filter width)
+                        number of input channels, filter height, filter width)
         :type weights: numpy.ndarray or theano tensor
         :param stride: pair representing interval at which to apply the filters
         :type stride: pair of integers
