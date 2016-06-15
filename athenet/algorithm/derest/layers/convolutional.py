@@ -226,9 +226,9 @@ def d_conv(output, input_shape, filter_shape, weights,
                            height, width)
     :param input_shape: shape of layer input in the format
                         (number of batches,
-                         number of input channels,
-                         image height,
-                         image width)
+                        number of input channels,
+                        image height,
+                        image width)
     :type input_shape: tuple of 4 integers
     :param filter_shape: filter shape in the format (number of output channels,
                                                      filter height,

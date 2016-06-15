@@ -59,7 +59,7 @@ class Interval(Numlike):
         """Returns shape of interval. Checks only 'lower' matrix.
 
         .. note:: does not require self.upper for computations. Therefore it is
-        not safe, but faster.
+                  not safe, but faster.
         """
         return self.lower.shape
 

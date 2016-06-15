@@ -238,7 +238,7 @@ class TheanoInterval(Interval):
         and upper values.
 
         :param tuple of integers or integer shp: shape of created
-            TheanoInterval
+                                                 TheanoInterval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
@@ -1013,19 +1013,15 @@ class TheanoInterval(Interval):
                               on output of network in shape (number of batches,
                               number of channels, height, width)
         :param input_shape: shape of layer input in format
-                            (number of batches,
-                            number of input channels,
-                            image height,
-                            image width)
+                            (number of batches, number of input channels,
+                            image height, image width)
         :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
                              filter width)
         :type filter_shape: tuple of 3 integers
         :param weights: Weights tensor in format (number of output channels,
-                                                  number of input channels,
-                                                  filter height,
-                                                  filter width)
+                        number of input channels, filter height, filter width)
         :type weights: theano.tensor4
         :param stride: pair representing interval at which to apply the filters
         :type stride: pair of integers

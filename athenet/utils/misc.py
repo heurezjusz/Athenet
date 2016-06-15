@@ -161,7 +161,7 @@ def reshape_for_padding(layer_input, image_shape, batch_size, padding,
 
     :param theano.tensor4 layer_input: input in shape
                                        (batch_size, number of channels,
-                                        height, width)
+                                       height, width)
     :param tuple of integers image_shape: shape of input images in format
                                           (height, width, number of channels)
     :param integer batch_size: size of input batch size
@@ -191,11 +191,11 @@ def convolution(layer_input, w_shared, stride, n_groups, image_shape,
 
     :param theano.tensor4 layer_input: input of convolution in format
                                        (batch_size, number of channels,
-                                        height, width)
+                                       height, width)
     :param theano.tensor4 w_shared: weights in format
                                     (number of output channels,
-                                     number of input channels,
-                                     height, width)
+                                    number of input channels,
+                                    height, width)
     :param pair of integers stride: stride of convolution
     :param integer n_groups: number of groups in convolution
     :param image_shape: shape of single image in layer_input in format

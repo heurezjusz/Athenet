@@ -53,7 +53,7 @@ def a_fully_connected(layer_input, weights, biases):
 
     :param Numlike layer_input: input Numlike
     :param weights: weights of fully connected layer in format
-    (n_in, n_out)
+                    (n_in, n_out)
     :param biases: biases of fully connected layer of size n_out
     :type weights: 2D numpy.ndarray or theano.tensor
     :type biases: 1D numpy.ndarray or theano.tensor

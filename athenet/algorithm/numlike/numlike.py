@@ -392,10 +392,8 @@ class Numlike(object):
                              of network in shape (batch_size,
                              number of channels, height, width)
         :param input_shape: shape of layer input in the format
-                            (number of batches,
-                            number of input channels,
-                            image height,
-                            image width)
+                            (number of batches, number of input channels,
+                            image height, image width)
         :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,

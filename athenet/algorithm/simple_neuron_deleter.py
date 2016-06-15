@@ -30,7 +30,7 @@ def simple_neuron_indicators(layers, p, layer_limit):
         :type layers: list of instances of athenet.layers.FullyConnectedLayer
         :param p: float between 0 and 1, fraction of neurons to be considered
         :param layer_limit: float between 0 and 1, maximal fraction of neurons
-        which will be considered in a single layer.
+                            which will be considered in a single layer.
     """
     assert p >= 0. and p <= 1.
     assert layer_limit >= 0. and layer_limit <= 1.
@@ -77,9 +77,9 @@ def simple_neuron_deleter(network, p, layer_limit):
     """
         :param network: an instance of athenet.Network.
         :param p: float between 0 and 1, fraction of neurons to be deleted
-        from fully connected layers
+                  from fully connected layers
         :param layer_limit: float between 0 and 1, maximal fraction of neurons
-        which will be deleted from a single layer.
+                            which will be deleted from a single layer.
 
         Modifies [network]. Deletes [p] neurons from layers connected direclty
         to fully connected layers. Do not delete more than [layer_limit]
