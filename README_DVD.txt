@@ -7,11 +7,13 @@ nose
 python-opencv (Napotkaliśmy problemy z instalacją opencv przez program pip.
                Można zainstalować z pomocą menadżera pakietów systemu Ubuntu.)
 
-Następnie należy zainstalować bibliotekę Athenet zgodnie z instrukcjami w README.md
-w katalogu Athenet.
+Następnie należy zainstalować bibliotekę Athenet komendą
+python setup.py develop
+zgodnie z instrukcjami w README.md w katalogu Athenet.
 
-W tym momencie można używać oprogramowania. Można tworzyć własne sieci neuronowe
-i uruchamiać algorytmy zerujące wagi.
+
+Po zainstalowaniu oprogramowanie jest gotowe do użytku. Umożliwia tworzenie
+własnych sieci neuronowych, trenowanie ich i uruchamianie na nich algorytmów zerujących wagi.
 
 Aby uruchamiać algorytmy na przygotowanych sieciach neuronowych: LeNet, AlexNet,
 GoogLeNet, należy pobrać wagi do tych sieci. Należy również pobrać zbiory testowe,
@@ -32,7 +34,7 @@ znacznie większymi plikami i wymagają ręcznego pobrania. Uruchamianie algoryt
 sieci wymaga dużej ilości ramu (32GB-64GB) i dużej mocy obliczeniowej. Działanie na sieci
 LeNet nie jest aż tak wymagające. Opis kroków w celu uruchomienia tych sieci znajduje się
 w plikach Athenet/alexnet_readme.txt oraz Athenet/googlenet_readme.txt. Potrzebne pliki
-będą hostowane conajmniej do 
+będą hostowane conajmniej do października 2016.
 
 Można również używać ich dla sieci LeNet.
 Wagi potrzebne do sieci LeNet  Nie można jednak jeszcze uruchamiać
