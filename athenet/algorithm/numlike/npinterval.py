@@ -409,10 +409,11 @@ class NpInterval(Interval):
                                                   filter height,
                                                   filter width)
         :param image_shape: shape of input in the format
-                    (number of input channels, image height, image width)
+                            (number of input channels, image height,
+                            image width)
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
-                              filter width)
+                             filter width)
         :param biases: biases in convolution
         :param stride: pair representing interval at which to apply the filters
         :param padding: pair representing number of zero-valued pixels to add

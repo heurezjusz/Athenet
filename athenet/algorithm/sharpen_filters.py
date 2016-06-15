@@ -94,8 +94,9 @@ def sharpen_filters(network, fraction, filters_importance=1.,
     :param float fraction: fraction of weights to be changed into zero
     :param float filters_importance: how much sharpen filters in the process
     :param tuple bilateral_filter_args: args for filter algorithm
-        (neighborhood diameter, sigma in the color space,
-         sigma in the coordinate space)
+                                        (neighborhood diameter, sigma in the
+                                         color space, sigma in the coordinate
+                                         space)
     """
 
     assert filters_importance > 0
