@@ -177,7 +177,7 @@ class Interval(Numlike):
 
         :param tuple of 4 integers shape: shape of input in format
                                           (batch size, number of channels,
-                                           height, width)
+                                          height, width)
         :param pair of integers padding: padding to be applied
         :param float lower_val: value of lower bound in new fields
         :param float upper_val: value of upper bound in new fields

@@ -237,7 +237,7 @@ class TheanoInterval(Interval):
         """Returns TheanoInterval of shape shp with given lower
         and upper values.
 
-        :param tuple of integers or integer shp : shape of created
+        :param tuple of integers or integer shp: shape of created
             TheanoInterval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
@@ -321,10 +321,10 @@ class TheanoInterval(Interval):
                   e^x / (e^x + e^y) = +Inf / +Inf = NaN for too hight values of
                   x, y.
                   There is used a workaround:
-                      * _low endings are for softmax with variables shifted so
-                        that input[i].upper() == 0
-                      * _upp endings are for softmax with variables shifted so
-                        that input[i].lower() == 0
+                  * _low endings are for softmax with variables shifted so
+                  that input[i].upper() == 0
+                  * _upp endings are for softmax with variables shifted so
+                  that input[i].lower() == 0
         """
         result = TheanoInterval.from_shape((input_shp, ), neutral=True)
         for i in xrange(input_shp):
@@ -438,7 +438,7 @@ class TheanoInterval(Interval):
                     (number of input channels, image height, image width)
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
-                              filter width)
+                             filter width)
         :param biases: biases in convolution
         :param stride: pair representing interval at which to apply the filters
         :param padding: pair representing number of zero-valued pixels to add
@@ -1014,13 +1014,13 @@ class TheanoInterval(Interval):
                               number of channels, height, width)
         :param input_shape: shape of layer input in format
                             (number of batches,
-                             number of input channels,
-                             image height,
-                             image width)
+                            number of input channels,
+                            image height,
+                            image width)
         :type input_shape: tuple of 4 integers
         :param filter_shape: filter shape in the format
                              (number of output channels, filter height,
-                              filter width)
+                             filter width)
         :type filter_shape: tuple of 3 integers
         :param weights: Weights tensor in format (number of output channels,
                                                   number of input channels,
