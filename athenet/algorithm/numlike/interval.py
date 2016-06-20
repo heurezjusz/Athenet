@@ -123,7 +123,7 @@ class Interval(Numlike):
                          left in the result as dimensions with size one. With
                          this option, the result will broadcast correctly
                          against the original tensor.
-        :type keepdims: boolean
+        :type keepdims: bool
         """
         lower = self.lower.max(axis=axis, keepdims=keepdims)
         upper = self.upper.max(axis=axis, keepdims=keepdims)
@@ -152,7 +152,7 @@ class Interval(Numlike):
         :type axis: integer or None
         :param dtype: just like dtype argument in theano.tensor.sum
         :type dtype: type or None
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :param bool keepdims: Whether to keep squashed dimensions of size 1
         """
         return self.construct(
             self.lower.sum(axis=axis, dtype=dtype, keepdims=keepdims),

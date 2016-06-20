@@ -150,7 +150,7 @@ class Numlike(object):
         Works like theano.tensor.max
 
         :param axis: axis along which max is evaluated
-        :param Boolean keepdims: whether flattened dimensions should remain
+        :param bool keepdims: whether flattened dimensions should remain
         :rtype: Numlike
         """
         raise NotImplementedError
@@ -177,7 +177,7 @@ class Numlike(object):
         :param dtype: just like dtype argument in
                                    theano.tensor.sum
         :type dtype: numeric type or None
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :param bool keepdims: Whether to keep squashed dimensions of size 1
         :type axis: integer, tuple of integers or None
         :rtype: Numlike
 
@@ -207,7 +207,7 @@ class Numlike(object):
         """Returns Numlike of given shape.
 
         :param integer tuple shp: shape to be set
-        :param Boolean neutral: whether created Numlike should have neutral
+        :param bool neutral: whether created Numlike should have neutral
                         values or significant values.
         :rtype: Numlike
         """

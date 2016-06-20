@@ -97,7 +97,7 @@ class Nplike(Numlike):
         :type axis: integer or None
         :param dtype: just like dtype argument in theano.tensor.sum
         :type dtype: type or None
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :param bool keepdims: Whether to keep squashed dimensions of size 1
         """
         s = self.value.sum(axis=axis, dtype=dtype, keepdims=keepdims)
         if isinstance(s, numpy.ndarray):

@@ -239,7 +239,7 @@ class TheanoInterval(Interval):
 
         :param shp: shape of created TheanoInterval
         :type shp: tuple of integers or integer
-        :param Boolean neutral: if True sets (lower_val, upper_val) to
+        :param bool neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
                                 not set by passing arguments.
@@ -1168,7 +1168,7 @@ class TheanoInterval(Interval):
         """For any interval in TheanoInterval,
         returns whether is contains zero.
 
-        :rtype: Boolean
+        :rtype: bool
         """
         return T.and_(T.lt(self.lower, 0.0), T.gt(self.upper, 0.0))
 

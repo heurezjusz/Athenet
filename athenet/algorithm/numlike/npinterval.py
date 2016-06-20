@@ -119,7 +119,7 @@ class NpInterval(Interval):
     def _has_zero(self):
         """For any interval in NpInterval, returns whether is contains zero.
 
-        :rtype: numpy.array of Boolean
+        :rtype: numpy.array of bool
         """
         return np.logical_and(self.lower <= 0, self.upper >= 0)
 
@@ -216,7 +216,7 @@ class NpInterval(Interval):
 
         :param shp: shape of created NpInterval
         :type shp: tuple of integers or integer
-        :param Boolean neutral: if True sets (lower_val, upper_val) to
+        :param bool neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
                                 not set by passing arguments.
