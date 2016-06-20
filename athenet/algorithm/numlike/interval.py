@@ -116,8 +116,8 @@ class Interval(Numlike):
 
     def amax(self, axis=None, keepdims=False):
         """Returns maximum of an Interval along an axis.
-
         Works like theano.tensor.max.
+
         :param axis: axis or axes along which to compute the maximum
         :param keepdims: If this is set to True, the axes which are reduced are
                          left in the result as dimensions with size one. With

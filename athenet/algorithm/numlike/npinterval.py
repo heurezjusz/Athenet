@@ -214,7 +214,7 @@ class NpInterval(Interval):
     def from_shape(cls, shp, neutral=True, lower_val=None, upper_val=None):
         """Returns NpInterval of shape shp with given lower and upper values.
 
-        :param tuple of integers or integer shp : shape of created NpInterval
+        :param tuple of integers or integer shp: shape of created NpInterval
         :param Boolean neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is

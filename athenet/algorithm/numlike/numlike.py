@@ -436,9 +436,9 @@ class Numlike(object):
         :param other: Numlike variable to be concationated with
         :type other: Numlike
         :param axis: The axis along which the Numlikes will be joined.
-        Default is 0.
+                     Default is 0.
         :type axis: int, optional
         :return: Numlike object analogic to
-                np.concatenate([self, other], axis=1)
+                 np.concatenate([self, other], axis=1)
         """
         raise NotImplementedError
