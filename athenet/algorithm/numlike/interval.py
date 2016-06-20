@@ -148,9 +148,10 @@ class Interval(Numlike):
     def sum(self, axis=None, dtype=None, keepdims=False):
         """Sum of array elements over a given axis like in numpy.ndarray.
 
-        :param integer or None axis: axis along which this function sums
-        :param type or None dtype: just like dtype argument in
-                                   theano.tensor.sum
+        :param axis: axis along which this function sums
+        :type axis: integer or None
+        :param dtype: just like dtype argument in theano.tensor.sum
+        :type dtype: type or None
         :param Boolean keepdims: Whether to keep squashed dimensions of size 1
         """
         return self.construct(

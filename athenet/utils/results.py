@@ -31,10 +31,11 @@ class Results(object):
         """
         Adds new test result
 
-        :param float or iterable config: parameters used to test network
-        :param tuple(list, float) result:
-            list of number of zeros in every layers
-            and error_rate in tested network
+        :param config: parameters used to test network
+        :type config: float or iterable
+        :param result: list of number of zeros in every layers
+                       and error_rate in tested network
+        :type result: tuple(list, float)
         :param bool save: whenever save it  to file
         """
         self.tests[config] = result
@@ -83,7 +84,8 @@ class Results(object):
         """
         Returns test cases which are not yet checked
 
-        :param list or tuple configs: parameters for tests
+        :param configs: parameters for tests
+        :type configs: list or tuple
         :return list: parameters for tests not yet checked
         """
         return [config for config in configs if config not in self.tests]

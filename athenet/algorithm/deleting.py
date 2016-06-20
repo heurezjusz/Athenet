@@ -24,8 +24,8 @@ def delete_weights_by_layer_fractions(layers, fractions,
     Weights to be changed are those with bigger indicators.
 
     :param WeightedLayer layers: layers for sparsifying
-    :param float or list or numpy.ndarray fractions:
-        fraction of weights to be changed to zeros
+    :param fractions: fraction of weights to be changed to zeros
+    :type fractions: float or list or numpy.ndarray
     :param numpy.ndarray importance_indicators:
         indicators for each weight for deleting
     """

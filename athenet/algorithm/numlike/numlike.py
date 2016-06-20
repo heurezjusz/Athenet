@@ -174,8 +174,9 @@ class Numlike(object):
         """Sum of array elements over a given axis like in numpy.ndarray.
 
         :param axis: axis along which this function sums
-        :param numeric type or None dtype: just like dtype argument in
+        :param dtype: just like dtype argument in
                                    theano.tensor.sum
+        :type dtype: numeric type or None
         :param Boolean keepdims: Whether to keep squashed dimensions of size 1
         :type axis: integer, tuple of integers or None
         :rtype: Numlike
@@ -238,9 +239,10 @@ class Numlike(object):
         to make a single numlike. The size in dimension axis of the result
         will be equal to the number of numlikes passed.
 
-        :param array or tuple of Numlikes numlikes: numlikes of the same shape
+        :param numlikes: numlikes of the same shape
+        :type numlikes: array or tuple of Numlikes
         :param int axis: the axis along which numlikes will be stacked
-        :return: Numlike
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -438,7 +440,7 @@ class Numlike(object):
         :param axis: The axis along which the Numlikes will be joined.
                      Default is 0.
         :type axis: int, optional
-        :return: Numlike object analogic to
+        :returns: Numlike object analogic to
                  np.concatenate([self, other], axis=1)
         """
         raise NotImplementedError
