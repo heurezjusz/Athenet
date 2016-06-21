@@ -12,6 +12,8 @@ from athenet.layers import FullyConnectedLayer, ConvolutionalLayer
 
 from derest_params import get_derest_params
 
+import os
+
 """
     dictionary form algorithm shortcut to function to be called
 """
@@ -113,7 +115,12 @@ def get_file_name(args):
         if v in ("default", "none"):
             continue
         file_args.append(k + "_" + str(v))
-    return "results/" + "_".join(file_args)
+
+    folder = "results/"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    return folder + "_".join(file_args)
 
 
 def ok():

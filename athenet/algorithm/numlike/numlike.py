@@ -150,7 +150,7 @@ class Numlike(object):
         Works like theano.tensor.max
 
         :param axis: axis along which max is evaluated
-        :param Boolean keepdims: whether flattened dimensions should remain
+        :param bool keepdims: whether flattened dimensions should remain
         :rtype: Numlike
         """
         raise NotImplementedError
@@ -174,9 +174,10 @@ class Numlike(object):
         """Sum of array elements over a given axis like in numpy.ndarray.
 
         :param axis: axis along which this function sums
-        :param numeric type or None dtype: just like dtype argument in
+        :param dtype: just like dtype argument in
                                    theano.tensor.sum
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :type dtype: numeric type or None
+        :param bool keepdims: Whether to keep squashed dimensions of size 1
         :type axis: integer, tuple of integers or None
         :rtype: Numlike
 
@@ -206,7 +207,7 @@ class Numlike(object):
         """Returns Numlike of given shape.
 
         :param integer tuple shp: shape to be set
-        :param Boolean neutral: whether created Numlike should have neutral
+        :param bool neutral: whether created Numlike should have neutral
                         values or significant values.
         :rtype: Numlike
         """
@@ -238,9 +239,10 @@ class Numlike(object):
         to make a single numlike. The size in dimension axis of the result
         will be equal to the number of numlikes passed.
 
-        :param array or tuple of Numlikes numlikes: numlikes of the same shape
+        :param numlikes: numlikes of the same shape
+        :type numlikes: array or tuple of Numlikes
         :param int axis: the axis along which numlikes will be stacked
-        :return: Numlike
+        :rtype: Numlike
         """
         raise NotImplementedError
 
@@ -436,9 +438,9 @@ class Numlike(object):
         :param other: Numlike variable to be concationated with
         :type other: Numlike
         :param axis: The axis along which the Numlikes will be joined.
-        Default is 0.
+                     Default is 0.
         :type axis: int, optional
-        :return: Numlike object analogic to
-                np.concatenate([self, other], axis=1)
+        :returns: Numlike object analogic to
+                 np.concatenate([self, other], axis=1)
         """
         raise NotImplementedError

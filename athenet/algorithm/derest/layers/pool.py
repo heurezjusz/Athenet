@@ -45,8 +45,8 @@ def a_pool(layer_input, input_shp, poolsize, stride=(1, 1), padding=(0, 0),
     :param pair of integers stride: stride of max pool
     :param pair of integers padding: padding of pool, non-trivial padding is
                                      not allowed for 'max" mode
-    :param 'max' or 'avg' mode: specifies whether it is max pool or average
-                                pool
+    :param mode: specifies whether it is max pool or average pool
+    :type mode: 'max' or 'avg'
     :rtype: Numlike
     """
     assert_numlike(layer_input)
@@ -104,8 +104,8 @@ def d_pool(output, activation, input_shape, poolsize, stride=(1, 1),
     :param pair of integers poolsize: pool size in format (height, width)
     :param pair of integers stride: stride of pool
     :param pair of integers padding: padding of pool
-    :param 'max' or 'avg' mode: specifies whether it is max pool or average
-                                pool
+    :param mode: specifies whether it is max pool or average pool
+    :type mode: 'max' or 'avg'
     :returns: Estimated impact of input on output of network
     :rtype: Numlike
     """

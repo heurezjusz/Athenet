@@ -23,7 +23,7 @@ class DerestNetwork(object):
         Computes estimated activations for each layer
 
         :param Numlike inp: input of network
-        :param boolean normalize: whenever normalize number between layers
+        :param bool normalize: whenever normalize number between layers
         :return Numlike: possible output for network
         """
         for layer in self.layers:
@@ -35,7 +35,7 @@ class DerestNetwork(object):
         Computes estimated impact of input of each layer on output of network
 
         :param Numlike outp: output of network
-        :param boolean normalize: whenever normalize number between layers
+        :param bool normalize: whenever normalize number between layers
         :return Numlike:
         """
         batches = outp.shape[0]

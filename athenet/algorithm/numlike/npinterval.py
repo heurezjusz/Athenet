@@ -119,7 +119,7 @@ class NpInterval(Interval):
     def _has_zero(self):
         """For any interval in NpInterval, returns whether is contains zero.
 
-        :rtype: numpy.array of Boolean
+        :rtype: numpy.array of bool
         """
         return np.logical_and(self.lower <= 0, self.upper >= 0)
 
@@ -214,8 +214,9 @@ class NpInterval(Interval):
     def from_shape(cls, shp, neutral=True, lower_val=None, upper_val=None):
         """Returns NpInterval of shape shp with given lower and upper values.
 
-        :param tuple of integers or integer shp : shape of created NpInterval
-        :param Boolean neutral: if True sets (lower_val, upper_val) to
+        :param shp: shape of created NpInterval
+        :type shp: tuple of integers or integer
+        :param bool neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
                                 not set by passing arguments.

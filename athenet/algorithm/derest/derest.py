@@ -35,9 +35,11 @@ def get_derest_indicators(network, input_=None, count_function=length,
     Returns indicators of importance using derest algorithm
 
     :param Network network: network to work with
-    :param Numlike or None input_: possible input for network
+    :param input_: possible input for network
+    :type input_: Numlike or None
     :param function count_function: function to use
-    :param int or None max_batch_size: size of batch in computing derivatives
+    :param batch_size: size of batch in computing derivatives
+    :type batch_size: int or None
     :param function normalize_activations: function to normalize activations
         between layers
     :param function normalize_derivatives: function to normalize derivatives

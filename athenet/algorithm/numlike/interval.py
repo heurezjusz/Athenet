@@ -116,14 +116,14 @@ class Interval(Numlike):
 
     def amax(self, axis=None, keepdims=False):
         """Returns maximum of an Interval along an axis.
-
         Works like theano.tensor.max.
+
         :param axis: axis or axes along which to compute the maximum
         :param keepdims: If this is set to True, the axes which are reduced are
                          left in the result as dimensions with size one. With
                          this option, the result will broadcast correctly
                          against the original tensor.
-        :type keepdims: boolean
+        :type keepdims: bool
         """
         lower = self.lower.max(axis=axis, keepdims=keepdims)
         upper = self.upper.max(axis=axis, keepdims=keepdims)
@@ -148,10 +148,11 @@ class Interval(Numlike):
     def sum(self, axis=None, dtype=None, keepdims=False):
         """Sum of array elements over a given axis like in numpy.ndarray.
 
-        :param integer or None axis: axis along which this function sums
-        :param type or None dtype: just like dtype argument in
-                                   theano.tensor.sum
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :param axis: axis along which this function sums
+        :type axis: integer or None
+        :param dtype: just like dtype argument in theano.tensor.sum
+        :type dtype: type or None
+        :param bool keepdims: Whether to keep squashed dimensions of size 1
         """
         return self.construct(
             self.lower.sum(axis=axis, dtype=dtype, keepdims=keepdims),

@@ -29,7 +29,8 @@ def run_test(network, algorithm, config):
 
     :param Network network: network
     :param function algorithm: algorithm changing network
-    :param float or iterable config: parameters for algorithm
+    :param config: parameters for algorithm
+    :type config: float or iterable
     :return tuple(int, float): number of zeros and error rate
     """
     try:

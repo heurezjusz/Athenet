@@ -192,8 +192,8 @@ class TheanoInterval(Interval):
         """Returns dot product of TheanoInterval(self) vector
         and a number array (other).
 
-        :param numpy.ndarray or theano.tensor other: number array to be
-                                                     multiplied
+        :param other: number array to be multiplied
+        :type other: numpy.ndarray or theano.tensor
         :rtype: TheanoInterval
         """
         lower = self.lower
@@ -237,9 +237,9 @@ class TheanoInterval(Interval):
         """Returns TheanoInterval of shape shp with given lower
         and upper values.
 
-        :param tuple of integers or integer shp: shape of created
-                                                 TheanoInterval
-        :param Boolean neutral: if True sets (lower_val, upper_val) to
+        :param shp: shape of created TheanoInterval
+        :type shp: tuple of integers or integer
+        :param bool neutral: if True sets (lower_val, upper_val) to
                                 NEUTRAL_INTERVAL_VALUES, otherwise to
                                 DEFAULT_INTERVAL_VALUES, works only if pair is
                                 not set by passing arguments.
@@ -1168,7 +1168,7 @@ class TheanoInterval(Interval):
         """For any interval in TheanoInterval,
         returns whether is contains zero.
 
-        :rtype: Boolean
+        :rtype: bool
         """
         return T.and_(T.lt(self.lower, 0.0), T.gt(self.upper, 0.0))
 

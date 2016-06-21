@@ -93,10 +93,11 @@ class Nplike(Numlike):
     def sum(self, axis=None, dtype=None, keepdims=False):
         """Sum of array elements over a given axis like in numpy.ndarray.
 
-        :param integer or None axis: axis along which this function sums
-        :param type or None dtype: just like dtype argument in
-                                   theano.tensor.sum
-        :param Boolean keepdims: Whether to keep squashed dimensions of size 1
+        :param axis: axis along which this function sums
+        :type axis: integer or None
+        :param dtype: just like dtype argument in theano.tensor.sum
+        :type dtype: type or None
+        :param bool keepdims: Whether to keep squashed dimensions of size 1
         """
         s = self.value.sum(axis=axis, dtype=dtype, keepdims=keepdims)
         if isinstance(s, numpy.ndarray):
